@@ -16,7 +16,7 @@
 
 # ZANA Core
 
-**Zarrazola Autonomous Neural Architecture**
+**Zero Autonomous Neural Architecture**
 
 *Local-first · Neuro-Symbolic · Evolutionary · Open Source*
 
