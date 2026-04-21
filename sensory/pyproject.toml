@@ -1,0 +1,29 @@
+[project]
+name = "xana-sensory"
+version = "1.1.0"
+description = "XANA Multimodal Sensory Gateway — audio, vision, TTS"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.136.0",
+    "uvicorn[standard]>=0.44.0",
+    "python-multipart>=0.0.20",
+    "httpx>=0.28.1",
+    "pydantic>=2.13.2",
+    "numpy>=1.26.0",
+    "soundfile>=0.12.1",
+    "anthropic>=0.40.0",
+    "edge-tts>=7.0.0",
+    "faster-whisper>=1.1.0",
+    "imageio[ffmpeg]>=2.34.0",
+    "python-dotenv>=1.2.2",
+    "websockets>=16.0",
+    "smolagents>=1.24.0",
+    "litellm>=1.83.0",
+]
+
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

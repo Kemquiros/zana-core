@@ -1,0 +1,168 @@
+{
+  "eml_reconstruct_log": {
+    "name": "Logarithm Reconstruction (EML)",
+    "domain": "math",
+    "steps": [
+      "eml(1, x)",
+      "eml(1, result)",
+      "eml(1, result)"
+    ],
+    "metrics": {
+      "executions": 19,
+      "successes": 16,
+      "avg_score": NaN,
+      "last_outcome": null
+    },
+    "q_value": 0.7009455710355703,
+    "version": "1.0.0",
+    "status": "SELF_ORGANIZED"
+  },
+  "eml_reconstruct_exp": {
+    "name": "Exponential Reconstruction (EML)",
+    "domain": "math",
+    "steps": [
+      "eml(x, 1)"
+    ],
+    "metrics": {
+      "executions": 8,
+      "successes": 8,
+      "avg_score": 0.7999999999999999,
+      "last_outcome": null
+    },
+    "q_value": 0.670859837,
+    "version": "1.0.0"
+  },
+  "semantic_search": {
+    "name": "Semantic Memory Search",
+    "domain": "memory",
+    "steps": [
+      "embed_query(text) \u2192 vector",
+      "chroma.query(collection, vector, n_results=10)",
+      "rank_by_relevance(results)",
+      "return top_k(results, k=5)"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.819,
+      "last_outcome": null
+    },
+    "q_value": 0.6129332860180001,
+    "version": "1.0.0"
+  },
+  "a2a_task_dispatch": {
+    "name": "A2A Task Dispatch",
+    "domain": "swarm",
+    "steps": [
+      "resolve_skill(intent) \u2192 skill_id",
+      "lookup_agent_card(skill_id) \u2192 endpoint",
+      "POST /a2a/tasks/send {input, skill_id}",
+      "poll /a2a/tasks/{id} until COMPLETED",
+      "return task.output"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.869,
+      "last_outcome": null
+    },
+    "q_value": 0.6603347846330001,
+    "version": "1.0.0"
+  },
+  "symbolic_reasoning": {
+    "name": "Symbolic Reasoning Chain",
+    "domain": "reasoning",
+    "steps": [
+      "assert_facts(context) \u2192 working_memory",
+      "forward_chain(rules, working_memory)",
+      "collect_fired_rules()",
+      "build_explanation_trace()",
+      "audit_ledger.append(sha256(trace))"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.833,
+      "last_outcome": null
+    },
+    "q_value": 0.6050517341789999,
+    "version": "1.0.0"
+  },
+  "multimodal_ingest": {
+    "name": "Multimodal Input Ingestion",
+    "domain": "sensory",
+    "steps": [
+      "armor.inspect_input(raw) \u2192 verdict",
+      "route_by_modality(text|image|audio)",
+      "transcribe_audio(audio_b64) if audio",
+      "describe_image(image_b64) if image",
+      "normalize_to_TextEvent(content)"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.812,
+      "last_outcome": null
+    },
+    "q_value": 0.6378568178919999,
+    "version": "1.0.0"
+  },
+  "code_generation": {
+    "name": "Code Generation & Review",
+    "domain": "engineering",
+    "steps": [
+      "parse_intent(prompt) \u2192 {lang, task, constraints}",
+      "retrieve_context(semantic_search, domain=lang)",
+      "generate(claude, prompt+context)",
+      "armor.inspect_output(code)",
+      "validate_syntax(code, lang)",
+      "return {code, explanation}"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.791,
+      "last_outcome": null
+    },
+    "q_value": 0.595783030995,
+    "version": "1.0.0"
+  },
+  "document_synthesis": {
+    "name": "Document Synthesis & Summarization",
+    "domain": "knowledge",
+    "steps": [
+      "chunk_document(text, size=512, overlap=64)",
+      "embed_chunks() \u2192 vectors",
+      "chroma.upsert(collection, vectors, metadata)",
+      "query_salient_chunks(question)",
+      "synthesize(claude, chunks, question)"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 9,
+      "avg_score": 0.8099999999999999,
+      "last_outcome": null
+    },
+    "q_value": 0.5888775632909999,
+    "version": "1.0.0"
+  },
+  "swarm_dna_sync": {
+    "name": "Swarm DNA Synchronization",
+    "domain": "swarm",
+    "steps": [
+      "compute_fingerprint(rules+weights) \u2192 sha256",
+      "broadcast(registry, XanaDNA{fingerprint, delta_rules})",
+      "llm_guard.scan(incoming_rules)",
+      "merge_rules(local, remote, strategy=democratic_vote)",
+      "update_mastery_map(new_rules)"
+    ],
+    "metrics": {
+      "executions": 10,
+      "successes": 10,
+      "avg_score": 0.9590000000000002,
+      "last_outcome": null
+    },
+    "q_value": 0.7995365190340001,
+    "version": "1.0.0"
+  }
+}

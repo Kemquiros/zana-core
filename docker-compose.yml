@@ -1,0 +1,123 @@
+services:
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "${XANA_CHROMA_PORT:-58001}:8000"
+    volumes:
+      - ./data/chroma:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v2/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: xana
+      POSTGRES_USER: xana
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xana_pass}
+    ports:
+      - "${XANA_POSTGRES_PORT:-55433}:5432"
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xana -d xana"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${XANA_REDIS_PORT:-56380}:6379"
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-xana_neo4j}
+    ports:
+      - "${XANA_NEO4J_HTTP_PORT:-57474}:7474"
+      - "${XANA_NEO4J_BOLT_PORT:-57687}:7687"
+    volumes:
+      - ./data/neo4j/data:/data
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-xana_neo4j}", "RETURN 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  gateway:
+    build:
+      context: .
+      dockerfile: sensory/Dockerfile
+      args:
+        XANA_GATEWAY_PORT: ${XANA_GATEWAY_PORT:-54446}
+    restart: unless-stopped
+    ports:
+      - "${XANA_GATEWAY_PORT:-54446}:${XANA_GATEWAY_PORT:-54446}"
+    environment:
+      - GATEWAY_PORT=${XANA_GATEWAY_PORT:-54446}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OLLAMA_URL=${OLLAMA_URL:-http://host-gateway:11434}
+      - SYMBIOSIS_URL=${SYMBIOSIS_URL:-http://localhost:4444}
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - POSTGRES_URL=postgresql://xana:${POSTGRES_PASSWORD:-xana_pass}@postgres:5432/xana
+      - REDIS_URL=redis://redis:6379
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-xana_neo4j}
+    depends_on:
+      chromadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${XANA_GATEWAY_PORT:-54446}/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  pwa:
+    build:
+      context: aria-ui
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${XANA_PWA_PORT:-54448}:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=${NEXT_PUBLIC_GATEWAY_URL:-http://localhost:${XANA_GATEWAY_PORT:-54446}}
+    depends_on:
+      gateway:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./data/caddy:/data
+    environment:
+      - XANA_DOMAIN=${XANA_DOMAIN:-:80}
+      - XANA_GATEWAY_HOST=${XANA_GATEWAY_HOST:-gateway}
+      - XANA_GATEWAY_PORT=${XANA_GATEWAY_PORT:-54446}
+      - XANA_PWA_HOST=${XANA_PWA_HOST:-pwa}
+    depends_on:
+      - pwa
+      - gateway

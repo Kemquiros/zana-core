@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# xr — XANA Router shell wrapper
+# Usage: xr "query"
+#        xr -r "query"        # route-only (classify)
+#        xr --force gemini "q"
+#        xr -v -j "query"     # verbose + JSON
+
+ROUTER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+exec python3 "$ROUTER_DIR/xana_router.py" "$@"
+
+# Note: requires python3 in PATH.
+# If gemini classifier is unavailable, falls back to Claude for ambiguous queries.

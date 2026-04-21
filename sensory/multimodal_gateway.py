@@ -1,0 +1,505 @@
+"""
+MultimodalGateway — XANA's sensory entry point.
+Port: 54446
+
+Endpoints:
+  POST /sense/audio      — audio (WAV/MP3/OGG) → PerceptionEvent + TTS response
+  POST /sense/vision     — image/video → PerceptionEvent + description
+  POST /sense/text       — plain text → PerceptionEvent (standard pipeline)
+  POST /sense/multimodal — simultaneous audio + image (enriched context)
+  WS   /sense/stream     — bidirectional real-time stream
+  GET  /aeon/speak       — arbitrary TTS (text → base64 MP3 audio)
+  GET  /health           — gateway status and available backends
+
+XANA Cortex integration:
+  Calls POST http://SYMBIOSIS_URL/mcp/context to enrich the response
+  with episodic/semantic memory before synthesizing the Aeon's voice.
+  If Symbiosis is offline, operates in autonomous local mode.
+"""
+from __future__ import annotations
+
+import base64
+import json
+import logging
+import os
+from typing import Optional
+
+import httpx
+import numpy as np
+from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from .audio_processor import AudioProcessor
+from .local_llm import get_local_llm
+from .perception_event import PerceptionEvent, VisionFeatures
+from .tts_engine import TTSEngine
+from .vision_processor import VisionProcessor
+from .armor_middleware import inspect_input, inspect_output, backend as armor_backend
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
+logger = logging.getLogger("xana.gateway")
+
+SYMBIOSIS_URL = os.getenv("SYMBIOSIS_URL", "http://localhost:4444")
+GATEWAY_PORT  = int(os.getenv("GATEWAY_PORT", "54446"))
+
+app = FastAPI(
+    title="XANA Multimodal Sensory Gateway",
+    description="Audio · Vision · TTS — The Aeon's sensory layer",
+    version="1.1.0",
+)
+app.add_middleware(CORSMiddleware, allow_origins=["*"],
+                   allow_methods=["*"], allow_headers=["*"])
+
+# Procesadores (lazy-loaded)
+_audio = AudioProcessor()
+_vision = VisionProcessor()
+_tts = TTSEngine()
+
+
+# ─── Kalman Filter (Rust Steel Core → numpy fallback) ─────────────────────────
+
+def _build_kalman(dim: int = 64):
+    """Returns Rust PyKalmanFilter if available, else Python fallback."""
+    try:
+        import xana_steel_core
+        kf = xana_steel_core.PyKalmanFilter(dim, 1e-4, 1e-2)
+        logger.info("⚙️  [KALMAN] Rust Steel Core active (dim=%d)", dim)
+        return kf
+    except Exception:
+        logger.warning("⚠️  [KALMAN] Using numpy fallback (install xana_steel_core.so)")
+        return None
+
+class _NumpyKalmanGate:
+    def __init__(self, dim: int = 64):
+        self.state = np.zeros(dim)
+        self.uncertainty = np.ones(dim)
+
+    def update(self, obs: list) -> float:
+        obs_arr = np.asarray(obs)
+        self.uncertainty += 1e-4
+        K = self.uncertainty / (self.uncertainty + 1e-2)
+        innovation = obs_arr - self.state
+        surprise = float(np.mean((innovation ** 2) / (self.uncertainty + 1e-2)))
+        self.state += K * innovation
+        self.uncertainty *= (1 - K)
+        return surprise
+
+_rust_kalman = _build_kalman(64)
+_numpy_kalman = _NumpyKalmanGate(64) if _rust_kalman is None else None
+
+def _kalman_surprise_text(text: str) -> float:
+    """Fused embed+Kalman in one Rust call — 599 ns, 54x faster than numpy path."""
+    if _rust_kalman is not None:
+        return _rust_kalman.update_text(text)
+    # Numpy fallback
+    h = hash(text) % (2 ** 32)
+    emb = np.random.default_rng(h).standard_normal(64)
+    return _numpy_kalman.update(emb)  # type: ignore[union-attr]
+
+def _kalman_surprise_buffer(embedding: np.ndarray) -> float:
+    """Zero-copy Kalman update from numpy array — used for audio/vision embeddings."""
+    if _rust_kalman is not None:
+        return _rust_kalman.update_buffer(embedding)
+    return _numpy_kalman.update(embedding)  # type: ignore[union-attr]
+
+
+# ─── Cortex bridge ────────────────────────────────────────────────────────────
+
+async def _query_cortex(event: PerceptionEvent) -> str:
+    """
+    Queries the Cortex (Symbiosis) for relevant context.
+    Returns a context string, or empty string if Symbiosis is offline.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.post(
+                f"{SYMBIOSIS_URL}/mcp/context",
+                json={"query": event.cortex_input, "session_id": event.session_id or "gateway", "limit": 3},
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                return data.get("context", "")
+    except Exception:
+        pass
+    return ""
+
+
+def _build_aeon_response(event: PerceptionEvent, cortex_context: str) -> str:
+    """
+    Generates the Aeon's real response via LocalLLM (Ollama → Claude → template).
+    Local-first: llama3.1:8b if Ollama is active, Claude Haiku if API key is available.
+    """
+    user_input = event.cortex_input or event.text or ""
+    if not user_input.strip():
+        return ""
+
+    modality_prefix = {
+        "audio":      f"[User said]: {event.text}",
+        "vision":     f"[Observed scene]: {event.text}",
+        "multimodal": f"[Perceived audio+vision]: {event.text}",
+    }.get(event.modality, user_input)
+
+    llm = get_local_llm()
+    return llm.generate(modality_prefix, context=cortex_context, session_id=event.session_id or "")
+
+
+# ─── Request models ───────────────────────────────────────────────────────────
+
+class TextSenseRequest(BaseModel):
+    text: str
+    session_id: Optional[str] = None
+    respond_with_audio: bool = False
+
+
+class SpeakRequest(BaseModel):
+    text: str
+    voice: Optional[str] = None
+
+
+# ─── Endpoints ────────────────────────────────────────────────────────────────
+
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from swarm.apex.orchestrator import ApexOrchestrator
+
+# Initialize the orchestrator (The Apex Quintet)
+apex_orchestrator = ApexOrchestrator()
+
+class OrchestratorRequest(BaseModel):
+    query: str
+    session_id: Optional[str] = None
+
+@app.post("/apex/orchestrate", response_model=dict, summary="Execute a complex task with the Apex Quintet")
+async def apex_orchestrate(req: OrchestratorRequest):
+    """
+    Deploys the 5-agent squad (Archivist, Herald, Operator, Analyst, Sentinel)
+    to resolve a complex user query.
+    """
+    logger.info(f"🌀 [APEX GATEWAY] New orchestration request: '{req.query}'")
+    try:
+        # En un entorno real asíncrono, esto se envolvería en asyncio.to_thread si es bloqueante
+        result = apex_orchestrator.process_request(req.query)
+        return {
+            "status": "success",
+            "query": req.query,
+            "response": result
+        }
+    except Exception as e:
+        logger.error(f"❌ [APEX GATEWAY] Orchestration error: {e}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+@app.post("/sense/audio", response_model=dict, summary="Audio → STT + TTS response")
+async def sense_audio(
+    audio: UploadFile = File(..., description="Archivo de audio WAV/MP3/OGG/FLAC"),
+    session_id: Optional[str] = Form(None),
+    respond_with_audio: bool = Form(True),
+    context_hint: Optional[str] = Form(None),
+):
+    """
+    Pipeline:
+      1. Receives audio → STT (Whisper)
+      2. Extracts acoustic features (energy, ZCR, pitch)
+      3. Calculates Bayesian Surprise via Kalman
+      4. Queries Cortex with the transcript
+      5. Synthesizes Aeon response with TTS
+      6. Returns complete PerceptionEvent
+    """
+    audio_bytes = await audio.read()
+    mime = audio.content_type or "audio/wav"
+
+    # 1. STT
+    result = _audio.transcribe(audio_bytes, mime)
+    emotion = _audio.infer_emotion_from_features(result.features)
+
+    # 2. Construir evento parcial
+    event = PerceptionEvent(
+        modality="audio",
+        session_id=session_id,
+        text=result.transcript,
+        audio_features=result.features,
+        source_mime=mime,
+        response_emotion=emotion,
+    )
+
+    # 3. Kalman surprise
+    event.kalman_surprise = _kalman_surprise_text(result.transcript)
+
+    # 4. Cortex
+    cortex_ctx = await _query_cortex(event)
+    event.response_text = _build_aeon_response(event, cortex_ctx)
+
+    # 5. TTS
+    if respond_with_audio and event.response_text:
+        audio_response = await _tts.synthesize_async(event.response_text)
+        event.response_audio_b64 = base64.b64encode(audio_response).decode()
+
+    logger.info(
+        "🎤→🧠→🔊 [AUDIO] transcript='%s…' | surprise=%.3f | emotion=%s",
+        result.transcript[:50], event.kalman_surprise, emotion,
+    )
+    return event.to_dict()
+
+
+@app.post("/sense/vision", response_model=dict, summary="Imagen/Video → descripción + facts")
+async def sense_vision(
+    media: UploadFile = File(..., description="Imagen (JPG/PNG/WebP) o video (MP4/WebM)"),
+    session_id: Optional[str] = Form(None),
+    context_hint: Optional[str] = Form(None),
+    respond_with_audio: bool = Form(False),
+):
+    """
+    Pipeline:
+      1. Detects whether input is image or video
+      2. Image → direct Claude Vision analysis
+         Video → extracts keyframes → analyzes each one
+      3. Consolidates description + entities
+      4. Queries Cortex
+      5. Returns PerceptionEvent with facts for the ReasoningEngine
+    """
+    media_bytes = await media.read()
+    mime = media.content_type or "image/jpeg"
+    is_video = mime.startswith("video/")
+
+    if is_video:
+        analyses = _vision.analyze_video(media_bytes, mime, context_hint or "")
+        # Consolidar: unir todas las descripciones
+        descriptions = [d for d, _ in analyses]
+        all_entities = list({e for _, f in analyses for e in f.entities})
+        combined_desc = " | ".join(descriptions[:3])
+        features = analyses[0][1] if analyses else VisionFeatures("mixed", [], "neutral", "", 0.0)
+        features.entities = all_entities[:8]
+    else:
+        combined_desc, features = _vision.analyze_image(media_bytes, mime, context_hint or "")
+
+    event = PerceptionEvent(
+        modality="vision",
+        session_id=session_id,
+        text=combined_desc,
+        vision_features=features,
+        source_mime=mime,
+        response_emotion=features.emotional_context,
+    )
+
+    event.kalman_surprise = _kalman_surprise_text(combined_desc)
+
+    cortex_ctx = await _query_cortex(event)
+    event.response_text = _build_aeon_response(event, cortex_ctx)
+
+    if respond_with_audio and event.response_text:
+        audio_response = await _tts.synthesize_async(event.response_text)
+        event.response_audio_b64 = base64.b64encode(audio_response).decode()
+
+    logger.info(
+        "👁️→🧠 [VISION] scene=%s | entities=%s | surprise=%.3f",
+        features.scene_type, features.entities[:3], event.kalman_surprise,
+    )
+    return event.to_dict()
+
+
+@app.post("/sense/text", response_model=dict, summary="Text → standard PerceptionEvent")
+async def sense_text(req: TextSenseRequest):
+    """Normalized text pipeline. Produces the same PerceptionEvent as audio/vision."""
+    event = PerceptionEvent(
+        modality="text",
+        session_id=req.session_id,
+        text=req.text,
+        source_mime="text/plain",
+    )
+    event.kalman_surprise = _kalman_surprise_text(req.text)
+
+    cortex_ctx = await _query_cortex(event)
+    event.response_text = _build_aeon_response(event, cortex_ctx)
+
+    if req.respond_with_audio and event.response_text:
+        audio_response = await _tts.synthesize_async(event.response_text)
+        event.response_audio_b64 = base64.b64encode(audio_response).decode()
+
+    return event.to_dict()
+
+
+@app.post("/sense/multimodal", response_model=dict, summary="Audio + Imagen simultáneos")
+async def sense_multimodal(
+    audio: Optional[UploadFile] = File(None),
+    image: Optional[UploadFile] = File(None),
+    session_id: Optional[str] = Form(None),
+    respond_with_audio: bool = Form(True),
+):
+    """
+    Combines audio + image into a single PerceptionEvent.
+    Use case: the user speaks while sharing their screen or a photo.
+    """
+    event = PerceptionEvent(modality="multimodal", session_id=session_id)
+
+    if audio:
+        audio_bytes = await audio.read()
+        result = _audio.transcribe(audio_bytes, audio.content_type or "audio/wav")
+        event.audio_features = result.features
+        event.text = result.transcript
+        event.response_emotion = _audio.infer_emotion_from_features(result.features)
+
+    if image:
+        img_bytes = await image.read()
+        desc, vfeatures = _vision.analyze_image(img_bytes, image.content_type or "image/jpeg")
+        event.vision_features = vfeatures
+        # Combine transcript + visual description as Cortex input
+        event.text = f"{event.text or ''} [+SEE: {desc}]".strip()
+
+    event.kalman_surprise = _kalman_surprise_text(event.text or "")
+
+    cortex_ctx = await _query_cortex(event)
+    event.response_text = _build_aeon_response(event, cortex_ctx)
+
+    if respond_with_audio and event.response_text:
+        audio_response = await _tts.synthesize_async(event.response_text)
+        event.response_audio_b64 = base64.b64encode(audio_response).decode()
+
+    return event.to_dict()
+
+
+@app.post("/aeon/speak", response_model=dict, summary="Arbitrary TTS — Aeon's voice")
+async def aeon_speak(req: SpeakRequest):
+    """
+    Synthesizes any text with the Aeon's voice.
+    Useful for proactive notifications from the Shadow Observer.
+    """
+    audio_bytes = await _tts.synthesize_async(req.text, req.voice)
+    return {
+        "text": req.text,
+        "voice": req.voice or _tts._detect_backend(),
+        "audio_b64": base64.b64encode(audio_bytes).decode(),
+        "mime": "audio/mpeg",
+        "bytes": len(audio_bytes),
+    }
+
+
+@app.websocket("/sense/stream")
+async def sense_stream(ws: WebSocket):
+    """
+    Stream bidireccional en tiempo real.
+    Cliente envía: { "type": "audio"|"text"|"vision", "data": "<base64 o texto>" }
+    Servidor responde: PerceptionEvent JSON
+    """
+    await ws.accept()
+    logger.info("🌐 [STREAM] Client connected")
+    try:
+        while True:
+            raw = await ws.receive_text()
+            msg = json.loads(raw)
+            msg_type = msg.get("type", "text")
+            data = msg.get("data", "")
+            session_id = msg.get("session_id")
+
+            # ── Armor: inspect input ──────────────────────────────────
+            if msg_type == "text":
+                verdict = inspect_input(data)
+                if not verdict["allowed"]:
+                    await ws.send_json({"error": "ARMOR_BLOCKED", "threat": verdict["threat_level"]})
+                    continue
+                data = verdict["sanitized"]
+                event = PerceptionEvent(modality="text", session_id=session_id, text=data)
+                event.kalman_surprise = _kalman_surprise_text(data)
+                ctx = await _query_cortex(event)
+                event.response_text = _build_aeon_response(event, ctx)
+                # ── Armor: inspect output ─────────────────────────────
+                out_verdict = inspect_output(event.response_text or "")
+                if not out_verdict["allowed"]:
+                    event.response_text = "[XANA: response blocked by security policy]"
+                else:
+                    event.response_text = out_verdict["sanitized"]
+
+            elif msg_type == "audio":
+                audio_bytes = base64.b64decode(data)
+                result = _audio.transcribe(audio_bytes)
+                event = PerceptionEvent(
+                    modality="audio", session_id=session_id,
+                    text=result.transcript, audio_features=result.features,
+                )
+                event.kalman_surprise = _kalman_surprise_text(result.transcript)
+                ctx = await _query_cortex(event)
+                event.response_text = _build_aeon_response(event, ctx)
+                # TTS in stream
+                audio_resp = await _tts.synthesize_async(event.response_text or "")
+                event.response_audio_b64 = base64.b64encode(audio_resp).decode()
+
+            elif msg_type == "vision":
+                img_bytes = base64.b64decode(data)
+                desc, features = _vision.analyze_image(img_bytes)
+                event = PerceptionEvent(
+                    modality="vision", session_id=session_id,
+                    text=desc, vision_features=features,
+                )
+                event.kalman_surprise = _kalman_surprise_text(desc)
+                ctx = await _query_cortex(event)
+                event.response_text = _build_aeon_response(event, ctx)
+
+            else:
+                event = PerceptionEvent(modality="text", text=f"[unknown type: {msg_type}]")
+
+            await ws.send_json(event.to_dict())
+
+    except WebSocketDisconnect:
+        logger.info("🌐 [STREAM] Client disconnected")
+    except Exception as e:
+        logger.error("❌ [STREAM] Error: %s", e)
+        await ws.close(code=1011)
+
+
+@app.get("/health")
+def health():
+    """Gateway status and availability of each backend."""
+    audio_backend = _audio._backend or "not_loaded"
+    tts_backend   = _tts._backend or "not_loaded"
+    llm_info      = get_local_llm().backend_info()
+    llm_backend   = f"ollama:{llm_info['text_model']}" if llm_info["ollama"] else (
+                    "claude-haiku" if llm_info["claude"] else "template")
+    vision_backend = (f"ollama:{llm_info['vision_model']}" if llm_info.get("vision_model")
+                      else ("claude-vision" if _vision._client else "mock"))
+    return {
+        "status": "online",
+        "backends": {
+            "stt":    audio_backend,
+            "tts":    tts_backend,
+            "llm":    llm_backend,
+            "vision": vision_backend,
+            "kalman": "rust-steel-core" if _rust_kalman else "numpy",
+            "armor":  armor_backend(),
+        },
+        "endpoints": {
+            "audio":      "POST /sense/audio",
+            "vision":     "POST /sense/vision",
+            "text":       "POST /sense/text",
+            "multimodal": "POST /sense/multimodal",
+            "stream":     "WS   /sense/stream",
+            "speak":      "POST /aeon/speak",
+            "agent_card": "GET  /.well-known/agent-card.json",
+        },
+    }
+
+
+# ─── A2A Agent Card ──────────────────────────────────────────────────────────
+
+import sys; sys.path.insert(0, str(Path(__file__).parent.parent))
+try:
+    from swarm.agent_card import serve_agent_card
+    serve_agent_card(app, node_id=os.getenv("XANA_NODE_ID", "AEON-001"))
+except Exception as _e:
+    logger.warning("AgentCard not registered: %s", _e)
+
+
+# ─── Entry point ──────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    import uvicorn
+    print("╔══════════════════════════════════════════════════╗")
+    print("║   XANA MULTIMODAL SENSORY GATEWAY  v1.0          ║")
+    print("║   Audio · Vision · TTS                           ║")
+    print(f"║   http://0.0.0.0:{GATEWAY_PORT}                         ║")
+    print("╚══════════════════════════════════════════════════╝")
+    uvicorn.run("sensory.multimodal_gateway:app", host="0.0.0.0",
+                port=GATEWAY_PORT, reload=False)

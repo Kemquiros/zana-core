@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install Python deps
+        run: |
+          cd sensory
+          uv sync
+
+      - name: Check for secrets in code
+        run: |
+          ! grep -r "sk-[a-zA-Z0-9]" --include="*.py" --include="*.rs" --include="*.toml" .
+          ! grep -r "AIza[a-zA-Z0-9]" --include="*.py" .
+
+      - name: Rust build check
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Build Rust core
+        run: |
+          cd rust_core
+          cargo check --features python
+
+      - name: Run benchmark (cold mode — no Docker)
+        run: |
+          cd sensory
+          PYTHONPATH=".." uv run python ../tests/benchmark_xana.py
+        continue-on-error: true  # cold score is lower; don't fail CI
+
+  docker-build:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t xana-gateway:${{ github.sha }} -f Dockerfile .
