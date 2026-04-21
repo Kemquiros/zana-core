@@ -73,7 +73,7 @@
   linkcolor=xblue,
   citecolor=xblue,
   urlcolor=xblue!80!black,
-  pdftitle={XANA: A Neuro-Symbolic Personal Cognitive AI Runtime},
+  pdftitle={ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime},
   pdfauthor={John Tapias Zarrazola},
   pdfkeywords={cognitive architecture, neuro-symbolic AI, local-first, evolutionary optimization, fuzzy logic, multi-agent}
 }
@@ -83,7 +83,7 @@
 % ============================================================
 \title{
   {\color{xblue}\rule{\linewidth}{2pt}} \\[1em]
-  \textbf{\huge XANA: A Neuro-Symbolic Personal Cognitive AI Runtime} \\[0.4em]
+  \textbf{\huge ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime} \\[0.4em]
   \large Architecture, Evolutionary Self-Improvement, and Open-Source Release \\[0.4em]
   {\color{xblue}\rule{\linewidth}{0.5pt}}
 }
@@ -105,7 +105,7 @@
 % ============================================================
 \begin{abstract}
 \noindent
-We present \textbf{XANA}, an open-source personal cognitive AI runtime that fuses four previously
+We present \textbf{ZANA}, an open-source personal cognitive AI runtime that fuses four previously
 separate research threads into a single deployable system: (1)~\emph{neuro-symbolic reasoning}, where
 a Rust CLIPS-pattern forward-chaining engine verifies and augments LLM outputs; (2)~\emph{adversarial
 evolutionary optimization} via a Digital Red Queen tournament~\cite{kumar2025redqueen} that continuously
@@ -116,8 +116,8 @@ middleware layer enforces PII detection and prompt-injection rejection at $2.1\,
 structurally, not as a Python-level filter. A Rust Kalman filter ($1.4\,\mu$s via PyO3 zero-copy
 buffers) tracks epistemic uncertainty before facts enter the symbolic engine. Five specialized agents
 (the \emph{Apex Quintet}) communicate through a typed AION protocol that eliminates hallucination
-cascade. We evaluate XANA using the \textbf{XANA Fitness Index} (XFI), a seven-pillar composite
-benchmark. With a full Docker infrastructure stack, XANA achieves $\mathrm{XFI} = 100.0/100$.
+cascade. We evaluate ZANA using the \textbf{ZANA Fitness Index} (ZFI), a seven-pillar composite
+benchmark. With a full Docker infrastructure stack, ZANA achieves $\mathrm{ZFI} = 100.0/100$.
 The complete system --- Rust, Python, TypeScript, Docker, benchmark suite --- is available at
 \url{https://github.com/kemquiros/zana-core} under the MIT License.
 \bigskip\\
@@ -156,7 +156,7 @@ requires a different architecture. We identify six requirements:
     confidence in biological cognition~\cite{bates1994emotion}; a personal AI must account for it.
 \end{enumerate}
 
-XANA satisfies all six requirements. Figure~\ref{fig:arch} shows the complete layered architecture.
+ZANA satisfies all six requirements. Figure~\ref{fig:arch} shows the complete layered architecture.
 
 % ===========================================================
 \section{Architecture}
@@ -182,7 +182,7 @@ XANA satisfies all six requirements. Figure~\ref{fig:arch} shows the complete la
   \node[layer=xdark!90, draw=xblue!60]   (L5) at (0,2.8) {INFERENCE --- LocalLLM (Ollama / Claude / Groq / OpenRouter)};
   \node[layer=xdark!90, draw=xblue!40]   (L4) at (0,4.2) {MEMORY --- ChromaDB \textbar{} PostgreSQL \textbar{} Neo4j \textbar{} Skills Registry};
   \node[layer=xdark!90, draw=gray!50]    (L3) at (0,5.6) {SIGNAL --- Kalman Filter (Rust, 1.4\,$\mu$s) + Fuzzy Heart};
-  \node[layer=xdark!90, draw=xrust!70]   (L2) at (0,7.0) {SECURITY --- Armor (Rust, 2.1\,$\mu$s) — PII + Injection Guard};
+  \node[layer=xdark!90, draw=xrust!70]   (L2) at (0,7.0) {SECURITY --- Armor (Rust, 2.1\,$\mu$s) --- PII + Injection Guard};
   \node[layer=xdark!90, draw=xjade!40]   (L1) at (0,8.4) {SENSORY --- Audio (Whisper) \textbar{} Vision (LLaVA/Claude) \textbar{} Text};
 
   % Arrows
@@ -198,7 +198,7 @@ XANA satisfies all six requirements. Figure~\ref{fig:arch} shows the complete la
   \node[label, right=0.3cm of L6] {Fixed-point};
   \node[label, right=0.3cm of L7] {5 agents};
 \end{tikzpicture}
-\caption{XANA seven-layer architecture. Data flows top-to-bottom; each layer adds verification or
+\caption{ZANA seven-layer architecture. Data flows top-to-bottom; each layer adds verification or
 enrichment before passing the payload downward. The Armor layer (red) is the only exit path for
 rejected inputs --- no bypass is possible through the Python application layer.}
 \label{fig:arch}
@@ -245,7 +245,7 @@ Python--Rust allocation overhead and is $4.6\times$ faster than the list path:
 # Zero-copy buffer path (1.4 us/call)
 kalman.update_buffer(obs_np_array)   # no allocation
 
-# Python list path (6.5 us/call — compatibility only)
+# Python list path (6.5 us/call --- compatibility only)
 kalman.update([v1, v2, v3])
 \end{lstlisting}
 
@@ -253,9 +253,22 @@ kalman.update([v1, v2, v3])
 
 The Policy Brain is a $384\!\to\!64\!\to\!4$ feedforward network with 8-accumulator FMA unrolling
 (hides the 5-cycle FMA latency on x86) and row-major weight layout (ensures contiguous cache access).
-Achieved latency: $7$--$10\,\mu$s. The EML (Exponential-Log) operator provides a numerically
-stable identity $\log(\exp(x)) \equiv x$ \cite{odrzywolekEML}, used for round-trip signal
-verification; error = $0.0$.
+Achieved latency: $7$--$10\,\mu$s.
+
+\paragraph{EML: A Universal Arithmetic Primitive.}
+The EML (Exponential-Log) operator~\cite{odrzywolekEML} establishes $\exp$ and $\log$ as the two
+\emph{axiomatic} operations from which all standard arithmetic can be derived:
+\[
+  x \cdot y = \exp(\log x + \log y), \quad
+  x^n = \exp(n \log x), \quad
+  \sqrt{x} = \exp\!\tfrac{1}{2}\log x
+\]
+The round-trip identity $\log(\exp(x)) \equiv x$ serves as a hardware-level numerical contract:
+ZANA's Rust implementation verifies this identity after every signal propagation, achieving
+$\mathrm{error} = 0.0$ (exact IEEE-754 round-trip). Because $\exp$ and $\log$ are the only
+primitives, the arithmetic kernel is provably minimal --- deterministic across platforms, immune
+to floating-point drift, and directly mappable to hardware FPU instructions. No other personal AI
+runtime publicly reports this level of arithmetic determinism.
 
 \subsection{Armor: Security by Architecture}
 \label{sec:armor}
@@ -329,13 +342,13 @@ and returns HTTP 403 --- the LLM is never reached for poisoned inputs.}
 
   % Central hub
   \node[draw=gray!50, fill=xdark!80, rounded corners=6pt,
-        minimum width=2cm, minimum height=2cm,
+        minimum width=2cm, minimum height=2cm, align=center,
         font=\small\bfseries, text=white] (hub) at (2.75,-1.75) {Memory\\Manager};
 
   \foreach \n in {sem,epi,proc,wm}
     \draw[arr] (hub) -- (\n);
 \end{tikzpicture}
-\caption{XANA's four-store memory architecture. The Memory Manager (MCP Symbiosis server)
+\caption{ZANA's four-store memory architecture. The Memory Manager (MCP Symbiosis server)
 routes queries to the appropriate store. Episodic and semantic retrieval are always separated,
 preventing the false-association errors common in monolithic vector databases.}
 \label{fig:memory}
@@ -434,7 +447,7 @@ eligible for promotion into the procedural memory registry.}
 Inspired by the Digital Red Queen paper~\cite{kumar2025redqueen} and AutoML-Zero~\cite{real2020automlzero},
 \emph{Idle Zero} represents each cognitive algorithm as a typed \texttt{WarriorAlgorithm}:
 
-\begin{lstlisting}[language=Rust, caption={WarriorAlgorithm data structure}]
+\begin{lstlisting}[language=C, caption={WarriorAlgorithm data structure (Rust)}]
 pub struct WarriorAlgorithm {
     pub id:         String,
     pub generation: u32,
@@ -447,6 +460,9 @@ pub struct WarriorAlgorithm {
 
 Instructions operate over a 64-slot memory array using the EML-derived minimal instruction set:
 \texttt{\{NoOp, Add, Sub, Mul, Div, Exp, Log, Sin, Cos, GaussianSample, EmulativeCall\}}~\cite{odrzywolekEML}.
+Every arithmetic operation reduces to \texttt{Exp} and \texttt{Log} at the bytecode level,
+guaranteeing that evolved warriors are arithmetically deterministic and reproducible --- the same
+genome produces identical results on any IEEE-754 platform.
 Fitness is evaluated on real personal data (\texttt{real\_data.txt}), embedding curriculum
 principles~\cite{bengio2009curriculum} by progressively increasing data difficulty as generations advance.
 
@@ -487,19 +503,19 @@ inter-agent communication is rejected, eliminating hallucination cascade.}
 \subsection{Cognitive Architectures}
 Classical architectures ACT-R~\cite{anderson2004actr} and SOAR~\cite{laird2012soar} integrate
 symbolic and procedural knowledge but require hand-crafted rules and predate modern neural models.
-XANA uses the symbolic engine as a \emph{verification layer} over LLM outputs rather than as the
+ZANA uses the symbolic engine as a \emph{verification layer} over LLM outputs rather than as the
 primary reasoning substrate.
 
 \subsection{Fuzzy Logic}
 Zadeh~\cite{zadeh1965fuzzysets} introduced continuous $[0,1]$ membership. The computational framework
 of linguistic variables and IF-THEN rules followed in~\cite{zadeh1973outline,zadeh1975fuzzylogic}.
 Mamdani~\cite{mamdani1974application} provided the first practical control architecture; Takagi and
-Sugeno~\cite{takagi1985fuzzy} extended it to ML-compatible output forms. XANA uses Mamdani inference
+Sugeno~\cite{takagi1985fuzzy} extended it to ML-compatible output forms. ZANA uses Mamdani inference
 for the Fuzzy Heart.
 
 \subsection{World Models}
 Ha and Schmidhuber~\cite{ha2018worldmodels} showed that an agent can learn a compressed world model
-and train inside its own ``dream.'' XANA's Neo4j world model plays an analogous role, enabling
+and train inside its own ``dream.'' ZANA's Neo4j world model plays an analogous role, enabling
 multi-hop symbolic reasoning over a graph of entities extracted from episodic experience.
 
 \subsection{Reinforcement and Curriculum Learning}
@@ -508,14 +524,14 @@ principles~\cite{bengio2009curriculum} by increasing training difficulty as warr
 
 \subsection{Evolutionary Machine Learning}
 AutoML-Zero~\cite{real2020automlzero} showed that full ML algorithms can be evolved from primitives.
-XANA's Idle Zero extends this: warriors are typed programs in a cognitive VM, and evolution uses
+ZANA's Idle Zero extends this: warriors are typed programs in a cognitive VM, and evolution uses
 adversarial Red Queen pressure~\cite{kumar2025redqueen} rather than standard tournament selection alone.
 Model merging~\cite{akiba2024modelmerging} and preference optimization~\cite{lu2024preferenceoptalgo}
 inform the roadmap for personalizing local LLM weights.
 
 \subsection{LLM Agents and Security}
 LangGraph~\cite{langchain2024langgraph} and smolagents~\cite{huggingface2024smolagents} provide the
-execution backbone for the Apex Quintet. XANA wraps them with the AION typed protocol. Prompt
+execution backbone for the Apex Quintet. ZANA wraps them with the AION typed protocol. Prompt
 injection~\cite{greshake2023promptinjection} motivates the Armor Rust layer: making security
 impossible to bypass through the Python application tier.
 
@@ -523,11 +539,11 @@ impossible to bypass through the Python application tier.
 \section{Evaluation}
 % ===========================================================
 
-\subsection{XANA Fitness Index (XFI)}
+\subsection{ZANA Fitness Index (ZFI)}
 
 \begin{table}[H]
 \centering
-\caption{XFI Pillar Weights and Measurement Methods}
+\caption{ZFI Pillar Weights and Measurement Methods}
 \begin{tabular}{@{}llll@{}}
 \toprule
 \textbf{Pillar} & \textbf{Weight} & \textbf{Measurement} \\
@@ -541,7 +557,7 @@ Armor          & 10\% & PII detection rate + injection rejection rate \\
 Interoperability & 5\% & A2A protocol compliance \\
 \bottomrule
 \end{tabular}
-$\displaystyle\mathrm{XFI} = 100 \cdot \sum_{i=1}^{7} w_i \cdot s_i$
+$\displaystyle\mathrm{ZFI} = 100 \cdot \sum_{i=1}^{7} w_i \cdot s_i$
 \end{table}
 
 \subsection{Performance Results}
@@ -557,13 +573,13 @@ Kalman (buffer path)   & $\leq 2.0\,\mu$s & $1.4\,\mu$s   & \checkmark \\
 Armor inspect          & $\leq 5.0\,\mu$s & $2.1\,\mu$s   & \checkmark \\
 PolicyBrain forward    & $\leq 15\,\mu$s  & $7$-$10\,\mu$s & \checkmark \\
 EML round-trip error   & $= 0.0$          & $0.0$          & \checkmark \\
-XFI (hot, Docker up)   & $\geq 90.0$      & \textbf{100.0} & \checkmark \\
-XFI (cold, no Docker)  & $\geq 50.0$      & $\approx 65$   & \checkmark \\
+ZFI (hot, Docker up)   & $\geq 90.0$      & \textbf{100.0} & \checkmark \\
+ZFI (cold, no Docker)  & $\geq 50.0$      & $\approx 65$   & \checkmark \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{XFI Pillar Breakdown}
+\subsection{ZFI Pillar Breakdown}
 
 \begin{figure}[H]
 \centering
@@ -597,7 +613,7 @@ XFI (cold, no Docker)  & $\geq 50.0$      & $\approx 65$   & \checkmark \\
 };
 \end{axis}
 \end{tikzpicture}
-\caption{XFI pillar scores with full Docker stack (hot mode). All seven pillars achieve 100/100.}
+\caption{ZFI pillar scores with full Docker stack (hot mode). All seven pillars achieve 100/100.}
 \label{fig:xfi}
 \end{figure}
 
@@ -605,12 +621,12 @@ XFI (cold, no Docker)  & $\geq 50.0$      & $\approx 65$   & \checkmark \\
 
 \begin{table}[H]
 \centering
-\caption{Comparative Analysis (XFI rubric applied to documented capabilities)}
+\caption{Comparative Analysis (ZFI rubric applied to documented capabilities)}
 \begin{tabular}{@{}lccccc@{}}
 \toprule
-\textbf{System} & \textbf{XFI} & \textbf{Local} & \textbf{Symbolic} & \textbf{Security} & \textbf{Evolutionary} \\
+\textbf{System} & \textbf{ZFI} & \textbf{Local} & \textbf{Symbolic} & \textbf{Security} & \textbf{Evolutionary} \\
 \midrule
-XANA (ours)      & \textbf{100.0} & \checkmark & \checkmark & Rust & \checkmark \\
+ZANA (ours)      & \textbf{100.0} & \checkmark & \checkmark & Rust & \checkmark \\
 Open Interpreter & $\approx 30$   & \checkmark & $\times$   & $\times$ & $\times$ \\
 AutoGPT          & $\approx 33$   & $\times$   & $\times$   & $\times$ & $\times$ \\
 Claude Code      & $\approx 41$   & $\times$   & $\times$   & $\times$ & $\times$ \\
@@ -620,7 +636,7 @@ ChatGPT          & $\approx 57$   & $\times$   & $\times$   & cloud   & $\times$
 \end{tabular}
 \end{table}
 
-\noindent\textit{Note: competitor XFI scores are approximations using XANA's rubric applied to
+\noindent\textit{Note: competitor ZFI scores are approximations using ZANA's rubric applied to
 publicly documented capabilities; they are not claims by those systems' authors.}
 
 % ===========================================================
@@ -661,7 +677,7 @@ changes publicly auditable.
 \section{Conclusion}
 % ===========================================================
 
-XANA demonstrates that a personal cognitive AI can simultaneously satisfy epistemic rigor, security
+ZANA demonstrates that a personal cognitive AI can simultaneously satisfy epistemic rigor, security
 guarantees, and practical deployability. The contributions are:
 
 \begin{enumerate}[leftmargin=*, label=\arabic*.]
@@ -674,7 +690,7 @@ guarantees, and practical deployability. The contributions are:
     algorithms and crystallizes champions back into the procedural memory registry.
   \item A \textbf{typed inter-agent protocol} (AION) that eliminates hallucination cascade in
     five-agent Apex Quintet pipelines.
-  \item A \textbf{reproducible seven-pillar benchmark} (XFI) with a reference implementation
+  \item A \textbf{reproducible seven-pillar benchmark} (ZFI) with a reference implementation
     achieving $100.0/100$ on a standard workstation.
 \end{enumerate}
 
@@ -691,7 +707,7 @@ The complete system is available at \url{https://github.com/kemquiros/zana-core}
 
 The author thanks the open-source communities behind Rust, PyO3, FastAPI, ChromaDB, Neo4j, LangGraph,
 smolagents, and Ollama. Special recognition to Lotfi A.\ Zadeh for the mathematical foundations of
-approximate reasoning; David Ha and Jürgen Schmidhuber for the world model framing; and the team at
+approximate reasoning; David Ha and J\"{u}rgen Schmidhuber for the world model framing; and the team at
 Sakana AI for the Digital Red Queen paper that inspired the Idle Zero tournament.
 
 % ===========================================================

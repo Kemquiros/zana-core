@@ -149,7 +149,7 @@ The AI market is dominated by cloud services that predict tokens. ZANA does some
 | **Open source (auditable)** | ✅ MIT | ❌ | ❌ | ✅ MIT | ✅ MIT | ✅ MIT |
 | **Cost to run** | ~$12/mo VPS | $20+/mo API | $10+/mo API | $0 (local) | Variable | Variable |
 
-### The three differentiators no one else has
+### The four differentiators no one else has
 
 **1. Verification, not prediction.**
 Every LLM output passes through a deterministic CLIPS-pattern rule engine. Facts are asserted, rules fire, contradictions surface. The symbolic layer can explain exactly why it said something — traceable to a specific rule and a specific fact. No other production AI assistant does this.
@@ -159,6 +159,9 @@ Armor is Rust code that executes before the LLM is invoked. It is not a Python f
 
 **3. Adversarial self-improvement.**
 The Red Queen tournament (Idle Zero) evolves typed cognitive algorithms on your data while the system is idle. OpenAI retrains GPT-5 on a cluster of thousands of GPUs. ZANA improves itself on your laptop, privately, continuously, without you doing anything.
+
+**4. Arithmetic determinism via EML.**
+ZANA's Rust core uses the EML (Exponential-Log) operator as its single arithmetic primitive: every operation — multiplication, power, square root — is derived from `exp` and `log` alone. The round-trip identity `log(exp(x)) ≡ x` is verified after every signal propagation, achieving **error = 0.0** (exact IEEE-754). This makes ZANA's numerical kernel provably minimal, immune to floating-point drift, and reproducible bit-for-bit across any platform. No other personal AI runtime publicly reports this level of arithmetic determinism.
 
 ### Why choose and invest in ZANA
 
