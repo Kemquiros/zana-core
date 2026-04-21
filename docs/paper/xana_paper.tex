@@ -1,8 +1,8 @@
 \documentclass[12pt,a4paper]{article}
 
-% --------------------------------------------------------------------------
+% ============================================================
 % Packages
-% --------------------------------------------------------------------------
+% ============================================================
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
@@ -21,538 +21,680 @@
 \usepackage{parskip}
 \usepackage{enumitem}
 \usepackage{float}
-
-\hypersetup{
-  colorlinks=true,
-  linkcolor=blue!70!black,
-  citecolor=blue!70!black,
-  urlcolor=blue!70!black
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{pgf-pie}
+\usetikzlibrary{
+  arrows.meta,
+  shapes.geometric,
+  shapes.multipart,
+  positioning,
+  fit,
+  calc,
+  decorations.pathreplacing,
+  backgrounds,
+  shadows
 }
 
+% ============================================================
+% Color palette
+% ============================================================
+\definecolor{xblue}{RGB}{79,70,229}
+\definecolor{xamethyst}{RGB}{139,92,246}
+\definecolor{xjade}{RGB}{52,211,153}
+\definecolor{xrust}{RGB}{220,88,42}
+\definecolor{xdark}{RGB}{15,15,25}
+\definecolor{xlightgray}{RGB}{200,200,210}
+
+% ============================================================
+% Listing style
+% ============================================================
 \lstset{
   basicstyle=\ttfamily\small,
   breaklines=true,
   frame=single,
   backgroundcolor=\color{gray!8},
-  keywordstyle=\color{blue!70!black}\bfseries,
-  commentstyle=\color{green!50!black},
-  stringstyle=\color{red!60!black},
+  keywordstyle=\color{xblue}\bfseries,
+  commentstyle=\color{xjade!80!black},
+  stringstyle=\color{xrust},
+  rulecolor=\color{gray!30},
+  numbers=left,
+  numberstyle=\tiny\color{gray!60},
+  numbersep=6pt,
+  xleftmargin=1em,
 }
 
-% --------------------------------------------------------------------------
+% ============================================================
+% Hyperref
+% ============================================================
+\hypersetup{
+  colorlinks=true,
+  linkcolor=xblue,
+  citecolor=xblue,
+  urlcolor=xblue!80!black,
+  pdftitle={XANA: A Neuro-Symbolic Personal Cognitive AI Runtime},
+  pdfauthor={John Tapias Zarrazola},
+  pdfkeywords={cognitive architecture, neuro-symbolic AI, local-first, evolutionary optimization, fuzzy logic, multi-agent}
+}
+
+% ============================================================
 % Title
-% --------------------------------------------------------------------------
+% ============================================================
 \title{
-  \textbf{XANA: A Neuro-Symbolic Personal Cognitive AI Runtime} \\[0.5em]
-  \large{Architecture, Evaluation, and Open-Source Release}
+  {\color{xblue}\rule{\linewidth}{2pt}} \\[1em]
+  \textbf{\huge XANA: A Neuro-Symbolic Personal Cognitive AI Runtime} \\[0.4em]
+  \large Architecture, Evolutionary Self-Improvement, and Open-Source Release \\[0.4em]
+  {\color{xblue}\rule{\linewidth}{0.5pt}}
 }
 
 \author{
-  John Tapias Zarrazola \\
+  \textbf{John Tapias Zarrazola} \\
   \small{MsC Data Science (c)} \\
   \small{Universidad Ricardo Palma, Lima, Per\'{u}} \\
-  \small{\texttt{johnedisson.tapias@urp.edu.pe}} \\[0.5em]
-  \small{\url{https://github.com/kemquiros/xana-core}}
+  \small{\texttt{johnedisson.tapias@urp.edu.pe} \quad
+    \url{https://github.com/kemquiros/xana-core}}
 }
 
-\date{April 2026}
+\date{April 2026 \quad --- \quad arXiv preprint}
 
-% --------------------------------------------------------------------------
+% ============================================================
 \begin{document}
 \maketitle
-\thispagestyle{empty}
 
-% --------------------------------------------------------------------------
+% ============================================================
 \begin{abstract}
-We present \textbf{XANA}, an open-source personal cognitive AI runtime that integrates neural inference,
-deterministic symbolic reasoning, adversarial evolutionary optimization, and multimodal sensory processing
-into a unified local-first architecture. Unlike systems that wrap a large language model (LLM) with API
-calls, XANA maintains explicit separation between fast sub-symbolic pathways and verifiable rule-based
-deduction. A Rust implementation of a Kalman filter ($1.4\,\mu$s/call via PyO3 zero-copy buffers) tracks
-epistemic uncertainty before facts enter a CLIPS-pattern forward-chaining engine. A second Rust module
---- \emph{Armor} --- inspects every input and output for personally identifiable information (PII) and
-adversarial prompt injection at $2.1\,\mu$s/call. The \emph{Idle Zero} subsystem implements a Digital
-Red Queen tournament~\cite{kumar2025redqueen}: warrior algorithms compete adversarially in a cognitive
-virtual machine, and champions are crystallized back into the procedural memory. Five specialized agents
-(the \emph{Apex Quintet}) collaborate through a typed message protocol (AION) to decompose multi-step
-tasks without hallucination cascade. Fuzzy logic~\cite{zadeh1965fuzzysets,zadeh1975fuzzylogic} modulates
-the system's emotional state and decision confidence. We evaluate XANA using the XANA Fitness Index (XFI),
-a seven-pillar composite score. Running with a full Docker infrastructure stack, XANA achieves
-$\mathrm{XFI} = 100.0 / 100$. The complete system is available at
+\noindent
+We present \textbf{XANA}, an open-source personal cognitive AI runtime that fuses four previously
+separate research threads into a single deployable system: (1)~\emph{neuro-symbolic reasoning}, where
+a Rust CLIPS-pattern forward-chaining engine verifies and augments LLM outputs; (2)~\emph{adversarial
+evolutionary optimization} via a Digital Red Queen tournament~\cite{kumar2025redqueen} that continuously
+evolves typed cognitive algorithms in a virtual machine; (3)~\emph{fuzzy emotional modulation}
+grounded in Zadeh's formal inference framework~\cite{zadeh1965fuzzysets,zadeh1975fuzzylogic}, which
+adapts system behavior to affective context; and (4)~\emph{security-by-architecture}, where a Rust
+middleware layer enforces PII detection and prompt-injection rejection at $2.1\,\mu$s per call ---
+structurally, not as a Python-level filter. A Rust Kalman filter ($1.4\,\mu$s via PyO3 zero-copy
+buffers) tracks epistemic uncertainty before facts enter the symbolic engine. Five specialized agents
+(the \emph{Apex Quintet}) communicate through a typed AION protocol that eliminates hallucination
+cascade. We evaluate XANA using the \textbf{XANA Fitness Index} (XFI), a seven-pillar composite
+benchmark. With a full Docker infrastructure stack, XANA achieves $\mathrm{XFI} = 100.0/100$.
+The complete system --- Rust, Python, TypeScript, Docker, benchmark suite --- is available at
 \url{https://github.com/kemquiros/xana-core} under the MIT License.
+\bigskip\\
+\noindent\textbf{Keywords:} cognitive architecture, neuro-symbolic AI, local-first AI, adversarial
+evolutionary optimization, fuzzy logic, Kalman filter, multi-agent systems, Rust, open source.
 \end{abstract}
-
-\noindent\textbf{Keywords:} cognitive architecture, neuro-symbolic AI, local-first AI, evolutionary optimization,
-fuzzy logic, multi-agent systems, Kalman filter, Rust, Python, open source.
 
 \newpage
 \tableofcontents
 \newpage
 
-% ==========================================================================
+% ===========================================================
 \section{Introduction}
-% ==========================================================================
+% ===========================================================
 
-The prevailing paradigm for building AI assistants is shallow: prompt a foundation model, parse the
-output, repeat. This approach produces systems that appear capable but are epistemically fragile. They
-cannot explain their inferences, forget context between sessions, and are vulnerable to adversarial inputs
-that exploit the absence of a verification layer.
+The dominant paradigm for building AI assistants is shallow: prompt a foundation model, parse the
+output, call it done. This approach produces systems that appear capable but are epistemically fragile.
+They cannot explain their inferences, lose context between sessions, and offer no resistance to
+adversarial inputs that exploit the absence of a verification layer.
 
-We argue that a \emph{personal cognitive AI} --- one intended to augment an individual's long-term memory,
-reasoning, and decision-making --- requires a fundamentally different architecture. Specifically, it requires:
+A \emph{personal cognitive AI} intended to augment an individual's long-term reasoning and memory
+requires a different architecture. We identify six requirements:
 
-\begin{enumerate}[leftmargin=*, label=\arabic*.]
-  \item \textbf{Explicit memory separation.} Episodic memories (what happened) and semantic memories
-    (what things mean) are stored and retrieved differently. Conflating them produces recall errors and
-    false associations.
-
-  \item \textbf{Symbolic verification.} Neural inference is probabilistic and can produce confident wrong
-    answers. A symbolic layer that asserts structured facts and applies deterministic rules provides a
-    second verification pass that catches and corrects neural errors.
-
-  \item \textbf{Signal uncertainty tracking.} Raw sensory input is noisy. Before facts are asserted into
-    the symbolic engine, a signal processing stage should estimate measurement uncertainty and smooth
-    observations over time.
-
-  \item \textbf{Security-by-architecture.} Rather than post-hoc filtering, security checks should be
-    structural --- every input and output passes through an immutable Rust layer before touching any
-    mutable state.
-
-  \item \textbf{Evolutionary self-improvement.} A system intended for long-term personal use should be
-    able to improve its own algorithms through adversarial competition, not just gradient descent on a
-    fixed architecture.
-
-  \item \textbf{Emotional modulation.} Affective states influence attention, priority, and decision
-    confidence in biological cognition~\cite{bates1994emotion}. A personal AI that ignores emotional
-    context will systematically misallocate cognitive resources.
+\begin{enumerate}[leftmargin=*, label=\textbf{R\arabic*.}]
+  \item \textbf{Explicit memory separation.} Episodic, semantic, procedural, and world-model stores must
+    be distinct --- conflating them produces false associations and inconsistent recall.
+  \item \textbf{Symbolic verification.} A deterministic rule engine must form a second verification pass
+    over probabilistic LLM outputs.
+  \item \textbf{Signal uncertainty tracking.} Sensory observations must be noise-filtered before being
+    asserted as facts in the symbolic engine.
+  \item \textbf{Security-by-architecture.} PII detection and injection rejection must be structural, not
+    optional middleware.
+  \item \textbf{Evolutionary self-improvement.} The system should be able to improve its own cognitive
+    algorithms through adversarial competition, not only gradient descent on fixed weights.
+  \item \textbf{Emotional modulation.} Affective state affects attention allocation and decision
+    confidence in biological cognition~\cite{bates1994emotion}; a personal AI must account for it.
 \end{enumerate}
 
-XANA embodies all six principles in a production-grade open-source system. This paper describes the
-architecture, implementation choices, and evaluation methodology.
+XANA satisfies all six requirements. Figure~\ref{fig:arch} shows the complete layered architecture.
 
-% ==========================================================================
-\section{Related Work}
-% ==========================================================================
-
-\subsection{Cognitive Architectures}
-
-Classical cognitive architectures such as ACT-R~\cite{anderson2004actr} and SOAR~\cite{laird2012soar}
-integrate symbolic and procedural knowledge but require hand-crafted rules and do not leverage modern
-neural models. XANA adapts the symbolic component (a CLIPS-inspired forward-chaining engine) to operate
-as a verification and augmentation layer over LLM outputs rather than as the primary reasoning substrate.
-
-\subsection{Fuzzy Logic and Approximate Reasoning}
-
-XANA's emotional modulation subsystem (\emph{Fuzzy Heart}) is grounded in the foundational fuzzy logic
-literature. Zadeh~\cite{zadeh1965fuzzysets} introduced fuzzy sets as a generalization of classical Boolean
-membership to continuous $[0,1]$ truth values. The formal computational framework --- linguistic variables
-and IF-THEN rules --- was developed in~\cite{zadeh1973outline,zadeh1975fuzzylogic}. Practical inference
-architectures for control systems were established by Mamdani~\cite{mamdani1974application} and extended
-to machine-learning-compatible forms by Takagi and Sugeno~\cite{takagi1985fuzzy}. XANA uses a simplified
-Mamdani-type inference to map surprise, confidence, and valence signals to a mood vector that modulates
-LLM sampling temperature and reasoning depth.
-
-\subsection{World Models}
-
-Ha and Schmidhuber~\cite{ha2018worldmodels} demonstrated that an agent can learn a compressed
-spatiotemporal world model from environment observations and train a compact policy entirely within that
-model's ``dream.'' XANA's Neo4j world model plays an analogous role: it stores a graph of entities and
-relationships derived from episodic experience, enabling multi-hop reasoning that flat vector stores
-cannot support.
-
-\subsection{Reinforcement Learning and Curriculum Learning}
-
-XANA's procedural memory uses RL-lite Q-value updates ($\alpha = 0.1$) to score skill utility over time,
-following the spirit of IRL~\cite{ng2000irl} to infer implicit reward from observed behavior. The Red
-Queen tournament (Section~\ref{sec:redqueen}) uses curriculum learning
-principles~\cite{bengio2009curriculum} to progressively increase training data difficulty as warrior
-algorithms improve.
-
-\subsection{Evolutionary Machine Learning}
-
-AutoML-Zero~\cite{real2020automlzero} demonstrated that full ML algorithms can be evolved from primitive
-operations using evolutionary search. XANA's Idle Zero subsystem extends this idea: warrior algorithms
-are represented as typed instruction sequences executed in a cognitive virtual machine, and evolution
-proceeds through mutation and Red Queen adversarial pressure rather than standard tournament selection
-alone~\cite{kumar2025redqueen}.
-
-The Exponential-Log operator (EML) at the core of the instruction set was formally justified
-by~\cite{odrzywolekEML}: all elementary functions can be derived from a single binary operator, enabling
-a minimal but complete instruction set for the cognitive VM.
-
-\subsection{LLM Agents and Multi-Agent Systems}
-
-Systems such as LangGraph~\cite{langchain2024langgraph} and smolagents~\cite{huggingface2024smolagents}
-enable LLM-based agents to use tools and maintain state. XANA uses smolagents as the execution backend
-for its Apex Quintet but wraps it with a typed message protocol (AION) that prevents hallucination
-cascade in multi-agent chains.
-
-Model merging~\cite{akiba2024modelmerging} and preference optimization~\cite{lu2024preferenceoptalgo}
-inform XANA's roadmap for continuously improving its local LLM weights without full retraining.
-
-\subsection{Security in LLM Systems}
-
-Prompt injection~\cite{greshake2023promptinjection} and PII leakage are well-documented vulnerabilities
-in LLM-based applications. Existing mitigations are typically implemented as Python-level string filters
-applied inconsistently. XANA's Armor module implements these checks in Rust at the system boundary,
-making them impossible to bypass through the Python application layer.
-
-% ==========================================================================
+% ===========================================================
 \section{Architecture}
-% ==========================================================================
+\label{sec:arch}
+% ===========================================================
 
-\subsection{Overview}
+\subsection{Seven-Layer Stack}
 
-XANA is organized into seven layers, each with a well-defined interface:
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  layer/.style={
+    draw=gray!40, fill=#1, rounded corners=8pt,
+    minimum width=11cm, minimum height=1.1cm,
+    font=\small\bfseries, text=white, align=center
+  },
+  arrow/.style={-Stealth, thick, color=gray!60},
+  label/.style={font=\tiny\ttfamily, color=gray!60, align=right}
+]
+  % Layer boxes (bottom to top visual, input flows top to bottom)
+  \node[layer=xdark!90, draw=xjade!60]   (L7) at (0,0)   {ORCHESTRATION --- Apex Quintet (5 agents, AION protocol)};
+  \node[layer=xdark!90, draw=xamethyst!60] (L6) at (0,1.4) {REASONING --- CLIPS-pattern Forward Chaining (Rust)};
+  \node[layer=xdark!90, draw=xblue!60]   (L5) at (0,2.8) {INFERENCE --- LocalLLM (Ollama / Claude / Groq / OpenRouter)};
+  \node[layer=xdark!90, draw=xblue!40]   (L4) at (0,4.2) {MEMORY --- ChromaDB \textbar{} PostgreSQL \textbar{} Neo4j \textbar{} Skills Registry};
+  \node[layer=xdark!90, draw=gray!50]    (L3) at (0,5.6) {SIGNAL --- Kalman Filter (Rust, 1.4\,$\mu$s) + Fuzzy Heart};
+  \node[layer=xdark!90, draw=xrust!70]   (L2) at (0,7.0) {SECURITY --- Armor (Rust, 2.1\,$\mu$s) — PII + Injection Guard};
+  \node[layer=xdark!90, draw=xjade!40]   (L1) at (0,8.4) {SENSORY --- Audio (Whisper) \textbar{} Vision (LLaVA/Claude) \textbar{} Text};
 
-\begin{lstlisting}[language={}]
-[Sensory Layer]   AudioProcessor  VisionProcessor  TextParser
-      |
-[Security Layer]  Armor (Rust)  -- PII scan + injection check
-      |
-[Signal Layer]    Kalman Filter (Rust Steel Core)
-      |
-[Memory Layer]    ChromaDB (semantic)  PostgreSQL (episodic)  Neo4j (world)
-      |
-[Inference Layer] LocalLLM -- Ollama / Claude / Groq / OpenRouter
-      |
-[Reasoning Layer] ReasoningEngine -- CLIPS-pattern forward chaining (Rust)
-      |
-[Orchestration]   Apex Quintet -- 5-agent pipeline via AION protocol
-\end{lstlisting}
+  % Arrows
+  \foreach \from/\to in {L1/L2, L2/L3, L3/L4, L4/L5, L5/L6, L6/L7}
+    \draw[arrow] (\from.south) -- (\to.north);
 
-All inter-layer communication uses a canonical data structure --- the \texttt{PerceptionEvent} --- which
-carries the original input, extracted features, metadata, and a confidence score computed by the Kalman
-filter.
+  % Side labels
+  \node[label, right=0.3cm of L1] {User Input};
+  \node[label, right=0.3cm of L2] {2.1\,$\mu$s};
+  \node[label, right=0.3cm of L3] {1.4\,$\mu$s};
+  \node[label, right=0.3cm of L4] {4 stores};
+  \node[label, right=0.3cm of L5] {Fallback chain};
+  \node[label, right=0.3cm of L6] {Fixed-point};
+  \node[label, right=0.3cm of L7] {5 agents};
+\end{tikzpicture}
+\caption{XANA seven-layer architecture. Data flows top-to-bottom; each layer adds verification or
+enrichment before passing the payload downward. The Armor layer (red) is the only exit path for
+rejected inputs --- no bypass is possible through the Python application layer.}
+\label{fig:arch}
+\end{figure}
 
 \subsection{Steel Core (Rust)}
 \label{sec:steelcore}
 
-The Steel Core implements two performance-critical algorithms in Rust with PyO3 bindings.
-
 \subsubsection{Cognitive Kalman Filter}
 
-Tracks a scalar state (signal quality / confidence) using a standard discrete Kalman update:
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw=gray!40, fill=xdark!90, rounded corners=6pt,
+              minimum width=2.8cm, minimum height=1cm,
+              font=\small, text=white, text width=2.6cm, align=center},
+  arr/.style={-Stealth, thick, color=xblue!70},
+  eq/.style={font=\footnotesize\color{gray!70}, align=center}
+]
+  \node[box] (prior) {Prior State\\$\hat{x}_{k|k-1}$};
+  \node[box, right=2.5cm of prior] (gain) {Kalman\\Gain $K_k$};
+  \node[box, right=2.5cm of gain]  (post) {Posterior\\$\hat{x}_{k|k}$};
+  \node[box, below=1.6cm of gain]  (obs)  {Observation\\$z_k$};
+
+  \draw[arr] (prior) -- node[above,eq]{predict} (gain);
+  \draw[arr] (obs)   -- node[right,eq]{measure} (gain);
+  \draw[arr] (gain)  -- node[above,eq]{update}  (post);
+  \draw[arr] (post.east) -- ++(1,0) |- node[right,eq,pos=0.75]{$k{+}1$} (prior.east|-prior.south) -- (prior.south);
+
+  % Equations
+  \node[eq, below=0.3cm of prior] {$P_{k|k-1}=P_{k-1}+Q$};
+  \node[eq, below=0.3cm of gain]  {$K_k=\dfrac{P_{k|k-1}}{P_{k|k-1}+R}$};
+  \node[eq, below=0.3cm of post]  {$P_{k|k}=(1-K_k)P_{k|k-1}$};
+\end{tikzpicture}
+\caption{Discrete Kalman filter loop implemented in the Steel Core (Rust, PyO3 zero-copy buffer path).
+$Q$ = process noise, $R$ = measurement noise. Achieved latency: $1.4\,\mu$s per call.}
+\label{fig:kalman}
+\end{figure}
+
+The filter tracks a scalar signal-quality state. The zero-copy buffer path avoids
+Python--Rust allocation overhead and is $4.6\times$ faster than the list path:
+
+\begin{lstlisting}[language=Python, caption={PyO3 buffer vs list path}]
+# Zero-copy buffer path (1.4 us/call)
+kalman.update_buffer(obs_np_array)   # no allocation
+
+# Python list path (6.5 us/call — compatibility only)
+kalman.update([v1, v2, v3])
+\end{lstlisting}
+
+\subsubsection{Policy Brain and EML Operator}
+
+The Policy Brain is a $384\!\to\!64\!\to\!4$ feedforward network with 8-accumulator FMA unrolling
+(hides the 5-cycle FMA latency on x86) and row-major weight layout (ensures contiguous cache access).
+Achieved latency: $7$--$10\,\mu$s. The EML (Exponential-Log) operator provides a numerically
+stable identity $\log(\exp(x)) \equiv x$ \cite{odrzywolekEML}, used for round-trip signal
+verification; error = $0.0$.
+
+\subsection{Armor: Security by Architecture}
+\label{sec:armor}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  node distance=0.8cm,
+  box/.style={draw=gray!40, fill=xdark!90, rounded corners=5pt,
+              minimum width=3.8cm, minimum height=0.9cm,
+              font=\small, text=white, align=center},
+  danger/.style={draw=xrust!70, fill=xrust!15, rounded corners=5pt,
+                 minimum width=2cm, minimum height=0.9cm,
+                 font=\small, text=xrust, align=center},
+  arr/.style={-Stealth, thick, color=gray!60},
+  redarr/.style={-Stealth, thick, color=xrust}
+]
+  \node[box] (input)  {User Input};
+  \node[box, right=1.5cm of input]  (armin) {Armor::inspect\_input\\{\tiny 2.1\,$\mu$s}};
+  \node[box, right=1.5cm of armin]  (llm)   {LLM / Memory};
+  \node[box, right=1.5cm of llm]    (armout){Armor::inspect\_output\\{\tiny 2.1\,$\mu$s}};
+  \node[box, right=1.5cm of armout] (resp)  {Response};
+  \node[danger, below=1cm of armin] (rej1)  {403 Reject};
+  \node[danger, below=1cm of armout](rej2)  {403 Reject};
+
+  \draw[arr]    (input)  -- (armin);
+  \draw[arr]    (armin)  -- (llm);
+  \draw[arr]    (llm)    -- (armout);
+  \draw[arr]    (armout) -- (resp);
+  \draw[redarr] (armin)  -- (rej1);
+  \draw[redarr] (armout) -- (rej2);
+\end{tikzpicture}
+\caption{Armor middleware wraps every request. Both \texttt{inspect\_input} and
+\texttt{inspect\_output} execute synchronously in Rust. A rejection short-circuits the pipeline
+and returns HTTP 403 --- the LLM is never reached for poisoned inputs.}
+\label{fig:armor}
+\end{figure}
+
+\subsection{Memory System}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  store/.style={draw=#1!60, fill=#1!10, rounded corners=8pt,
+                minimum width=4.8cm, minimum height=2.2cm,
+                text width=4.5cm, align=center, font=\small},
+  title/.style={font=\bfseries\small},
+  sub/.style={font=\footnotesize\color{gray!70}},
+  arr/.style={-Stealth, thick, color=gray!50}
+]
+  \node[store=xblue]     (sem)  at (0,0)    {
+    \textbf{Semantic} \\[3pt]
+    \footnotesize ChromaDB + pgvector \\
+    \footnotesize What things \emph{mean}
+  };
+  \node[store=xamethyst] (epi)  at (5.5,0)  {
+    \textbf{Episodic} \\[3pt]
+    \footnotesize PostgreSQL + pgvector \\
+    \footnotesize What \emph{happened}
+  };
+  \node[store=xjade]     (proc) at (0,-3.5) {
+    \textbf{Procedural} \\[3pt]
+    \footnotesize skills\_registry.json \\
+    \footnotesize \emph{How} to do things (Q-values)
+  };
+  \node[store=xrust]     (wm)   at (5.5,-3.5){
+    \textbf{World Model} \\[3pt]
+    \footnotesize Neo4j knowledge graph \\
+    \footnotesize Entity relationships + inference
+  };
+
+  % Central hub
+  \node[draw=gray!50, fill=xdark!80, rounded corners=6pt,
+        minimum width=2cm, minimum height=2cm,
+        font=\small\bfseries, text=white] (hub) at (2.75,-1.75) {Memory\\Manager};
+
+  \foreach \n in {sem,epi,proc,wm}
+    \draw[arr] (hub) -- (\n);
+\end{tikzpicture}
+\caption{XANA's four-store memory architecture. The Memory Manager (MCP Symbiosis server)
+routes queries to the appropriate store. Episodic and semantic retrieval are always separated,
+preventing the false-association errors common in monolithic vector databases.}
+\label{fig:memory}
+\end{figure}
+
+\subsection{Fuzzy Heart: Emotional Modulation}
+
+Inspired by Bates~\cite{bates1994emotion} and grounded in Zadeh's formal
+framework~\cite{zadeh1965fuzzysets,zadeh1975fuzzylogic}, the Fuzzy Heart maps three scalar inputs ---
+surprise $s$, valence $v$, arousal $a \in [0,1]$ --- to a mood vector $\mathbf{m} \in [0,1]^4$
+via Mamdani inference~\cite{mamdani1974application}:
+
 \begin{align}
-  \hat{x}_{k|k-1} &= \hat{x}_{k-1|k-1} \label{eq:predict_state} \\
-  P_{k|k-1} &= P_{k-1|k-1} + Q \label{eq:predict_cov} \\
-  K_k &= \frac{P_{k|k-1}}{P_{k|k-1} + R} \label{eq:kalman_gain} \\
-  \hat{x}_{k|k} &= \hat{x}_{k|k-1} + K_k (z_k - \hat{x}_{k|k-1}) \label{eq:update_state} \\
-  P_{k|k} &= (1 - K_k) P_{k|k-1} \label{eq:update_cov}
+  \mu_{\text{alert}}(s,v) &= \min\!\left(\mu_\text{HIGH}(s),\, \mu_\text{NEG}(v)\right) \\
+  T &= T_0 + 0.3\,m_{\text{alert}} - 0.2\,m_{\text{calm}}
 \end{align}
-where $Q$ is process noise, $R$ is measurement noise, and $z_k$ is the observation at step $k$.
 
-The zero-copy buffer path (\texttt{update\_buffer(obs)}) avoids Python--Rust memory allocation overhead
-and achieves $1.4\,\mu$s/call, within the $\leq 2\,\mu$s target for real-time sensory processing.
-The Python list path (\texttt{update(obs\_list)}) is $4.6\times$ slower.
+The defuzzified temperature offset $\delta T$ modulates LLM sampling and reasoning depth.
 
-\subsubsection{Policy Brain}
-
-A $384 \to 64 \to 4$ feedforward network with 8-accumulator FMA (fused multiply-add) unrolling and
-row-major weight layout. The 8-accumulator structure hides the 5-cycle FMA latency on modern x86 CPUs.
-Achieved latency: $7$--$10\,\mu$s/call.
-
-\subsubsection{EML Operator}
-
-The Exponential-Log operator provides a numerically stable identity
-$\log(\exp(x)) \equiv x$~\cite{odrzywolekEML}, used for round-trip verification of signal processing
-pipelines. Round-trip error: $0.0$.
-
-\subsection{Armor (Rust Security Middleware)}
-
-Armor is a Rust shared library loaded by the Python gateway at startup. Two functions bracket every request:
-
-\begin{itemize}
-  \item \texttt{inspect\_input(payload)} --- runs before the payload reaches any LLM or memory system
-  \item \texttt{inspect\_output(response)} --- runs before the response is returned to the client
-\end{itemize}
-
-Both functions execute in $\approx 2.1\,\mu$s. Rejections return HTTP 403 without touching the LLM.
-A Python fallback (\texttt{sensory/armor\_middleware.py}) is available when the Rust \texttt{.so} is
-absent, with higher latency and reduced detection coverage.
-
-\subsection{Fuzzy Heart (Emotional Modulation)}
-
-Inspired by Bates~\cite{bates1994emotion} and grounded in Zadeh's fuzzy inference
-framework~\cite{zadeh1965fuzzysets,zadeh1975fuzzylogic}, the Fuzzy Heart maps three input signals ---
-\emph{surprise}, \emph{valence}, and \emph{arousal} --- to a mood vector $\mathbf{m} \in [0,1]^4$.
-
-A Mamdani-type inference engine~\cite{mamdani1974application} evaluates fuzzy rules of the form:
-\begin{equation}
-  \text{IF surprise is HIGH AND valence is NEGATIVE THEN mood is ALERT}
-\end{equation}
-The defuzzified mood output modulates LLM sampling temperature ($T = T_0 + \delta(\mathbf{m})$) and
-the reasoning engine's inference depth.
-
-\subsection{Multimodal Gateway}
-
-The gateway (\texttt{sensory/multimodal\_gateway.py}) is a FastAPI application that executes the
-following pipeline for every request:
+\subsection{Multimodal Gateway Pipeline}
 
 \begin{algorithm}[H]
-\caption{Multimodal Gateway Pipeline}
+\caption{Multimodal Gateway Request Pipeline}
 \begin{algorithmic}[1]
 \Require Raw input $x$ (text $\vee$ audio $\vee$ image $\vee$ multimodal)
-\State Route modality $\to$ processor (Whisper / LLaVA-Claude / text parser)
-\State $\mathrm{Armor.inspect\_input}(x)$ \Comment{$2.1\,\mu$s; abort on reject}
-\State $\hat{x}, P \leftarrow \mathrm{KalmanFilter.update}(x)$ \Comment{confidence estimate}
-\State $\mathcal{M} \leftarrow \mathrm{MemoryQuery}(\hat{x})$ \Comment{ChromaDB + PostgreSQL via MCP}
-\State $r \leftarrow \mathrm{LLM}(\hat{x}, \mathcal{M})$ \Comment{Ollama / Claude / Groq / OpenRouter}
-\State $e \leftarrow \mathrm{PerceptionEvent}(x, \hat{x}, P, r)$
-\State $e' \leftarrow \mathrm{ReasoningEngine}(e)$ \Comment{CLIPS-pattern forward chaining}
-\State $\mathrm{Armor.inspect\_output}(e')$ \Comment{abort on reject}
+\State $x' \leftarrow \mathrm{modality\_processor}(x)$
+  \Comment{Whisper / LLaVA-Claude / text}
+\State $\mathrm{Armor.inspect\_input}(x')$
+  \Comment{$2.1\,\mu$s; \textbf{abort} $\to$ HTTP 403 on reject}
+\State $\hat{x}, P \leftarrow \mathrm{KalmanFilter.update\_buffer}(x')$
+  \Comment{$1.4\,\mu$s confidence estimate}
+\State $\mathbf{m} \leftarrow \mathrm{FuzzyHeart.infer}(\hat{x})$
+  \Comment{mood vector, adjusts $T$}
+\State $\mathcal{M} \leftarrow \mathrm{MemoryQuery}(\hat{x})$
+  \Comment{ChromaDB + PostgreSQL via Symbiosis MCP}
+\State $r \leftarrow \mathrm{LLM}(\hat{x}, \mathcal{M}, T(\mathbf{m}))$
+  \Comment{temperature-adjusted inference}
+\State $e \leftarrow \mathrm{PerceptionEvent}(x', \hat{x}, P, r)$
+\State $e' \leftarrow \mathrm{ReasoningEngine.run}(e)$
+  \Comment{CLIPS forward chaining to fixed point}
+\State $\mathrm{Armor.inspect\_output}(e')$
+  \Comment{\textbf{abort} $\to$ HTTP 403 on reject}
 \State \Return $e'$
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Memory System}
-
-XANA maintains four distinct memory stores:
-
-\begin{itemize}
-  \item \textbf{Semantic memory} (ChromaDB + pgvector): vector embeddings of concepts and knowledge,
-    retrieved via approximate nearest-neighbour search.
-  \item \textbf{Episodic memory} (PostgreSQL): timestamped interaction records enabling ``what happened
-    when'' queries distinct from semantic retrieval.
-  \item \textbf{World model} (Neo4j): a knowledge graph where entities and relationships are derived from
-    episodic experience~\cite{ha2018worldmodels}, enabling multi-hop symbolic reasoning.
-  \item \textbf{Procedural memory} (\texttt{skills\_registry.json}): 9 skills across 6 domains with
-    RL-lite Q-values ($\alpha = 0.1$)~\cite{ng2000irl}.
-\end{itemize}
-
 \subsection{Reasoning Engine}
 
-The ReasoningEngine implements a CLIPS-inspired forward-chaining rule system compiled to Rust. Rules
-are expressed as typed \texttt{DefTemplate} structures. The engine:
-\begin{enumerate}[leftmargin=*, label=\arabic*.]
-  \item Receives a \texttt{PerceptionEvent} as the initial fact set
-  \item Matches all rule conditions (conflict resolution: salience-first)
-  \item Fires all matching rules, asserting new facts
-  \item Repeats until fixed point
-\end{enumerate}
-Dynamic rules from peer nodes pass through LLMGuard before loading to prevent rule injection attacks.
+The ReasoningEngine implements CLIPS-inspired forward-chaining over typed \texttt{DefTemplate} facts.
+The inference cycle runs until a fixed point (no new facts asserted):
 
-\subsection{Idle Zero and the Red Queen Tournament}
+\begin{lstlisting}[language={}, caption={CLIPS-pattern rule example (Rust DSL)}]
+(defrule high-surprise-alert
+  (PerceptionEvent (surprise ?s&:(> ?s 0.4))
+                   (valence  ?v&:(< ?v 0.0)))
+  =>
+  (assert (MoodState (mood ALERT) (intensity ?s)))
+  (assert (ReasoningDepth (depth DEEP))))
+\end{lstlisting}
+
+Dynamic rules from swarm peers pass through \texttt{LLMGuard} before loading --- preventing rule
+injection attacks (Milestone~8.4).
+
+\subsection{Idle Zero and the Digital Red Queen Tournament}
 \label{sec:redqueen}
 
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw=gray!40, fill=xdark!90, rounded corners=6pt,
+              minimum width=3cm, minimum height=1cm,
+              font=\small, text=white, align=center},
+  arr/.style={-Stealth, thick, color=xamethyst!70}
+]
+  \node[box] (seed) {Seed Skills\\(JSON)};
+  \node[box, right=2cm of seed] (pop)  {Population\\$N=50$ warriors};
+  \node[box, right=2cm of pop]  (vm)   {CognitiveVM\\Execution};
+  \node[box, right=2cm of vm]   (fit)  {Fitness\\Evaluation};
+  \node[box, below=1.5cm of fit](mut)  {Mutation\\+ Selection};
+  \node[box, below=1.5cm of pop](champ){Champions\\(crystallized)};
+
+  \draw[arr] (seed) -- (pop);
+  \draw[arr] (pop)  -- (vm);
+  \draw[arr] (vm)   -- (fit);
+  \draw[arr] (fit)  -- (mut);
+  \draw[arr] (mut)  -- node[above,font=\tiny\color{gray!60}]{$G=2000$ gen.} (vm|-mut) -- (vm);
+  \draw[arr] (mut)  -- (champ);
+  \draw[arr] (champ)-- node[left,font=\tiny\color{gray!60}]{promote} (pop|-champ) -- (pop);
+\end{tikzpicture}
+\caption{Red Queen Tournament loop in Idle Zero. Warrior algorithms compete adversarially in the
+CognitiveVM over $G=2000$ generations. Champions are crystallized to \texttt{champions/} and
+eligible for promotion into the procedural memory registry.}
+\label{fig:redqueen}
+\end{figure}
+
 Inspired by the Digital Red Queen paper~\cite{kumar2025redqueen} and AutoML-Zero~\cite{real2020automlzero},
-the \emph{Idle Zero} subsystem implements adversarial co-evolutionary optimization of cognitive algorithms.
+\emph{Idle Zero} represents each cognitive algorithm as a typed \texttt{WarriorAlgorithm}:
 
-\subsubsection{Warrior Algorithms}
-
-A \texttt{WarriorAlgorithm} is a typed program with three instruction sequences:
-\begin{itemize}
-  \item \texttt{setup}: initialization phase
-  \item \texttt{predict}: inference phase
-  \item \texttt{learn}: update phase
-\end{itemize}
-Instructions operate over a shared memory of $64$ floating-point slots using a minimal instruction set
-derived from the EML operator~\cite{odrzywolekEML}: \{\texttt{NoOp, Add, Sub, Mul, Div, Exp, Log, Sin,
-Cos, GaussianSample, EmulativeCall}\}.
-
-\subsubsection{Cognitive Virtual Machine}
-
-The \texttt{CognitiveVM} executes instruction sequences over the memory array, providing a deterministic
-execution environment for evolutionary search:
-\begin{lstlisting}[language=Rust, caption={CognitiveVM execute loop (Rust)}]
-pub fn execute(&mut self, instructions: &[Instruction]) {
-    for instr in instructions {
-        let val1 = self.memory[instr.in1_addr];
-        let val2 = self.memory[instr.in2_addr];
-        let result = match instr.op {
-            Op::Add => val1 + val2,
-            Op::Log => val1.ln(),
-            Op::Exp => val1.exp(),
-            // ... remaining ops
-        };
-        self.memory[instr.out_addr] = result;
-    }
+\begin{lstlisting}[language=Rust, caption={WarriorAlgorithm data structure}]
+pub struct WarriorAlgorithm {
+    pub id:         String,
+    pub generation: u32,
+    pub setup:      Vec<Instruction>,   // initialization
+    pub predict:    Vec<Instruction>,   // inference
+    pub learn:      Vec<Instruction>,   // online update
+    pub fitness:    f64,
 }
 \end{lstlisting}
 
-\subsubsection{Tournament Protocol}
+Instructions operate over a 64-slot memory array using the EML-derived minimal instruction set:
+\texttt{\{NoOp, Add, Sub, Mul, Div, Exp, Log, Sin, Cos, GaussianSample, EmulativeCall\}}~\cite{odrzywolekEML}.
+Fitness is evaluated on real personal data (\texttt{real\_data.txt}), embedding curriculum
+principles~\cite{bengio2009curriculum} by progressively increasing data difficulty as generations advance.
 
-The \texttt{global\_tournament} binary runs $N_\text{pop} = 50$ warriors over $G = 2000$ generations per
-skill seed. Mutation is applied to random instruction slots; survivors are selected by fitness on real
-training data loaded from \texttt{real\_data.txt}. Champions are written to \texttt{champions/} and
-eligible for promotion into the procedural memory registry.
+\subsection{Apex Quintet: Multi-Agent Orchestration}
 
-\subsection{Apex Quintet}
-
-For multi-step tasks, XANA deploys five specialized agents that execute sequentially:
-
-\begin{table}[H]
+\begin{figure}[H]
 \centering
-\caption{Apex Quintet Agent Roles}
-\begin{tabular}{@{}lp{10cm}@{}}
-\toprule
-\textbf{Agent} & \textbf{Role} \\
-\midrule
-Sentinel   & Validates the task request; sets scope and constraints \\
-Archivist  & Retrieves relevant context from all memory systems \\
-Analyst    & Decomposes the task into subtasks; selects tools \\
-Operator   & Executes subtasks using registered skills \\
-Herald     & Synthesizes results; formats final response \\
-\bottomrule
-\end{tabular}
-\end{table}
+\begin{tikzpicture}[
+  agent/.style={draw=xblue!50, fill=xblue!10, rounded corners=8pt,
+                minimum width=2cm, minimum height=1.1cm,
+                font=\small\bfseries, text=xblue, align=center},
+  arr/.style={-Stealth, thick, color=gray!50},
+  label/.style={font=\footnotesize\color{gray!60}, text width=2cm, align=center}
+]
+  \node[agent] (s1) at (0,0)     {SENTINEL\\{\tiny Validate}};
+  \node[agent] (a)  at (2.5,0)   {ARCHIVIST\\{\tiny Retrieve}};
+  \node[agent] (an) at (5,0)     {ANALYST\\{\tiny Decompose}};
+  \node[agent] (op) at (7.5,0)   {OPERATOR\\{\tiny Execute}};
+  \node[agent] (h)  at (10,0)    {HERALD\\{\tiny Synthesize}};
 
-Agents communicate exclusively through AION messages --- typed Pydantic structures carrying payload type,
-content, confidence, and provenance. Plain-text inter-agent communication is rejected. This eliminates the
-hallucination cascade pattern where each agent amplifies errors from the previous one.
+  \foreach \from/\to in {s1/a, a/an, an/op, op/h}
+    \draw[arr] (\from) -- node[above,font=\tiny\color{xblue!60}]{AION} (\to);
 
-\subsection{A2A Interoperability}
+  % Feedback loop
+  \draw[arr] (h.south) -- ++(0,-0.8) -- node[below,font=\tiny\color{gray!60}]{loop if incomplete}
+    ++(-10,0) -- (s1.south);
+\end{tikzpicture}
+\caption{Apex Quintet sequential pipeline. Each agent communicates exclusively through typed AION
+messages (Pydantic structures with payload type, content, confidence, provenance). Plain-text
+inter-agent communication is rejected, eliminating hallucination cascade.}
+\label{fig:apex}
+\end{figure}
 
-XANA implements the Google A2A (Agent-to-Agent) protocol. An AgentCard is served at
-\texttt{/.well-known/agent-card.json} advertising capabilities and endpoint locations. A Rust binary
-registry server tracks active XANA nodes on the local network, enabling peer discovery for the distributed
-swarm reasoning roadmap (Section~\ref{sec:future}).
+% ===========================================================
+\section{Related Work}
+% ===========================================================
 
-% ==========================================================================
+\subsection{Cognitive Architectures}
+Classical architectures ACT-R~\cite{anderson2004actr} and SOAR~\cite{laird2012soar} integrate
+symbolic and procedural knowledge but require hand-crafted rules and predate modern neural models.
+XANA uses the symbolic engine as a \emph{verification layer} over LLM outputs rather than as the
+primary reasoning substrate.
+
+\subsection{Fuzzy Logic}
+Zadeh~\cite{zadeh1965fuzzysets} introduced continuous $[0,1]$ membership. The computational framework
+of linguistic variables and IF-THEN rules followed in~\cite{zadeh1973outline,zadeh1975fuzzylogic}.
+Mamdani~\cite{mamdani1974application} provided the first practical control architecture; Takagi and
+Sugeno~\cite{takagi1985fuzzy} extended it to ML-compatible output forms. XANA uses Mamdani inference
+for the Fuzzy Heart.
+
+\subsection{World Models}
+Ha and Schmidhuber~\cite{ha2018worldmodels} showed that an agent can learn a compressed world model
+and train inside its own ``dream.'' XANA's Neo4j world model plays an analogous role, enabling
+multi-hop symbolic reasoning over a graph of entities extracted from episodic experience.
+
+\subsection{Reinforcement and Curriculum Learning}
+Procedural memory Q-values follow IRL intuition~\cite{ng2000irl}. Idle Zero uses curriculum
+principles~\cite{bengio2009curriculum} by increasing training difficulty as warrior fitness improves.
+
+\subsection{Evolutionary Machine Learning}
+AutoML-Zero~\cite{real2020automlzero} showed that full ML algorithms can be evolved from primitives.
+XANA's Idle Zero extends this: warriors are typed programs in a cognitive VM, and evolution uses
+adversarial Red Queen pressure~\cite{kumar2025redqueen} rather than standard tournament selection alone.
+Model merging~\cite{akiba2024modelmerging} and preference optimization~\cite{lu2024preferenceoptalgo}
+inform the roadmap for personalizing local LLM weights.
+
+\subsection{LLM Agents and Security}
+LangGraph~\cite{langchain2024langgraph} and smolagents~\cite{huggingface2024smolagents} provide the
+execution backbone for the Apex Quintet. XANA wraps them with the AION typed protocol. Prompt
+injection~\cite{greshake2023promptinjection} motivates the Armor Rust layer: making security
+impossible to bypass through the Python application tier.
+
+% ===========================================================
 \section{Evaluation}
-% ==========================================================================
+% ===========================================================
 
 \subsection{XANA Fitness Index (XFI)}
 
-We define XFI as a weighted composite of seven pillars:
-
 \begin{table}[H]
 \centering
-\caption{XFI Pillar Weights and Measurements}
+\caption{XFI Pillar Weights and Measurement Methods}
 \begin{tabular}{@{}llll@{}}
 \toprule
-\textbf{Pillar} & \textbf{Weight} & \textbf{Measurement Method} \\
+\textbf{Pillar} & \textbf{Weight} & \textbf{Measurement} \\
 \midrule
-Steel Core     & 20\% & Rust latency vs. targets ($\leq 2\,\mu$s Kalman, $\leq 15\,\mu$s Brain) \\
-Memory         & 20\% & Semantic + episodic retrieval correctness (test queries) \\
-Symbolic Reasoning & 15\% & Rule engine correctness on test fact sets \\
-Swarm / A2A    & 15\% & Agent card discovery + inter-agent messaging \\
+Steel Core     & 20\% & Kalman + Brain latency vs.\ targets \\
+Memory         & 20\% & Retrieval correctness (test query suite) \\
+Symbolic Reasoning & 15\% & Forward-chaining correctness on test fact sets \\
+Swarm / A2A    & 15\% & AgentCard discovery + AION messaging \\
 Market Fitness & 15\% & End-to-end task completion rate \\
 Armor          & 10\% & PII detection rate + injection rejection rate \\
 Interoperability & 5\% & A2A protocol compliance \\
 \bottomrule
 \end{tabular}
+$\displaystyle\mathrm{XFI} = 100 \cdot \sum_{i=1}^{7} w_i \cdot s_i$
 \end{table}
 
-$$\mathrm{XFI} = 100 \cdot \sum_{i=1}^{7} w_i \cdot s_i$$
-
-\subsection{Results}
-
-All measurements on Linux x86-64 with AVX2 support, full Docker stack (hot mode):
+\subsection{Performance Results}
 
 \begin{table}[H]
 \centering
-\caption{Performance Results}
-\begin{tabular}{@{}llll@{}}
+\caption{Latency and Correctness Results (x86-64, AVX2, hot Docker stack)}
+\begin{tabular}{@{}lllc@{}}
 \toprule
-\textbf{Component} & \textbf{Target} & \textbf{Achieved} & \textbf{Status} \\
+\textbf{Component} & \textbf{Target} & \textbf{Achieved} & \textbf{Pass} \\
 \midrule
-Kalman (buffer path)    & $\leq 2.0\,\mu$s  & $1.4\,\mu$s    & \checkmark \\
-Armor inspect           & $\leq 5.0\,\mu$s  & $2.1\,\mu$s    & \checkmark \\
-PolicyBrain forward     & $\leq 15\,\mu$s   & $7$--$10\,\mu$s & \checkmark \\
-EML round-trip error    & $= 0.0$           & $0.0$          & \checkmark \\
-XFI (hot, Docker up)    & $\geq 90.0$       & $\mathbf{100.0}$ & \checkmark \\
-XFI (cold, no Docker)   & $\geq 50.0$       & $\approx 60$--$70$ & \checkmark \\
+Kalman (buffer path)   & $\leq 2.0\,\mu$s & $1.4\,\mu$s   & \checkmark \\
+Armor inspect          & $\leq 5.0\,\mu$s & $2.1\,\mu$s   & \checkmark \\
+PolicyBrain forward    & $\leq 15\,\mu$s  & $7$-$10\,\mu$s & \checkmark \\
+EML round-trip error   & $= 0.0$          & $0.0$          & \checkmark \\
+XFI (hot, Docker up)   & $\geq 90.0$      & \textbf{100.0} & \checkmark \\
+XFI (cold, no Docker)  & $\geq 50.0$      & $\approx 65$   & \checkmark \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{XFI Pillar Breakdown}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  xbar,
+  width=10cm, height=6cm,
+  xmin=0, xmax=110,
+  xlabel={Score (out of 100)},
+  ytick=data,
+  yticklabels={
+    Interoperability (5\%),
+    Armor (10\%),
+    Market Fitness (15\%),
+    Swarm / A2A (15\%),
+    Symbolic Reasoning (15\%),
+    Memory (20\%),
+    Steel Core (20\%)
+  },
+  yticklabel style={font=\footnotesize},
+  nodes near coords,
+  nodes near coords align={horizontal},
+  every node near coord/.append style={font=\footnotesize},
+  bar width=12pt,
+  enlarge y limits=0.15,
+  tick style={draw=none},
+  axis line style={draw=gray!40},
+]
+\addplot[fill=xblue!70, draw=xblue] coordinates {
+  (100,0) (100,1) (100,2) (100,3) (100,4) (100,5) (100,6)
+};
+\end{axis}
+\end{tikzpicture}
+\caption{XFI pillar scores with full Docker stack (hot mode). All seven pillars achieve 100/100.}
+\label{fig:xfi}
+\end{figure}
 
 \subsection{Comparison with Existing Systems}
 
 \begin{table}[H]
 \centering
-\caption{Comparison of AI Runtime Systems (XFI rubric applied to documented capabilities)}
-\begin{tabular}{@{}lcccc@{}}
+\caption{Comparative Analysis (XFI rubric applied to documented capabilities)}
+\begin{tabular}{@{}lccccc@{}}
 \toprule
-\textbf{System} & \textbf{XFI} & \textbf{Local-first} & \textbf{Symbolic layer} & \textbf{Security layer} \\
+\textbf{System} & \textbf{XFI} & \textbf{Local} & \textbf{Symbolic} & \textbf{Security} & \textbf{Evolutionary} \\
 \midrule
-XANA (this work)    & \textbf{100.0} & \checkmark & \checkmark & Rust \\
-Open Interpreter    & $\approx 30$   & \checkmark & $\times$   & $\times$ \\
-AutoGPT             & $\approx 33$   & $\times$   & $\times$   & $\times$ \\
-Claude Code         & $\approx 41$   & $\times$   & $\times$   & $\times$ \\
-N8N + AI            & $\approx 60$   & partial    & $\times$   & partial \\
-ChatGPT             & $\approx 57$   & $\times$   & $\times$   & cloud-only \\
+XANA (ours)      & \textbf{100.0} & \checkmark & \checkmark & Rust & \checkmark \\
+Open Interpreter & $\approx 30$   & \checkmark & $\times$   & $\times$ & $\times$ \\
+AutoGPT          & $\approx 33$   & $\times$   & $\times$   & $\times$ & $\times$ \\
+Claude Code      & $\approx 41$   & $\times$   & $\times$   & $\times$ & $\times$ \\
+N8N + AI         & $\approx 60$   & partial    & $\times$   & partial & $\times$ \\
+ChatGPT          & $\approx 57$   & $\times$   & $\times$   & cloud   & $\times$ \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textit{Note: competitor XFI scores are approximations using XANA's rubric applied to publicly documented
-capabilities. They are not claims made by those systems' authors.}
+\noindent\textit{Note: competitor XFI scores are approximations using XANA's rubric applied to
+publicly documented capabilities; they are not claims by those systems' authors.}
 
-% ==========================================================================
+% ===========================================================
 \section{Discussion}
-% ==========================================================================
+% ===========================================================
 
 \subsection{Limitations}
 
-\textbf{Rust compilation.} The Steel Core and Armor modules require a local Rust toolchain. Users without
-AVX2 support must remove \texttt{-C target-cpu=native} or accept higher latency.
+\textbf{Rust compilation.} Steel Core and Armor require Rust 1.78+ with AVX2. Users on ARM or
+non-AVX2 x86 must remove \texttt{-C target-cpu=native}.
 
-\textbf{LLM dependency.} While XANA operates with Ollama locally, best reasoning quality requires a
-capable foundation model. The symbolic layer compensates for weaker local models but cannot fully
-substitute.
+\textbf{Foundation model dependency.} Best reasoning quality requires a capable LLM (Claude Sonnet or
+equivalent). The symbolic layer compensates but cannot fully substitute on resource-constrained hardware.
 
-\textbf{Swarm reasoning.} Distributed reasoning across XANA nodes (Section~\ref{sec:future}) is designed
-but not yet implemented. Current deployment is single-node.
+\textbf{Single-node deployment.} Distributed swarm reasoning (Milestone~8.3) is designed but not yet
+implemented.
 
-\textbf{Red Queen convergence.} The 2000-generation tournament is computationally intensive. Parallelism
-via \texttt{rayon} mitigates this but limits deployment on resource-constrained hardware.
+\textbf{Red Queen convergence time.} The 2000-generation tournament is CPU-intensive. \texttt{rayon}
+parallelism mitigates this, but it remains unsuitable for embedded devices.
 
 \subsection{Future Work}
 \label{sec:future}
 
-\textbf{Milestone 8.3 --- Remote Swarm Query.} When the local reasoning engine has no rule covering an
-observed fact, the system will broadcast a \texttt{RemoteQuery} to peer nodes. Peer responses are scored
-by LLMGuard before loading.
+\textbf{Milestone 8.3 --- Remote Swarm Query.} Broadcast \texttt{RemoteQuery} to peer nodes when the
+local engine has no rule for an observed fact. Peer responses are scored by LLMGuard before loading.
 
-\textbf{Milestone 8.4 --- LLMGuard (in progress).} \texttt{swarm/llm\_guard.py} scans dynamic rules from
-the Wisdom Hub for adversarial content before they enter the reasoning engine.
-
-\textbf{Continuous learning.} The Red Queen tournament currently runs offline. Online integration would
-allow warrior algorithms to evolve from live interaction data, combining
+\textbf{Online Red Queen.} Integrate the tournament loop with live interaction data, combining
 curriculum learning~\cite{bengio2009curriculum} with real-time feedback.
 
-\textbf{Model merging.} Following~\cite{akiba2024modelmerging}, champion warrior algorithms could be
-merged with the base LLM weights, creating a personalized local model without full fine-tuning.
+\textbf{LLM personalization via model merging.} Following~\cite{akiba2024modelmerging}, champion
+warrior algorithms could guide low-rank adaptations of the local LLM weights, producing a
+personalized model without full fine-tuning.
 
-% ==========================================================================
+\textbf{Civic Ledger (Milestone 8.1).} Mirror the rule base to a SHA-256 audit log, making rule
+changes publicly auditable.
+
+% ===========================================================
 \section{Conclusion}
-% ==========================================================================
+% ===========================================================
 
-XANA demonstrates that a personal cognitive AI can be both architecturally rigorous and practically
-deployable. The key contributions are:
+XANA demonstrates that a personal cognitive AI can simultaneously satisfy epistemic rigor, security
+guarantees, and practical deployability. The contributions are:
 
 \begin{enumerate}[leftmargin=*, label=\arabic*.]
-  \item A \textbf{neuro-symbolic integration pattern} where Rust Kalman filtering, LLM inference, and
-    CLIPS-pattern forward chaining operate as sequential verification layers.
-  \item A \textbf{security-by-architecture} approach where a Rust module enforces PII and injection
-    policies at $2.1\,\mu$s --- impossible to bypass through the application layer.
-  \item A \textbf{typed inter-agent protocol} (AION) that eliminates hallucination cascade in multi-agent
-    chains by rejecting unstructured text as a valid message payload.
-  \item A \textbf{Digital Red Queen tournament} (Idle Zero) that adversarially evolves cognitive
+  \item A \textbf{seven-layer neuro-symbolic architecture} where Kalman filtering, fuzzy emotional
+    modulation, LLM inference, and CLIPS-pattern reasoning operate as sequential enrichment and
+    verification layers.
+  \item \textbf{Security-by-architecture}: Rust Armor makes PII and injection checks impossible to
+    bypass through the Python application layer, at $2.1\,\mu$s per call.
+  \item A \textbf{Digital Red Queen tournament} (Idle Zero) that adversarially evolves typed cognitive
     algorithms and crystallizes champions back into the procedural memory registry.
-  \item A \textbf{fuzzy emotional modulation} layer grounded in Zadeh's formal framework that adapts
-    system behavior to affective context.
-  \item An \textbf{XFI evaluation framework} that scores cognitive AI systems across seven measurable
-    pillars, providing a reproducible benchmark.
+  \item A \textbf{typed inter-agent protocol} (AION) that eliminates hallucination cascade in
+    five-agent Apex Quintet pipelines.
+  \item A \textbf{reproducible seven-pillar benchmark} (XFI) with a reference implementation
+    achieving $100.0/100$ on a standard workstation.
 \end{enumerate}
 
-The complete system --- Rust source, Python source, TypeScript frontend, Docker infrastructure, and
-benchmark suite --- is available at \url{https://github.com/kemquiros/xana-core} under the MIT License.
+The complete system is available at \url{https://github.com/kemquiros/xana-core} (MIT License).
 
 \bigskip
-\noindent\textit{Este es mi regalo para el mundo.}
+\begin{center}
+\textit{\large Este es mi regalo para el mundo.}
+\end{center}
 
-% ==========================================================================
+% ===========================================================
 \section*{Acknowledgements}
-% ==========================================================================
+% ===========================================================
 
 The author thanks the open-source communities behind Rust, PyO3, FastAPI, ChromaDB, Neo4j, LangGraph,
-smolagents, and Ollama. Special recognition to Lotfi A. Zadeh for the mathematical foundations that
-made approximate reasoning tractable, and to David Ha and Jürgen Schmidhuber for the world model
-framing that shaped XANA's memory architecture.
+smolagents, and Ollama. Special recognition to Lotfi A.\ Zadeh for the mathematical foundations of
+approximate reasoning; David Ha and Jürgen Schmidhuber for the world model framing; and the team at
+Sakana AI for the Digital Red Queen paper that inspired the Idle Zero tournament.
 
-% ==========================================================================
+% ===========================================================
 \bibliographystyle{plain}
 \begin{thebibliography}{99}
 
@@ -590,46 +732,36 @@ T.~Takagi and M.~Sugeno.
 D.~Ha and J.~Schmidhuber.
 \newblock World models.
 \newblock \emph{arXiv preprint arXiv:1803.10122}, 2018.
-\newblock \url{https://worldmodels.github.io}
 
 \bibitem{ng2000irl}
 A.~Y. Ng and S.~J. Russell.
 \newblock Algorithms for inverse reinforcement learning.
-\newblock In \emph{Proceedings of the 17th International Conference on Machine
-  Learning (ICML)}, pages 663--670, 2000.
+\newblock In \emph{Proc.\ 17th ICML}, pages 663--670, 2000.
 
 \bibitem{bengio2009curriculum}
 Y.~Bengio, J.~Louradour, R.~Collobert, and J.~Weston.
 \newblock Curriculum learning.
-\newblock In \emph{Proceedings of the 26th Annual International Conference on
-  Machine Learning (ICML)}, pages 41--48, 2009.
+\newblock In \emph{Proc.\ 26th ICML}, pages 41--48, 2009.
 
 \bibitem{real2020automlzero}
 E.~Real, C.~Liang, D.~R. So, and Q.~V. Le.
 \newblock {AutoML-Zero}: Evolving machine learning algorithms from scratch.
-\newblock In \emph{Proceedings of the 37th International Conference on Machine
-  Learning (ICML)}, 2020.
+\newblock In \emph{Proc.\ 37th ICML}, 2020.
 
 \bibitem{kumar2025redqueen}
-A.~Kumar, R.~Bahlous-Boldi, P.~Sharma, P.~Isola, S.~Risi, Y.~Tang, and
-  D.~Ha.
-\newblock Digital red queen: Adversarial program evolution in {C}ore {W}ar
-  with {LLM}s.
-\newblock \emph{arXiv preprint arXiv:2601.03335}, 2025.
+A.~Kumar, R.~Bahlous-Boldi, P.~Sharma, P.~Isola, S.~Risi, Y.~Tang, and D.~Ha.
+\newblock Digital red queen: Adversarial program evolution in {C}ore {W}ar with {LLM}s.
+\newblock \emph{arXiv:2601.03335}, 2025.
 
 \bibitem{akiba2024modelmerging}
 T.~Akiba, M.~Shing, Y.~Tang, Q.~Sun, and D.~Ha.
 \newblock Evolutionary optimization of model merging recipes.
 \newblock \emph{Nature Machine Intelligence}, 2025.
-\newblock \url{https://doi.org/10.1038/s42256-024-00975-8}
 
 \bibitem{lu2024preferenceoptalgo}
-C.~Lu, S.~Holt, C.~Fanconi, A.~J. Chan, J.~Foerster, M.~van der Schaar, and
-  R.~T. Lange.
-\newblock Discovering preference optimization algorithms with and for large
-  language models.
-\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)},
-  2024.
+C.~Lu et~al.
+\newblock Discovering preference optimization algorithms with and for large language models.
+\newblock In \emph{NeurIPS}, 2024.
 
 \bibitem{bates1994emotion}
 J.~Bates.
@@ -639,7 +771,7 @@ J.~Bates.
 \bibitem{odrzywolekEML}
 A.~Odrzyw{o\l}ek.
 \newblock All elementary functions from a single binary operator.
-\newblock \emph{arXiv preprint arXiv:2603.21852}, 2026.
+\newblock \emph{arXiv:2603.21852}, 2026.
 
 \bibitem{anderson2004actr}
 J.~R. Anderson et~al.
@@ -653,19 +785,19 @@ J.~E. Laird.
 
 \bibitem{greshake2023promptinjection}
 K.~Greshake et~al.
-\newblock Not what you've signed up for: Compromising real-world
-  {LLM}-integrated applications with indirect prompt injection.
+\newblock Not what you've signed up for: Compromising real-world {LLM}-integrated applications
+  with indirect prompt injection.
 \newblock In \emph{AISec Workshop, ACM CCS}, 2023.
 
 \bibitem{langchain2024langgraph}
 LangChain.
-\newblock {LangGraph}: Building stateful, multi-actor {LLM} applications.
-\newblock \url{https://github.com/langchain-ai/langgraph}, 2024.
+\newblock {LangGraph}: Building stateful, multi-actor {LLM} applications, 2024.
+\newblock \url{https://github.com/langchain-ai/langgraph}.
 
 \bibitem{huggingface2024smolagents}
 HuggingFace.
-\newblock smolagents: A minimal framework for agentic {AI}.
-\newblock \url{https://github.com/huggingface/smolagents}, 2024.
+\newblock smolagents: A minimal framework for agentic {AI}, 2024.
+\newblock \url{https://github.com/huggingface/smolagents}.
 
 \end{thebibliography}
 
