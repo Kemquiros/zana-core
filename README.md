@@ -1,385 +1,443 @@
 <div align="center">
 
 ```
-       ▄██████████████████████▄
-     ▄██████████████████████████▄
-   ▄██████▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀██████▄
-  ██████▀                   ▀██████
- ██████    ▄▄▄▄▄▄▄▄▄▄▄▄▄    ██████
-██████    ██████  O  ██████    ██████
- ██████    ▀▀▀▀▀▀▀▀▀▀▀▀▀    ██████
-  ██████▄                   ▄██████
-   ▀██████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄██████▀
-     ▀██████████████████████████▀
-       ▀██████████████████████▀
+        ▄██████████████████████▄
+      ▄██████████████████████████▄
+    ▄██████▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀██████▄
+   ██████▀                   ▀██████
+  ██████    ▄▄▄▄▄▄▄▄▄▄▄▄▄    ██████
+ ██████    ████████O████████    ██████
+  ██████    ▀▀▀▀▀▀▀▀▀▀▀▀▀    ██████
+   ██████▄                   ▄██████
+    ▀██████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄██████▀
+      ▀██████████████████████████▀
+        ▀██████████████████████▀
 ```
 
-# ZANA Core
+# ZANA
 
-**Zero Autonomous Neural Architecture**
+### The cognitive layer that doesn't change when AI does.
 
-*Local-first · Neuro-Symbolic · Evolutionary · Open Source*
+*When Anthropic releases a new model — you change one env var.*  
+*When OpenAI shifts pricing — you change one env var.*  
+*Your memory, your reasoning, your rules — unchanged.*
 
-[![CI](https://img.shields.io/github/actions/workflow/status/kemquiros/zana-core/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/kemquiros/zana-core/actions)
-[![Release](https://img.shields.io/github/v/release/kemquiros/zana-core?style=flat-square&color=indigo)](https://github.com/kemquiros/zana-core/releases)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg?style=flat-square)](https://python.org)
-[![Rust](https://img.shields.io/badge/rust-1.78+-orange.svg?style=flat-square)](https://rustup.rs)
-[![arXiv](https://img.shields.io/badge/arXiv-2026.XXXXX-b31b1b.svg?style=flat-square)](https://arxiv.org/abs/2026.XXXXX)
+---
 
-*"Not a chatbot. Not a wrapper. A reasoning machine that runs on your hardware."*
-
-**ZFI (system fitness score): 100 / 100** — measured across 7 pillars with full Docker stack.
+[![CI](https://img.shields.io/github/actions/workflow/status/kemquiros/zana-core/ci.yml?branch=main&label=CI&style=flat-square&color=7c3aed)](https://github.com/kemquiros/zana-core/actions)
+[![Release](https://img.shields.io/github/v/release/kemquiros/zana-core?style=flat-square&color=7c3aed)](https://github.com/kemquiros/zana-core/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-7c3aed.svg?style=flat-square)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-7c3aed.svg?style=flat-square)](https://python.org)
+[![Rust](https://img.shields.io/badge/rust-stable-7c3aed.svg?style=flat-square)](https://rustup.rs)
+[![Paper](https://img.shields.io/badge/📄_Paper-PDF-7c3aed.svg?style=flat-square)](https://github.com/kemquiros/zana-core/blob/main/docs/paper/zana_paper.pdf)
+[![ZFI](https://img.shields.io/badge/ZFI-100%2F100-22c55e.svg?style=flat-square)](docs/ROADMAP.md)
 
 </div>
 
 ---
 
-## TL;DR
+## Install in 30 seconds
+
+<table>
+<tr>
+<td width="33%" valign="top"><b>🐧 Linux</b></td>
+<td width="33%" valign="top"><b>🍎 macOS</b></td>
+<td width="33%" valign="top"><b>🪟 Windows</b></td>
+</tr>
+<tr>
+<td valign="top">
 
 ```bash
-git clone https://github.com/kemquiros/zana-core.git && cd zana-core
-cp .env.example .env          # set ZANA_PRIMARY_MODEL=ollama/llama3.2:3b for fully local
-docker compose up -d          # ChromaDB · PostgreSQL · Redis · Neo4j
-cd sensory && uv run uvicorn multimodal_gateway:app --port 54446
-curl -X POST http://localhost:54446/sense/text \
-  -H "Content-Type: application/json" \
-  -d '{"text": "What do you remember about me?"}'
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
 ```
 
----
-
-## Why ZANA Exists
-
-Every AI assistant wraps an LLM and calls it intelligence.
-
-ZANA takes a different path. It is a **cognitive runtime** — a layered architecture where neural inference, deterministic symbolic reasoning, signal processing, and adversarial evolutionary optimization work together. No single component can produce a wrong answer and have it go undetected; each layer verifies the previous one.
-
-The name is literal: **Z**arrazola **A**utonomous **N**eural **A**rchitecture — built by one person, owned by no corporation, running on your hardware.
-
----
-
-## Security (read this first)
-
-ZANA's **Armor** middleware (Rust) runs on every request — synchronously, structurally, impossible to bypass:
-
-```
-User input → Armor::inspect_input() → Gateway → LLM → Armor::inspect_output() → Response
-```
-
-- **PII detection** — strips personal identifiers before any external model sees them
-- **Prompt injection** — rejects known jailbreak patterns and adversarial payloads
-- **Latency** — 2.1 µs/call (Rust); Python fallback if the `.so` is absent
-- **Swarm guard** — `LLMGuard` scans peer-network rules before loading into the reasoning engine
-
-Rejection returns HTTP 403. The LLM is never reached for blocked inputs.
-
----
-
-## Use Cases
-
-ZANA is a tool. What you build with it is limited only by your judgment and your hardware.
-
-### 1. Personal Knowledge OS
-Connect ZANA to your documents, notes, and browsing history. It ingests, indexes, and retrieves across all of them in under 50 ms. Ask cross-document questions with cited provenance. Build a second brain that actually remembers.
+</td>
+<td valign="top">
 
 ```bash
-curl -X POST /sense/text -d '{"text": "What did I learn about Kalman filters last month?"}'
-# Returns: cited recall from episodic + semantic memory
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
 ```
 
-### 2. Autonomous Code Agent
-Send a task to `/apex/orchestrate`. The Apex Quintet (5 specialized agents) decomposes it into subtasks, executes them with registered skills, verifies outputs symbolically, and delivers working code. Runs overnight.
+</td>
+<td valign="top">
+
+```powershell
+# PowerShell (Admin) — requires WSL2
+wsl curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
+```
+Or [download the installer](https://github.com/kemquiros/zana-core/releases/latest) directly.
+
+</td>
+</tr>
+</table>
+
+Then:
 
 ```bash
-curl -X POST /apex/orchestrate -d '{"task": "Write integration tests for the sensory module"}'
-# Sentinel validates → Archivist retrieves context → Analyst decomposes
-# → Operator executes → Herald delivers — all typed, no hallucination cascade
+zana setup       # 2-minute wizard: API keys + Docker check
+zana start       # boots the full cognitive stack
+zana status      # live ZFI score across 7 pillars
+zana chat        # REPL connected to your Aeon
 ```
 
-### 3. Business Intelligence Loop
-Feed ZANA your contracts, KPIs, and market data. The CLIPS-pattern reasoning engine asserts facts, fires deterministic rules, and surfaces non-obvious strategic insights — the kind an LLM alone would miss because it predicts, not reasons.
-
-### 4. Scientific Research Assistant
-ZANA reads papers, builds a Neo4j citation graph, generates hypotheses via forward chaining, and ranks them by symbolic consistency — not just semantic similarity. It can detect logical contradictions between papers that a vector search would never find.
-
-### 5. Document Intelligence (Legal, Medical, Financial)
-Upload contracts or reports. ZANA extracts structured facts into episodic memory with timestamps and page references. Query across 1,000 documents and get answers with exact provenance — which document, which section, which date.
-
-### 6. Voice-First Personal Assistant
-```
-Voice note (Telegram / PWA) → Whisper STT → Armor → Kalman → LLM → TTS response
-```
-No cloud STT. No cloud TTS. No data leaves your infrastructure. Works offline once models are cached.
-
-### 7. Self-Improving Algorithm Lab (Idle Zero)
-Point ZANA at a dataset. The Red Queen tournament runs 50 warrior algorithms over 2,000 generations while you sleep. The fittest cognitive algorithm is crystallized and promoted to your procedural memory. Your system improves without you touching it.
-
-### 8. Privacy-Preserving Enterprise AI
-Deploy ZANA on your VPS. Every employee query is inspected by Armor before reaching the LLM. No API key shared. No data sent to OpenAI. Full audit log of Armor rejections and agent traces. GDPR-ready by architecture.
+> **No cloud API?** → `ZANA_PRIMARY_MODEL=ollama/llama3.1:8b` → ZANA runs fully **offline and free**.
 
 ---
 
-## Disclaimer
+## The Problem
 
-**ZANA is a tool.**
+Every AI release cycle resets your tooling.  
+You rebuild prompts, swap SDKs, migrate memory formats.  
+The model improves. Your system regresses.
 
-Like a database, a compiler, or a programming language — it has no inherent ethical orientation. The same system that helps a researcher analyze clinical trials can be directed at other tasks by someone with different intentions.
-
-The author (John Tapias Zarrazola) provides the instrument and publishes it under the MIT License. The responsibility for how you use it rests entirely with you.
-
-ZANA includes an Armor layer that structurally blocks PII exfiltration and known injection patterns. This is not a moral system. It is an engineering constraint on the most common attack vectors. Misuse that falls outside those constraints is the user's responsibility.
+**You shouldn't have to rebuild your mind every six weeks.**
 
 ---
 
-## Why ZANA vs. The Market
+## What ZANA does differently
 
-The AI market is dominated by cloud services that predict tokens. ZANA does something structurally different.
-
-| | **ZANA** | ChatGPT | Claude (API) | Open Interpreter | AutoGPT | LangGraph |
-|---|---|---|---|---|---|---|
-| **Runs locally** | ✅ 100% | ❌ Cloud | ❌ Cloud | ✅ Partial | ❌ Cloud | ⚠️ Framework |
-| **Your data stays local** | ✅ | ❌ | ❌ | ✅ | ❌ | ⚠️ |
-| **Symbolic reasoning layer** | ✅ CLIPS-Rust | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Security-by-architecture** | ✅ Rust Armor | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Persistent memory (4 stores)** | ✅ | ❌ Sessions | ❌ Sessions | ❌ | ⚠️ | ⚠️ |
-| **Evolutionary self-improvement** | ✅ Red Queen | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Emotional modulation** | ✅ Fuzzy Heart | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Academic paper + benchmark** | ✅ ZFI/arXiv | — | — | ❌ | ❌ | ❌ |
-| **Open source (auditable)** | ✅ MIT | ❌ | ❌ | ✅ MIT | ✅ MIT | ✅ MIT |
-| **Cost to run** | ~$12/mo VPS | $20+/mo API | $10+/mo API | $0 (local) | Variable | Variable |
-
-### The four differentiators no one else has
-
-**1. Verification, not prediction.**
-Every LLM output passes through a deterministic CLIPS-pattern rule engine. Facts are asserted, rules fire, contradictions surface. The symbolic layer can explain exactly why it said something — traceable to a specific rule and a specific fact. No other production AI assistant does this.
-
-**2. Security at the system boundary.**
-Armor is Rust code that executes before the LLM is invoked. It is not a Python filter added after the fact. It cannot be bypassed through prompt engineering because it runs outside the LLM's context. This matters for enterprise, for healthcare, for legal — any domain where a data breach is existential.
-
-**3. Adversarial self-improvement.**
-The Red Queen tournament (Idle Zero) evolves typed cognitive algorithms on your data while the system is idle. OpenAI retrains GPT-5 on a cluster of thousands of GPUs. ZANA improves itself on your laptop, privately, continuously, without you doing anything.
-
-**4. Arithmetic determinism via EML.**
-ZANA's Rust core uses the EML (Exponential-Log) operator as its single arithmetic primitive: every operation — multiplication, power, square root — is derived from `exp` and `log` alone. The round-trip identity `log(exp(x)) ≡ x` is verified after every signal propagation, achieving **error = 0.0** (exact IEEE-754). This makes ZANA's numerical kernel provably minimal, immune to floating-point drift, and reproducible bit-for-bit across any platform. No other personal AI runtime publicly reports this level of arithmetic determinism.
-
-### Why choose and invest in ZANA
-
-- **Sovereignty**: your data, your hardware, your rules — no vendor lock-in, no terms of service that can change overnight
-- **Predictable cost**: $12/mo VPS vs. $0.01–0.06/1K tokens that compounds to thousands at scale
-- **Auditability**: every decision is traceable — the rule that fired, the memory that was retrieved, the Armor check that passed or failed
-- **Composability**: MIT license means you can fork it, extend it, embed it in your product, or build a SaaS on top — no permission needed
-- **Trajectory**: the architecture is designed to scale from personal use to enterprise, from single-node to distributed swarm — the foundation is already built
-
----
-
-## Capabilities
-
-| Layer | Capability | Implementation |
-|-------|-----------|---------------|
-| **Sensory** | Speech-to-text | Whisper (local) |
-| **Sensory** | Vision | Ollama LLaVA / Claude Vision |
-| **Sensory** | Text-to-speech | edge-tts (free) |
-| **Security** | PII + injection guard | Rust Armor (2.1 µs) |
-| **Signal** | Uncertainty tracking | Rust Kalman (1.4 µs) |
-| **Emotion** | Mood modulation | Fuzzy Heart (Mamdani inference) |
-| **Memory** | Semantic recall | ChromaDB + pgvector |
-| **Memory** | Episodic memory | PostgreSQL + pgvector |
-| **Memory** | Procedural skills | JSON registry, RL-lite Q-values |
-| **Reasoning** | Symbolic engine | CLIPS-pattern Rust, forward chaining |
-| **Reasoning** | World model | Neo4j knowledge graph |
-| **Evolution** | Algorithm optimization | Red Queen tournament (Idle Zero) |
-| **Orchestration** | Multi-agent tasks | Apex Quintet (5-agent smolagents) |
-| **Interop** | Agent discovery | Google A2A AgentCard protocol |
-
----
-
-## Architecture
-
-```
-User Input (text · audio · image)
-        │
-        ▼
-   Armor (Rust)  ←── PII scan + injection check (2.1 µs)
-        │
-        ▼
-MultimodalGateway
-        ├── AudioProcessor   Whisper STT
-        ├── VisionProcessor  LLaVA → Claude Vision
-        └── Kalman Filter    Rust Steel Core (1.4 µs)
-        │
-        ▼
-Fuzzy Heart (emotional modulation → LLM temperature)
-        │
-        ▼
-   Memory Query ──────────────→ Symbiosis MCP
-        │                        ├── ChromaDB   (semantic)
-        │                        └── PostgreSQL (episodic)
-        ▼
-LocalLLM (Ollama → Claude → Groq → OpenRouter)
-        │
-        ▼
-PerceptionEvent ──→ ReasoningEngine (Rust CLIPS)
-                           │
-                        Neo4j World Model
-                           │
-                    [multi-step task?]
-                           ▼
-           Apex Quintet (5-agent AION protocol)
-    Sentinel → Archivist → Analyst → Operator → Herald
-
-                    [system idle?]
-                           ▼
-           Idle Zero — Red Queen Tournament
-    Warrior algorithms evolve · Champions promoted to memory
-```
+<table>
+<tr><td>🧠</td><td><b>Neuro-symbolic reasoning</b></td><td>LLM outputs are verified by a CLIPS-pattern Rust engine. No rule fires without a traceable cause. No deduction without a trace.</td></tr>
+<tr><td>🗃️</td><td><b>4-store memory</b></td><td>Semantic (ChromaDB) · Episodic (PostgreSQL+pgvector) · World model (Neo4j) · Procedural (JSON). Conversations persist across sessions and across models.</td></tr>
+<tr><td>🛡️</td><td><b>Armor at 2.1 µs</b></td><td>Every request and response passes through a Rust PII + injection guard before any LLM sees it. Structural — not a Python filter bolted on afterward.</td></tr>
+<tr><td>📐</td><td><b>Kalman context window</b></td><td>A 64-dim latent state vector tracks what the system knows and how confident it is. Context managed mathematically, not by praying your token count fits.</td></tr>
+<tr><td>🔌</td><td><b>Plug&Play providers</b></td><td>Claude → GPT → Gemini → Llama (Ollama) → Groq → any LiteLLM model. One env var. Zero code changes.</td></tr>
+<tr><td>⚔️</td><td><b>Aeon Fleet</b></td><td>8 specialized agents. You pick which one handles a task, or ZANA recommends based on context.</td></tr>
+<tr><td>🐝</td><td><b>Swarm evolution</b></td><td>Red Queen bootstraps warrior Aeons that evolve their cognitive DNA autonomously via meta-evolutionary optimization.</td></tr>
+<tr><td>🌐</td><td><b>Runs everywhere</b></td><td>Terminal · PWA · Desktop (Tauri) · Telegram · Slack · Discord. Same cognitive runtime on every surface.</td></tr>
+</table>
 
 ---
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/kemquiros/zana-core.git
-cd zana-core
+# 1. Choose your LLM provider (ONE line)
+echo 'ZANA_PRIMARY_MODEL=anthropic/claude-3-5-haiku-20241022' >> .env   # Claude (fastest)
+echo 'ZANA_PRIMARY_MODEL=openai/gpt-4o-mini'                 >> .env   # GPT
+echo 'ZANA_PRIMARY_MODEL=gemini/gemini-1.5-flash'            >> .env   # Gemini
+echo 'ZANA_PRIMARY_MODEL=ollama/llama3.1:8b'                 >> .env   # Local — FREE
+
+# 2. Start the stack
+zana start
+
+# 3. Talk
+zana chat
+> What did I ask you about yesterday?
+> Analyze this error and remember the fix: [paste stack trace]
+> Remember: the client demo is on Friday at 3pm
+```
+
+---
+
+## What can you build?
+
+<table>
+<thead><tr><th>Use Case</th><th>How</th><th>Aeon</th></tr></thead>
+<tbody>
+<tr><td>🔍 <b>Personal knowledge base</b></td><td><code>zana embed ~/notes/</code> → ask anything across your entire vault</td><td>Archivist</td></tr>
+<tr><td>💻 <b>Dev assistant with memory</b></td><td>Connects to your codebase. Remembers your architecture decisions across sessions.</td><td>Forge</td></tr>
+<tr><td>📊 <b>Business intelligence</b></td><td>Feed structured facts → symbolic rules fire → <code>LOCK_EXPENSES</code>, <code>ALERT_TEAM</code></td><td>Analyst</td></tr>
+<tr><td>🔐 <b>Security monitoring</b></td><td>Every event passes Armor + reasoning engine. Anomalies trigger defined effects.</td><td>Sentinel</td></tr>
+<tr><td>📚 <b>Research assistant</b></td><td>Upload papers → semantic search → episodic recall of your readings over time</td><td>Scholar</td></tr>
+<tr><td>🤖 <b>Automation layer</b></td><td>Webhook → <code>/sense/text</code> → reasoning → effect → external action pipeline</td><td>Operator</td></tr>
+<tr><td>👁️ <b>Visual intelligence</b></td><td>Screenshot → <code>/sense/vision</code> → description + entities + Aeon response</td><td>Watcher</td></tr>
+<tr><td>💬 <b>Team AI bot</b></td><td>Add to Slack/Discord/Telegram. One ZANA per team, shared persistent memory.</td><td>Herald</td></tr>
+</tbody>
+</table>
+
+---
+
+## Aeon Fleet
+
+Eight specialized cognitive agents. Each with its own model, cost tier, and toolset.
+
+| Aeon | Role | Default Model | Cost |
+|------|------|---------------|------|
+| ⚔️ **Sentinel** | Security audit · anomaly detection | claude-haiku | 🟢 Low |
+| 📚 **Archivist** | Semantic memory · document retrieval | claude-haiku | 🟢 Low |
+| 📊 **Analyst** | Data reasoning · symbolic inference | claude-sonnet | 🟡 Mid |
+| ⚙️ **Operator** | Code execution · external actions | claude-sonnet | 🟡 Mid |
+| 📣 **Herald** | Communication · report generation | claude-haiku | 🟢 Low |
+| 🔨 **Forge** | Code generation · architecture design | claude-opus | 🔴 High |
+| 🎓 **Scholar** | Research · long-form synthesis | claude-opus | 🔴 High |
+| 👁️ **Watcher** | Vision · multimodal · monitoring | claude-sonnet | 🟡 Mid |
+
+```bash
+zana aeon list                                 # full fleet with status
+zana aeon use forge                            # switch Aeon for this session
+zana aeon recommend "analyze this dataset"     # ZANA picks the right one
+```
+
+> Every Aeon's model is independently configurable. `FORGE_MODEL=ollama/llama3.1:70b` → Forge runs locally.
+
+---
+
+## Swap your LLM in 5 seconds
+
+```bash
+# .env — one variable, restart, done. No code changes.
+
+ZANA_PRIMARY_MODEL=anthropic/claude-3-5-haiku-20241022   # Claude Haiku
+ZANA_PRIMARY_MODEL=anthropic/claude-opus-4-7             # Claude Opus (most capable)
+ZANA_PRIMARY_MODEL=openai/gpt-4o                         # GPT-4o
+ZANA_PRIMARY_MODEL=gemini/gemini-1.5-pro                 # Gemini Pro
+ZANA_PRIMARY_MODEL=groq/llama-3.1-70b-versatile          # Groq (ultra-fast)
+ZANA_PRIMARY_MODEL=ollama/llama3.1:8b                    # Local, free, 100% private
+ZANA_PRIMARY_MODEL=ollama/mistral:7b                     # Local, lightweight
+```
+
+LiteLLM resolves the provider from the model prefix. ZANA doesn't know which one you picked — and it doesn't need to.
+
+---
+
+## Connect everything
+
+```bash
+# Telegram (personal assistant)
+TELEGRAM_BOT_TOKEN=<from @BotFather> python -m telegram_bot.bot
+
+# Slack (team workspace)
+SLACK_BOT_TOKEN=<xoxb-...> SLACK_APP_TOKEN=<xapp-...> python mcp/zana-slack/bot.py
+
+# Discord (community)
+DISCORD_BOT_TOKEN=<token> python mcp/zana-discord/bot.py
+# Slash commands: /sense /reason /recall /status /swarm /aeon
+
+# PWA (mobile & web — installable)
+open http://localhost:54448
+
+# Desktop app
+# → Download .deb / .AppImage / .dmg / .msi from GitHub Releases
+```
+
+### MCP Integration (Claude Code / Claude Desktop)
+
+Drop ZANA's cognitive tools directly into any MCP-compatible client:
+
+```json
+{
+  "mcpServers": {
+    "zana-memory":   { "command": "uv", "args": ["run", "--directory", "mcp/zana-memory",   "python", "server.py"] },
+    "zana-episodic": { "command": "uv", "args": ["run", "--directory", "mcp/zana-episodic", "python", "server.py"] },
+    "zana-slack":    { "command": "uv", "args": ["run", "--directory", "mcp/zana-slack",    "python", "server.py"] },
+    "zana-discord":  { "command": "uv", "args": ["run", "--directory", "mcp/zana-discord",  "python", "server.py"] }
+  }
+}
+```
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                       INPUT SURFACES                          │
+│   Terminal · PWA · Desktop · Telegram · Slack · Discord      │
+└───────────────────────────┬──────────────────────────────────┘
+                            │
+                  ┌─────────▼──────────┐
+                  │   ARMOR  (Rust)    │  ← PII + injection @ 2.1µs
+                  └─────────┬──────────┘
+                            │
+            ┌───────────────▼────────────────┐
+            │    SENSORY GATEWAY  :54446      │
+            │    Audio · Vision · Text · WS   │
+            │    LiteLLM Router               │
+            │    Claude/GPT/Gemini/Ollama/Groq │
+            └──────┬──────────────────┬───────┘
+                   │                  │
+      ┌────────────▼────┐   ┌─────────▼───────────┐
+      │  KALMAN FILTER  │   │  REASONING ENGINE    │
+      │  steel_core.so  │   │  CLIPS-Rust fwd-chain│
+      │  64-dim latent  │   │  + Wisdom Hub sync   │
+      └────────────┬────┘   └─────────┬────────────┘
+                   │                  │
+      ┌────────────▼──────────────────▼────────────┐
+      │                 4-STORE MEMORY              │
+      │  ChromaDB    PostgreSQL+pgvector    Neo4j   │
+      │  Semantic    Episodic               World   │
+      │  (vault)     (conversations)        (graph) │
+      └─────────────────────┬──────────────────────┘
+                            │
+                  ┌─────────▼──────────┐
+                  │    AEON FLEET      │  ← 8 specialized agents
+                  │    RED QUEEN       │  ← Evolutionary swarm
+                  └────────────────────┘
+```
+
+---
+
+## Power User CLI
+
+```bash
+# Full system audit
+zana doctor
+
+# Memory — query across all 4 stores
+zana memory search "decisions made in Q1"
+zana memory recall 20
+zana memory stats
+
+# Symbolic reasoning — manual forward-chaining
+zana reason machine_health_avg=0.3
+zana reason last_action_status=FAILED --remote   # ask the swarm
+
+# Swarm — Red Queen evolutionary fleet
+zana swarm init --warriors 50 --generations 2000
+zana swarm status --watch                         # live dashboard
+zana swarm sync                                   # pull Wisdom Hub rules
+zana swarm query machine_health_avg
+
+# Shadow Observer — silent background meta-evolution
+zana shadow enable
+zana shadow status
+```
+
+---
+
+## The Paper
+
+ZANA is backed by 33 pages of technical depth: the neuro-symbolic architecture, the EML universal arithmetic operator (`eml(x,y) = eˣ − ln(y)`), Kalman-based context management, the ZFI evaluation framework, and comparative benchmarks.
+
+<div align="center">
+
+[![📄 Read the Paper — PDF](https://img.shields.io/badge/📄_Read_the_Paper-33_pages,_PDF-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core/blob/main/docs/paper/zana_paper.pdf)
+
+*Available directly on GitHub while arXiv review is pending.*
+
+</div>
+
+---
+
+## ZFI — ZANA Fitness Index
+
+Seven measurable pillars. Fully reproducible benchmark included.
+
+| Pillar | Weight | Measures |
+|--------|--------|----------|
+| Gateway | 30 pts | Sensory pipeline latency + availability |
+| Semantic Memory | 20 pts | ChromaDB response + collection health |
+| Episodic Memory | 15 pts | PostgreSQL latency + record integrity |
+| Cache | 10 pts | Redis hit rate + response time |
+| World Model | 15 pts | Neo4j query latency + graph integrity |
+| Interface | 10 pts | PWA availability + load time |
+| **Total** | **100 pts** | |
+
+**Hot (full Docker stack): 100 / 100**  
+**Cold (no Docker, Gateway only): 89.8 / 100**
+
+```bash
+zana status        # current score
+zana doctor        # full audit, latency per pillar
+```
+
+---
+
+## Manifesto
+
+We built ZANA because we believe the most dangerous dependency in 2025 is a dependency on a single AI provider.
+
+Not because they're untrustworthy — because they're *changing too fast*. Every six weeks a new model. Every quarter a new API. Every year a new paradigm. If your intelligence layer sits directly on top of any one provider, you're one announcement away from refactoring your entire system.
+
+**Cognitive sovereignty means your reasoning is yours.**  
+Your memory doesn't live on someone else's server.  
+Your rules don't reset when you upgrade.  
+Your context doesn't disappear when a conversation ends.
+
+ZANA is the stable ground beneath the chaos — a deterministic symbolic layer that verifies neural outputs, a memory system that persists across models and years, a security layer that doesn't ask the LLM for permission.
+
+You own your Aeon. You own its memory. You own its rules.  
+The LLM is just a voice. And you choose which voice speaks.
+
+*JUNTOS HACEMOS TEMBLAR LOS CIELOS.*
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Cognitive runtime | Python 3.12 + Rust stable |
+| LLM routing | LiteLLM — Claude · GPT · Gemini · Groq · Ollama |
+| Reasoning | CLIPS-pattern forward-chaining in Rust |
+| Context management | Kalman filter (Steel Core.so, 1.4 µs) |
+| Security | Armor.so (Rust, 2.1 µs/call) |
+| Semantic memory | ChromaDB + sentence-transformers |
+| Episodic memory | PostgreSQL 16 + pgvector |
+| World model | Neo4j 5 |
+| Cache | Redis 7 |
+| Audio | faster-whisper (STT) + edge-tts (TTS) |
+| Vision | Claude Vision / LLaVA via Ollama |
+| Desktop | Tauri v2 (Rust + Next.js 15) |
+| PWA | Next.js 15 + Framer Motion |
+| MCP | FastMCP — memory · episodic · world · Slack · Discord |
+| Reverse proxy | Caddy 2 (automatic HTTPS) |
+| Container | Docker Compose |
+
+---
+
+## Self-hosting in 5 minutes
+
+```bash
+git clone https://github.com/kemquiros/zana-core.git && cd zana-core
 cp .env.example .env
+# Edit .env — set at least ONE API key or OLLAMA_BASE_URL for local LLM
+docker compose up -d
+zana doctor   # → ZFI 100/100
 ```
 
-Edit `.env` — pick one LLM backend:
-
-```bash
-ZANA_PRIMARY_MODEL=ollama/llama3.2:3b        # fully local, no API key
-# ANTHROPIC_API_KEY=sk-ant-...               # best reasoning quality
-# OPENAI_API_KEY=sk-...                      # OpenAI-compatible
-```
-
-```bash
-docker compose up -d chromadb postgres redis neo4j
-cd sensory && uv run uvicorn multimodal_gateway:app --host 0.0.0.0 --port 54446
-curl http://localhost:54446/health
-```
-
----
-
-## API Reference
-
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/sense/text` | Text → PerceptionEvent + response |
-| `POST` | `/sense/audio` | Audio → Whisper STT → response + TTS |
-| `POST` | `/sense/vision` | Image → description + response |
-| `POST` | `/sense/multimodal` | Audio + image combined |
-| `WS` | `/sense/stream` | Real-time bidirectional stream |
-| `POST` | `/aeon/speak` | Text → MP3 audio |
-| `POST` | `/apex/orchestrate` | Multi-step task (5-agent pipeline) |
-| `GET` | `/health` | System status + ZFI score |
-| `GET` | `/.well-known/agent-card.json` | A2A AgentCard discovery |
-
----
-
-## Building the Rust Core
-
-```bash
-cd rust_core
-RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
-cp target/release/libzana_steel_core.so ../zana_steel_core.so
-cp ../zana_steel_core.so ../sensory/zana_steel_core.so
-
-cd ../armor
-RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
-cp target/release/libzana_armor.so ../zana_armor.so
-```
-
-> Compiled with `target-cpu=native` (AVX2). Users on ARM or non-AVX2 x86 must remove that flag.
-
----
-
-## Benchmark
-
-```bash
-cd sensory
-CHROMA_HOST=localhost CHROMA_PORT=58001 \
-POSTGRES_HOST=localhost POSTGRES_PORT=55433 \
-REDIS_URL=redis://localhost:56380 \
-NEO4J_URI=bolt://localhost:57687 \
-PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
-```
-
-**ZFI — ZANA Fitness Index** (7 pillars):
-
-| Pillar | Weight | Hot Score |
-|--------|--------|-----------|
-| Steel Core | 20% | 100.0 |
-| Memory | 20% | 100.0 |
-| Symbolic Reasoning | 15% | 100.0 |
-| Swarm / A2A | 15% | 100.0 |
-| Market Fitness | 15% | 100.0 |
-| Armor | 10% | 100.0 |
-| Interoperability | 5% | 100.0 |
-| **ZFI Total** | **100%** | **100.0** |
-
----
-
-## Modules
-
-| Module | Language | Purpose |
-|--------|----------|---------|
-| `sensory/` | Python | Multimodal gateway, STT, TTS, vision |
-| `rust_core/` | Rust | Kalman filter, policy brain, EML operator |
-| `armor/` | Rust | Security middleware (PII + injection) |
-| `reasoning_engine/` | Python/Rust | Symbolic rule engine (CLIPS-pattern) |
-| `swarm/` | Python | A2A protocol, Apex Quintet, LLM Guard |
-| `episodic/` | Python | Episodic memory (PostgreSQL + pgvector) |
-| `world_model/` | Python | Neo4j knowledge graph |
-| `procedural_memory/` | Python | Skills registry, RL-lite Q-values |
-| `idle_zero/` | Rust | Red Queen evolutionary optimizer |
-| `autonomy/` | Python | Strategy tournament, self-improving orchestration |
-| `registry/` | Rust | A2A node registry server |
-| `mcp/` | Python | Model Context Protocol servers |
-| `aria-ui/` | TypeScript | Next.js PWA + Tauri desktop frontend |
-
----
-
-## Documentation
-
-| Document | Description |
-|----------|-------------|
-| [User Manual](docs/USER_MANUAL.md) | API usage, language settings, memory system |
-| [Deployment Guide](docs/DEPLOYMENT.md) | Free · VPS ($12/mo) · Cloud/k8s |
-| [Contributing](CONTRIBUTING.md) | Dev setup, code standards, PR process |
-| [Changelog](CHANGELOG.md) | Release history |
-| [Academic Paper](docs/paper/zana_paper.tex) | Full arXiv preprint (LaTeX) |
-
----
-
-## Academic Paper
-
-> **ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime**
-> John Tapias Zarrazola, MsC Data Science (c) — Universidad Ricardo Palma, 2026
-> [arXiv:2026.XXXXX](https://arxiv.org/abs/2026.XXXXX) · [Local source](docs/paper/zana_paper.tex)
-
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=kemquiros/zana-core&type=Date)](https://star-history.com/#kemquiros/zana-core&Date)
+**Requirements:** Docker 24+, 4 GB RAM, 10 GB disk.  
+Supports x86_64 and ARM64 (Apple Silicon, Raspberry Pi 4+).
 
 ---
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Key rules:
-- All code and comments in **English only**
-- No personal data, no hardcoded secrets
-- Run the benchmark — ZFI must not regress
+```bash
+# Run tests
+cd sensory && uv run pytest ../tests/ -v
+
+# Benchmark
+cd sensory && uv run python ../tests/benchmark_zana.py
+
+# Lint
+cd rust_core && cargo check
+cd armor      && cargo check
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 
 ---
 
-## License
+## Acknowledgements
 
-MIT — see [LICENSE](LICENSE).
+ZANA was conceived, designed, and built by **John Tapias** ([@kemquiros](https://github.com/kemquiros)) — Medellín, Colombia. [VECANOVA](https://vecanova.com).
+
+With gratitude to those who showed up in the dark hours:
+
+| | |
+|---|---|
+| **eglejsr** | Grounding. The first to believe this wasn't just code. |
+| **ferchus_nandus** | Endurance. Proved that discipline and love are not opposites. |
+| **domination** | Precision. Demanded nothing less than the real thing. |
+| **kamo** | Clarity. Knew what mattered before I did. |
+| **virtus_sapiens** | Wisdom. The kind that comes from choosing difficulty on purpose. |
+| **oma_fren** | Origin. Everything before the complexity. |
+| **xanderx_monkey** | Chaos. The kind that breaks you open, not down. |
 
 ---
 
-Built by **[John Tapias Zarrazola](https://github.com/kemquiros)** ([@kemquiros](https://github.com/kemquiros))
+<div align="center">
 
-*Este es mi regalo para el mundo.*
+**[📄 Paper](https://github.com/kemquiros/zana-core/blob/main/docs/paper/zana_paper.pdf) · [🗺️ Roadmap](docs/ROADMAP.md) · [🐛 Issues](https://github.com/kemquiros/zana-core/issues) · [📦 Releases](https://github.com/kemquiros/zana-core/releases)**
+
+<br>
+
+*Not a chatbot. Not a wrapper. A reasoning machine that runs on your hardware.*
+
+<br>
+
+MIT License · Built with honor in Medellín, Colombia.
+
+</div>
