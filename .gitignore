@@ -35,8 +35,11 @@ data/
 *.pkl
 *.pickle
 
-# Paper PDF (distributed via GitHub Releases and arXiv)
-docs/paper/*.pdf
+# Paper build artifacts (only PDF is versioned)
+docs/paper/*.aux
+docs/paper/*.out
+docs/paper/*.toc
+docs/paper/*.log
 
 # OS
 .DS_Store
