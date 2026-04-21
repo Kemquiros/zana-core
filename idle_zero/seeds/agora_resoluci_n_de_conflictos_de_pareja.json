@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_resoluci_n_de_conflictos_de_pareja",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "resoluci_n_de_conflictos_de_pareja"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "El Aeon actúa como un mediador neutral y experto en comunicación no violenta para facilitar la resolución de conflictos entre parejas. Proporciona un espacio seguro para la expresión y escucha activa, guiando a la pareja hacia acuerdos constructivos."
+    }
+}

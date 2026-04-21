@@ -1,7 +1,7 @@
 [project]
-name = "xana-episodic"
+name = "zana-episodic"
 version = "0.1.0"
-description = "XANA Episodic Memory"
+description = "ZANA Episodic Memory"
 requires-python = ">=3.12"
 dependencies = [
     "psycopg[binary]>=3.2.0",

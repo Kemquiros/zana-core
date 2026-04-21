@@ -25,7 +25,7 @@ class OptimizedKalmanFilter:
         return float(surprise)
 
 def run_python_benchmark():
-    print("--- 🐍 XANA PYTHON CORE (OPTIMIZED): PERFORMANCE BENCHMARK ---")
+    print("--- 🐍 ZANA PYTHON CORE (OPTIMIZED): PERFORMANCE BENCHMARK ---")
     dim = 384
     iterations = 100_000
     

@@ -1,10 +1,10 @@
 [package]
-name    = "xana-armor"
+name    = "zana-armor"
 version = "1.0.0"
 edition = "2021"
 
 [lib]
-name      = "xana_armor"
+name      = "zana_armor"
 crate-type = ["cdylib", "rlib"]
 
 [features]

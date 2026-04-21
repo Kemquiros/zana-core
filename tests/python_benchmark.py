@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from episodic.kalman import CognitiveKalmanFilter
 
 def run_python_benchmark():
-    print("--- 🐍 XANA PYTHON CORE: PERFORMANCE BENCHMARK ---")
+    print("--- 🐍 ZANA PYTHON CORE: PERFORMANCE BENCHMARK ---")
     dim = 384
     iterations = 1000 # Python is much slower, 100k would take too long for quick comparison
     

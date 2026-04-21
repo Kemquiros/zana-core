@@ -15,7 +15,7 @@ from procedural_memory.math_agent import EMLMathAgent
 
 class AutonomousOrchestrator:
     """
-    The Heart of XANA's Autonomy (Phase 7).
+    The Heart of ZANA's Autonomy (Phase 7).
     Coordinated Loop: Observe Context -> Consult World Model -> 
     Pick Skill (Policy Brain) -> Execute -> Learn (Reward Engine).
     """
@@ -24,12 +24,12 @@ class AutonomousOrchestrator:
         self.reward_engine = RewardEngine()
         self.math_agent = EMLMathAgent()
         
-        # Skills XANA can choose from
+        # Skills ZANA can choose from
         self.available_skills = ["eml_reconstruct_log", "eml_reconstruct_exp"]
         self.brain = PolicyBrain(output_dim=len(self.available_skills))
 
     def run_autonomous_step(self, context_embedding: np.ndarray, task_description: str) -> Dict[str, Any]:
-        print(f"--- 🔱 XANA AUTONOMOUS STEP: {task_description} ---")
+        print(f"--- 🔱 ZANA AUTONOMOUS STEP: {task_description} ---")
         
         # 1. Consult World Model (Neo4j simulation placeholder)
         print("SIMULATING causal impact in World Model...")

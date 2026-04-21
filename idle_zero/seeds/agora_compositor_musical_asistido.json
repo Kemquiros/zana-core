@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_compositor_musical_asistido",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "compositor_musical_asistido"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ofrece sugerencias de progresiones de acordes, variaciones melódicas y estructuras musicales. El Aeon actúa como un co-compositor, ayudando a los músicos a explorar nuevas ideas y superar bloqueos creativos en sus composiciones."
+    }
+}

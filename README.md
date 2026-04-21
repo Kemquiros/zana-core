@@ -281,12 +281,12 @@ curl http://localhost:54446/health
 ```bash
 cd rust_core
 RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
-cp target/release/libxana_steel_core.so ../xana_steel_core.so
-cp ../xana_steel_core.so ../sensory/xana_steel_core.so
+cp target/release/libzana_steel_core.so ../zana_steel_core.so
+cp ../zana_steel_core.so ../sensory/zana_steel_core.so
 
 cd ../armor
 RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
-cp target/release/libxana_armor.so ../xana_armor.so
+cp target/release/libzana_armor.so ../zana_armor.so
 ```
 
 > Compiled with `target-cpu=native` (AVX2). Users on ARM or non-AVX2 x86 must remove that flag.
@@ -347,7 +347,7 @@ PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
 | [Deployment Guide](docs/DEPLOYMENT.md) | Free · VPS ($12/mo) · Cloud/k8s |
 | [Contributing](CONTRIBUTING.md) | Dev setup, code standards, PR process |
 | [Changelog](CHANGELOG.md) | Release history |
-| [Academic Paper](docs/paper/xana_paper.tex) | Full arXiv preprint (LaTeX) |
+| [Academic Paper](docs/paper/zana_paper.tex) | Full arXiv preprint (LaTeX) |
 
 ---
 
@@ -355,7 +355,7 @@ PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
 
 > **ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime**
 > John Tapias Zarrazola, MsC Data Science (c) — Universidad Ricardo Palma, 2026
-> [arXiv:2026.XXXXX](https://arxiv.org/abs/2026.XXXXX) · [Local source](docs/paper/xana_paper.tex)
+> [arXiv:2026.XXXXX](https://arxiv.org/abs/2026.XXXXX) · [Local source](docs/paper/zana_paper.tex)
 
 ---
 

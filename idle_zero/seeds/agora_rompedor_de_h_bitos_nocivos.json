@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_rompedor_de_h_bitos_nocivos",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "rompedor_de_h_bitos_nocivos"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Diseña entornos y estrategias personalizadas para dificultar la práctica de hábitos nocivos y facilitar la adopción de comportamientos más saludables. El Aeon ayuda a identificar las barreras conductuales y a crear un ecosistema de apoyo."
+    }
+}

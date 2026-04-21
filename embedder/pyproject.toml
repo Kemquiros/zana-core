@@ -1,7 +1,7 @@
 [project]
-name = "xana-embedder"
+name = "zana-embedder"
 version = "0.1.0"
-description = "XANA vault embedding pipeline"
+description = "ZANA vault embedding pipeline"
 requires-python = ">=3.12"
 dependencies = [
     "chromadb>=0.6.0",
@@ -13,8 +13,8 @@ dependencies = [
 ]
 
 [project.scripts]
-xana-embed = "embedder.main:cli"
-xana-watch = "embedder.watcher:watch"
+zana-embed = "embedder.main:cli"
+zana-watch = "embedder.watcher:watch"
 
 [tool.uv]
 package = false

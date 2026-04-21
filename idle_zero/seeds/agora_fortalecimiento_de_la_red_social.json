@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_fortalecimiento_de_la_red_social",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "fortalecimiento_de_la_red_social"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ayuda a los usuarios a identificar y nutrir sus relaciones sociales. El Aeon detecta conexiones descuidadas o infravaloradas y sugiere \"misiones de conexión\" proactivas, como enviar un mensaje, planificar un encuentro o recordar un cumpleaños importante."
+    }
+}

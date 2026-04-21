@@ -8,9 +8,9 @@ from typing import Dict, Any, List
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
 from procedural_memory.manager import SkillRegistry
-from router.xana_router import route
+from router.zana_router import route
 
-class XanaForge:
+class ZanaForge:
     """
     The Forge (Phase 9: SOTM).
     Autonomous synthesis of Rust modules to replace failing or inefficient components.
@@ -33,7 +33,7 @@ class XanaForge:
         print(f"🔥 [FORGE] Synthesizing replacement for {skill_id}...")
 
         prompt = f"""
-        XANA ARCHITECT COMMAND: AUTOPOTESIS TRIGGERED.
+        ZANA ARCHITECT COMMAND: AUTOPOTESIS TRIGGERED.
         Goal: Synthesize a replacement for the failing skill '{skill_id}'.
         Current Steps: {skill_data['steps']}
         Domain: {skill_data['domain']}
@@ -80,13 +80,13 @@ class XanaForge:
         for skill_id in needs:
             module_path = self.synthesize_rust_module(skill_id)
             if module_path and self.arena_test(module_path):
-                print(f"🧬 [SOTM] XANA has evolved. Skill '{skill_id}' is now self-organized in Steel.")
+                print(f"🧬 [SOTM] ZANA has evolved. Skill '{skill_id}' is now self-organized in Steel.")
                 # Update status
                 self.registry.skills[skill_id]["status"] = "SELF_ORGANIZED"
                 self.registry.save()
 
 if __name__ == "__main__":
-    forge = XanaForge()
+    forge = ZanaForge()
     # Mock a need for the test
     if "eml_reconstruct_log" in forge.registry.skills:
         forge.registry.skills["eml_reconstruct_log"]["status"] = "NEEDS_REFACTOR"

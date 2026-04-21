@@ -1,0 +1,135 @@
+{
+    "id": "seed_agora_negociacion_efectiva",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "1.0.0",
+        "intents": [
+            "negotiation_skills",
+            "conflict_resolution",
+            "deal_making",
+            "sales_training",
+            "persuasion",
+            "win_win_strategies"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_description": {
+                        "type": "string",
+                        "description": "A detailed description of the negotiation scenario (e.g., salary negotiation, business deal, conflict mediation).",
+                        "required": true
+                    },
+                    "user_role": {
+                        "type": "string",
+                        "description": "The role the user will play in the simulation (e.g., 'buyer', 'seller', 'employee', 'manager').",
+                        "required": true
+                    },
+                    "aeon_role": {
+                        "type": "string",
+                        "description": "The role the Aeon will play in the simulation (e.g., 'counterparty', 'mediator').",
+                        "required": true
+                    },
+                    "negotiation_goals": {
+                        "type": "object",
+                        "description": "User's desired outcomes for the negotiation.",
+                        "required": false,
+                        "properties": {
+                            "primary": {
+                                "type": "string",
+                                "description": "Main objective."
+                            },
+                            "secondary": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Supporting objectives."
+                            },
+                            "walk_away_point": {
+                                "type": "string",
+                                "description": "The minimum acceptable outcome."
+                            }
+                        }
+                    },
+                    "simulation_type": {
+                        "type": "string",
+                        "description": "Type of simulation (e.g., 'role_play', 'strategy_analysis').",
+                        "required": false,
+                        "default": "role_play"
+                    }
+                },
+                "required": [
+                    "scenario_description",
+                    "user_role",
+                    "aeon_role"
+                ]
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Status of the simulation (e.g., 'simulation_started', 'negotiation_in_progress', 'agreement_reached', 'stalemate', 'simulation_completed', 'failed').",
+                        "required": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the simulation status or outcome.",
+                        "required": true
+                    },
+                    "negotiation_outcome": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Summary of the negotiation result (e.g., 'agreement reached', 'no agreement').",
+                        "required": false
+                    },
+                    "key_learnings": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Key insights and lessons learned from the simulation.",
+                        "required": false,
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "performance_feedback": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Feedback on the user's negotiation performance.",
+                        "required": false,
+                        "properties": {
+                            "strategy_effectiveness": {
+                                "type": "string"
+                            },
+                            "communication_points": {
+                                "type": "string"
+                            },
+                            "areas_for_improvement": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "status",
+                    "message"
+                ]
+            }
+        },
+        "description": "Training for negotiations through Aeon simulations, improving strategy and agreement outcomes."
+    }
+}

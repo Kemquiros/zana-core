@@ -18,13 +18,13 @@ from typing import Optional
 
 from .perception_event import VisionFeatures
 
-logger = logging.getLogger("xana.vision")
+logger = logging.getLogger("zana.vision")
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 VISION_MODEL      = os.getenv("VISION_MODEL", "claude-sonnet-4-6")
 KEYFRAME_INTERVAL = float(os.getenv("KEYFRAME_INTERVAL_S", "3.0"))
 
-_VISION_PROMPT = """Analyze this image as XANA, an AI cognitive system observing the user's world.
+_VISION_PROMPT = """Analyze this image as ZANA, an AI cognitive system observing the user's world.
 Return a JSON with exactly these fields (no markdown, raw JSON):
 {
   "scene_type": "<indoor|outdoor|screen|document|face|mixed>",
@@ -32,7 +32,7 @@ Return a JSON with exactly these fields (no markdown, raw JSON):
   "emotional_context": "<neutral|focused|stressed|collaborative|creative|chaotic>",
   "text_content": "<any readable text visible in the image, or empty string>",
   "description": "<one sentence describing what is happening>",
-  "facts": ["<list of up to 5 factual statements XANA should assert about this scene>"],
+  "facts": ["<list of up to 5 factual statements ZANA should assert about this scene>"],
   "confidence": <0.0 to 1.0>
 }"""
 

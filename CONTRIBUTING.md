@@ -1,4 +1,4 @@
-# Contributing to XANA Core
+# Contributing to ZANA Core
 
 Thank you for your interest in contributing.
 
@@ -48,7 +48,7 @@ chore: bump rust edition to 2024
 ## Reporting Bugs
 
 Open an issue with:
-- XANA version / commit hash
+- ZANA version / commit hash
 - OS and Python version
 - Steps to reproduce
 - Expected vs actual behavior

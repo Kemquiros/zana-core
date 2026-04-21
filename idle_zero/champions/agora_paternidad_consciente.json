@@ -1,0 +1,58 @@
+{
+  "id": "5e1f7606-1bb1-4a42-85a8-dcf62484a5bd",
+  "generation": 1559,
+  "setup": [],
+  "predict": [
+    {
+      "op": "Subtract",
+      "out_addr": 46,
+      "in1_addr": 17,
+      "in2_addr": 16,
+      "constant": 0.5264558665696566,
+      "model_id": null
+    },
+    {
+      "op": "Subtract",
+      "out_addr": 1,
+      "in1_addr": 46,
+      "in2_addr": 50,
+      "constant": 0.6427663857786228,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 24,
+      "in1_addr": 50,
+      "in2_addr": 23,
+      "constant": 0.4196205893329192,
+      "model_id": null
+    }
+  ],
+  "learn": [
+    {
+      "op": "Exp",
+      "out_addr": 50,
+      "in1_addr": 24,
+      "in2_addr": 34,
+      "constant": 1.4752744508498514,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 16,
+      "in1_addr": 36,
+      "in2_addr": 60,
+      "constant": -0.9620690533878287,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 36,
+      "in1_addr": 54,
+      "in2_addr": 30,
+      "constant": 0.7055179217559243,
+      "model_id": null
+    }
+  ],
+  "fitness": 1.967962310424781
+}

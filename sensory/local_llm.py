@@ -10,8 +10,8 @@ Supports multiple providers via LiteLLM:
 - Ollama (ollama/...)
 
 Configurable via environment:
-  XANA_PRIMARY_MODEL — default: "anthropic/claude-3-5-haiku-20241022"
-  XANA_VISION_MODEL  — default: "anthropic/claude-3-5-sonnet-20241022"
+  ZANA_PRIMARY_MODEL — default: "anthropic/claude-3-5-haiku-20241022"
+  ZANA_VISION_MODEL  — default: "anthropic/claude-3-5-sonnet-20241022"
   OLLAMA_API_BASE    — default: "http://localhost:11434" (when using ollama/... models)
 """
 from __future__ import annotations
@@ -21,16 +21,16 @@ import os
 from typing import Optional
 import litellm
 
-logger = logging.getLogger("xana.local_llm")
+logger = logging.getLogger("zana.local_llm")
 
 # Default models
-PRIMARY_MODEL = os.getenv("XANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022")
-VISION_MODEL = os.getenv("XANA_VISION_MODEL", "anthropic/claude-3-5-sonnet-20241022")
+PRIMARY_MODEL = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022")
+VISION_MODEL = os.getenv("ZANA_VISION_MODEL", "anthropic/claude-3-5-sonnet-20241022")
 
 # Suppress verbose litellm logs
 litellm.set_verbose = False
 
-_XANA_SYSTEM = """You are XANA, an advanced AI cognitive system and personal assistant.
+_ZANA_SYSTEM = """You are ZANA, an advanced AI cognitive system and personal assistant.
 You help with technical analysis, project management, business strategy, and software engineering.
 
 Rules:
@@ -55,7 +55,7 @@ class LocalLLM:
         """
         Generate Aeon response from user input + optional cortex context.
         """
-        messages = [{"role": "system", "content": _XANA_SYSTEM}]
+        messages = [{"role": "system", "content": _ZANA_SYSTEM}]
         if context:
             messages.append({
                 "role": "system",

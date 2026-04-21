@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_entrenamiento_del_pensamiento_cr_tico",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "entrenamiento_del_pensamiento_cr_tico"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "A través de diálogos socráticos simulados, el Aeon ayuda al usuario a identificar falacias lógicas, sesgos cognitivos y debilidades en argumentos. Fomenta un enfoque más analítico y reflexivo hacia la información y la toma de decisiones."
+    }
+}

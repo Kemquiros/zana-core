@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from autonomy.brain import PolicyBrain
 
 def run_python_brain_benchmark():
-    print("--- 🐍 XANA PYTHON BRAIN: PERFORMANCE BENCHMARK ---")
+    print("--- 🐍 ZANA PYTHON BRAIN: PERFORMANCE BENCHMARK ---")
     dim = 384
     iterations = 1000 # Python scale
     

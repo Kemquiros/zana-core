@@ -1,15 +1,15 @@
 import numpy as np
 from typing import List, Optional
-import xana_steel_core
+import zana_steel_core
 
 class CognitiveKalmanFilter:
     """
-    XANA Steel Core Wrapper for Cognitive Kalman Filter (Rust implementation).
+    ZANA Steel Core Wrapper for Cognitive Kalman Filter (Rust implementation).
     Treats the latent task representation as a state to be estimated.
     """
     def __init__(self, dim: int = 384, process_noise: float = 1e-4, measurement_noise: float = 1e-2):
         self.dim = dim
-        self.inner = xana_steel_core.PyKalmanFilter(dim, process_noise, measurement_noise)
+        self.inner = zana_steel_core.PyKalmanFilter(dim, process_noise, measurement_noise)
 
     def update(self, observation: np.ndarray) -> float:
         """

@@ -1,5 +1,5 @@
 /*!
-XANA Model Armor — Input/Output Sanitization
+ZANA Model Armor — Input/Output Sanitization
 Rust-native, zero cloud dependency, sub-millisecond latency.
 
 Verifica todas las entradas y salidas del sistema contra:
@@ -95,7 +95,7 @@ fn patterns() -> &'static Patterns {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-/// Inspect and sanitize text before it enters XANA (user input).
+/// Inspect and sanitize text before it enters ZANA (user input).
 pub fn inspect_input(text: &str) -> ArmorVerdict {
     let start = std::time::Instant::now();
     let mut violations = Vec::new();
@@ -173,7 +173,7 @@ pub fn inspect_input(text: &str) -> ArmorVerdict {
     }
 }
 
-/// Inspect XANA output before returning to user.
+/// Inspect ZANA output before returning to user.
 pub fn inspect_output(text: &str) -> ArmorVerdict {
     let start = std::time::Instant::now();
     let mut violations = Vec::new();
@@ -258,7 +258,7 @@ mod python {
     }
 
     #[pymodule]
-    fn xana_armor(_py: Python, m: &PyModule) -> PyResult<()> {
+    fn zana_armor(_py: Python, m: &PyModule) -> PyResult<()> {
         m.add_function(wrap_pyfunction!(py_inspect_input, m)?)?;
         m.add_function(wrap_pyfunction!(py_inspect_output, m)?)?;
         Ok(())

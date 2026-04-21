@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_tutor_de_ia_personalizado",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "tutor_de_ia_personalizado"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Crea currículos educativos y laboratorios virtuales personalizados para temas complejos, como la Inteligencia Artificial. El Aeon adapta el contenido y los ejercicios prácticos a la curva de aprendizaje del usuario, actuando como un tutor experto."
+    }
+}

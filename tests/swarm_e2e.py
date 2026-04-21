@@ -5,15 +5,15 @@ import json
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from swarm.dna import XanaDNA
+from swarm.dna import ZanaDNA
 from swarm.meta_evolution import MetaEvolutionaryModule
 from swarm.hive_node import HiveNode
 
 def test_swarm_e2e():
-    print("--- 🐝 XANA SWARM: END-TO-END HIVE TEST ---")
+    print("--- 🐝 ZANA SWARM: END-TO-END HIVE TEST ---")
     
     # 1. Setup Local Hive Node
-    node = HiveNode("XANA_HIVE_01")
+    node = HiveNode("ZANA_HIVE_01")
     mem = MetaEvolutionaryModule(epsilon=1.0) # Force exploration for test
     
     print(f"[STEP 1] Initial Fingerprint: {node.dna.get_fingerprint()}")
@@ -38,7 +38,7 @@ def test_swarm_e2e():
     print("\n[STEP 3] Testing Architecture Sharing (A2A)...")
     spec_card = node.generate_spec_card()
     
-    new_peer = HiveNode("XANA_PEER_99")
+    new_peer = HiveNode("ZANA_PEER_99")
     print(f"Peer Initial Fingerprint: {new_peer.dna.get_fingerprint()}")
     
     new_peer.sync_from_swarm(spec_card)
@@ -50,7 +50,7 @@ def test_swarm_e2e():
     else:
         print("❌ FAIL: Peer synchronization failed.")
 
-    if node.dna.author == "XANA_HIVE_01":
+    if node.dna.author == "ZANA_HIVE_01":
         print("✅ SUCCESS: DNA metadata preserved.")
 
 if __name__ == "__main__":

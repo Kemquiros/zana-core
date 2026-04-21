@@ -1,0 +1,15 @@
+[package]
+name = "zana_audio_dsp"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "zana_audio_dsp"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+[features]
+default = []
+extension-module = ["pyo3/extension-module"]

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_exploraci_n_art_stica",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "exploraci_n_art_stica"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Expone al usuario a diversas formas de arte (visual, musical, literario) alineadas con su perfil estético y sus intereses. El objetivo es expandir sus horizontes creativos y despertar nuevas inspiraciones."
+    }
+}

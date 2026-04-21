@@ -1,6 +1,6 @@
-# XANA User Manual
+# ZANA User Manual
 
-XANA is a personal AI cognitive system. It perceives audio, images, and text; reasons with a symbolic engine; remembers episodically; and acts through external tools — all running locally on your hardware.
+ZANA is a personal AI cognitive system. It perceives audio, images, and text; reasons with a symbolic engine; remembers episodically; and acts through external tools — all running locally on your hardware.
 
 ---
 
@@ -52,9 +52,9 @@ You should see backends listed as `online`.
 
 ---
 
-## Interacting with XANA
+## Interacting with ZANA
 
-XANA exposes a REST + WebSocket API. You can interact via:
+ZANA exposes a REST + WebSocket API. You can interact via:
 
 - **ARIA UI** (web interface) at `http://localhost:54448`
 - **Direct API calls** (see below)
@@ -85,7 +85,7 @@ curl -X POST http://localhost:54446/sense/vision \
   -F "session_id=my-session"
 ```
 
-### Make XANA speak arbitrary text
+### Make ZANA speak arbitrary text
 
 ```bash
 curl -X POST http://localhost:54446/aeon/speak \
@@ -99,7 +99,7 @@ Response includes `audio_b64` (base64 MP3).
 
 ## Interaction Language
 
-XANA responds in **the same language you use**. Write in Spanish → XANA answers in Spanish. Write in English → XANA answers in English.
+ZANA responds in **the same language you use**. Write in Spanish → ZANA answers in Spanish. Write in English → ZANA answers in English.
 
 Internal system code, logs, and API fields are always in English.
 
@@ -115,7 +115,7 @@ AEON_VOICE=es-MX-JorgeNeural     # Mexican Spanish
 
 ## Memory System
 
-XANA stores memory in multiple layers:
+ZANA stores memory in multiple layers:
 
 | Layer | Storage | What it holds |
 |-------|---------|---------------|
@@ -131,7 +131,7 @@ Memory is automatically retrieved and injected into responses via the Symbiosis 
 
 ## Reasoning Engine
 
-XANA has a symbolic reasoning engine that fires rules based on asserted facts:
+ZANA has a symbolic reasoning engine that fires rules based on asserted facts:
 
 - Facts enter via `PerceptionEvent` (sensor input)
 - Rules are matched and new facts are deduced
@@ -162,9 +162,9 @@ This deploys 5 specialized agents:
 
 ## Security
 
-- **Input/Output armor**: All messages pass through `xana_armor.so` (Rust) for PII detection and injection prevention.
+- **Input/Output armor**: All messages pass through `zana_armor.so` (Rust) for PII detection and injection prevention.
 - **No credentials in code**: API keys go in `.env`, never in source files.
-- **Local-first**: By default, XANA uses local models (Ollama). Cloud APIs are only called if no local model is available and a key is set.
+- **Local-first**: By default, ZANA uses local models (Ollama). Cloud APIs are only called if no local model is available and a key is set.
 
 ---
 
@@ -181,7 +181,7 @@ This deploys 5 specialized agents:
 
 **Steel Core shows numpy fallback**
 → Build Rust core: `cd rust_core && RUSTFLAGS="-C target-cpu=native" cargo build --release --features python`
-→ Then sync: `cp target/release/libxana_steel_core.so ../xana_steel_core.so && cp ../xana_steel_core.so sensory/`
+→ Then sync: `cp target/release/libzana_steel_core.so ../zana_steel_core.so && cp ../zana_steel_core.so sensory/`
 
 **Benchmark score drops when Docker is off**
 → ChromaDB offline reduces P2 (Memory System) by ~3–4 points. Always run Docker for accurate XFI.

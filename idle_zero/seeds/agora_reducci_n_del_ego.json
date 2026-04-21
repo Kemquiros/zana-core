@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_reducci_n_del_ego",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "reducci_n_del_ego"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Un programa avanzado basado en meditación, TCC y prácticas de desidentificación para ayudar al usuario a reducir la influencia del ego en sus pensamientos y acciones. Fomenta una perspectiva más objetiva y menos reactiva."
+    }
+}

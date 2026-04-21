@@ -1,4 +1,4 @@
-# XANA Deployment Guide
+# ZANA Deployment Guide
 
 Three tiers depending on budget and requirements.
 
@@ -26,7 +26,7 @@ ngrok http 54446
 # → You get a URL like https://abc123.ngrok.io
 ```
 
-Set `XANA_PUBLIC_URL=https://abc123.ngrok.io` in `.env` so the A2A AgentCard is correct.
+Set `ZANA_PUBLIC_URL=https://abc123.ngrok.io` in `.env` so the A2A AgentCard is correct.
 
 ### Limitations
 - URL changes every ngrok restart (free plan)
@@ -66,14 +66,14 @@ cp .env.example .env
 # Edit .env — set your domain and API keys
 
 # 3. Set your domain in .env
-XANA_DOMAIN=xana.yourdomain.com
-XANA_PUBLIC_URL=https://xana.yourdomain.com
+ZANA_DOMAIN=zana.yourdomain.com
+ZANA_PUBLIC_URL=https://zana.yourdomain.com
 
 # 4. Start everything (Caddy handles TLS automatically)
 docker compose up -d
 
 # 5. Point your DNS A record to your VPS IP
-# xana.yourdomain.com → <VPS IP>
+# zana.yourdomain.com → <VPS IP>
 ```
 
 Caddy (included in `docker-compose.yml`) automatically provisions a Let's Encrypt TLS certificate.
@@ -97,11 +97,11 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ollama pull llama3.2:3b
 
 # Set in .env
-XANA_PRIMARY_MODEL=ollama/llama3.2:3b
+ZANA_PRIMARY_MODEL=ollama/llama3.2:3b
 OLLAMA_URL=http://localhost:11434
 ```
 
-This makes XANA fully autonomous — no cloud API keys needed.
+This makes ZANA fully autonomous — no cloud API keys needed.
 
 ---
 
@@ -117,12 +117,12 @@ This makes XANA fully autonomous — no cloud API keys needed.
 Internet
   └── Load Balancer (HTTPS/443)
         └── Ingress Controller (nginx/traefik)
-              ├── /sense/*        → xana-gateway Deployment (2–4 replicas)
-              ├── /apex/*         → xana-gateway Deployment
-              └── /.well-known/*  → xana-gateway Deployment
+              ├── /sense/*        → zana-gateway Deployment (2–4 replicas)
+              ├── /apex/*         → zana-gateway Deployment
+              └── /.well-known/*  → zana-gateway Deployment
 
 Cluster internal:
-  xana-gateway → chromadb Service
+  zana-gateway → chromadb Service
               → postgres Service (StatefulSet)
               → redis Service
               → neo4j Service (StatefulSet)
@@ -136,21 +136,21 @@ Cluster internal:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: xana-gateway
+  name: zana-gateway
 spec:
   replicas: 2
   template:
     spec:
       containers:
       - name: gateway
-        image: your-registry/xana-gateway:v1.0.0
+        image: your-registry/zana-gateway:v1.0.0
         ports:
         - containerPort: 54446
         envFrom:
         - secretRef:
-            name: xana-secrets
+            name: zana-secrets
         - configMapRef:
-            name: xana-config
+            name: zana-config
 ```
 
 ### Secrets management
@@ -162,7 +162,7 @@ Never put API keys in manifests. Use:
 - **Kubernetes Secrets** (base64, acceptable for internal clusters)
 
 ```bash
-kubectl create secret generic xana-secrets \
+kubectl create secret generic zana-secrets \
   --from-literal=ANTHROPIC_API_KEY=sk-... \
   --from-literal=POSTGRES_PASSWORD=... \
   --from-literal=NEO4J_PASSWORD=...
@@ -183,16 +183,16 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build and push Docker image
       run: |
-        docker build -t your-registry/xana-gateway:${{ github.ref_name }} .
-        docker push your-registry/xana-gateway:${{ github.ref_name }}
+        docker build -t your-registry/zana-gateway:${{ github.ref_name }} .
+        docker push your-registry/zana-gateway:${{ github.ref_name }}
   deploy:
     needs: build-push
     runs-on: ubuntu-latest
     steps:
     - name: Update k8s deployment
       run: |
-        kubectl set image deployment/xana-gateway \
-          gateway=your-registry/xana-gateway:${{ github.ref_name }}
+        kubectl set image deployment/zana-gateway \
+          gateway=your-registry/zana-gateway:${{ github.ref_name }}
 ```
 
 ### Cost estimates (AWS, 2025)
@@ -216,11 +216,11 @@ For GPU inference (local LLM at scale), add a `g4dn.xlarge` EC2 instance (~$150/
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `ANTHROPIC_API_KEY` | Optional* | Anthropic Claude API key |
-| `XANA_PRIMARY_MODEL` | Yes | LiteLLM model string |
-| `XANA_PUBLIC_URL` | Yes | Public base URL of this node |
+| `ZANA_PRIMARY_MODEL` | Yes | LiteLLM model string |
+| `ZANA_PUBLIC_URL` | Yes | Public base URL of this node |
 | `POSTGRES_PASSWORD` | Yes | PostgreSQL password |
 | `NEO4J_PASSWORD` | Yes | Neo4j password |
-| `XANA_DOMAIN` | Tier 2+ | Domain for Caddy TLS |
+| `ZANA_DOMAIN` | Tier 2+ | Domain for Caddy TLS |
 | `AEON_VOICE` | No | TTS voice (default: `es-CO-GonzaloNeural`) |
 | `OLLAMA_URL` | No | Ollama base URL for local LLM |
 

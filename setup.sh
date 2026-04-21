@@ -1,9 +1,9 @@
 #!/bin/bash
-# XANA Core Setup Script
+# ZANA Core Setup Script
 
 set -e
 
-echo "🧠 XANA Core Initialization"
+echo "🧠 ZANA Core Initialization"
 echo "==========================="
 
 # Check dependencies
@@ -28,7 +28,7 @@ fi
 
 # Initialize virtual environments
 echo "📦 Setting up Python virtual environments via 'uv'..."
-for dir in embedder mcp/xana-memory episodic mcp/xana-episodic orchestrator; do
+for dir in embedder mcp/zana-memory episodic mcp/zana-episodic orchestrator; do
     echo "  -> Processing $dir..."
     cd $dir
     uv venv >/dev/null 2>&1
@@ -36,11 +36,11 @@ for dir in embedder mcp/xana-memory episodic mcp/xana-episodic orchestrator; do
     cd - >/dev/null
 done
 
-echo "🐳 Booting XANA Core Services (Docker)..."
+echo "🐳 Booting ZANA Core Services (Docker)..."
 docker compose up -d
 
 echo ""
-echo "✨ XANA Core is ready!"
+echo "✨ ZANA Core is ready!"
 echo ""
 echo "Next Steps:"
 echo "1. Ensure 'VAULT_PATH' in your '.env' points to your Obsidian Vault."
@@ -48,6 +48,6 @@ echo "2. Run the embedding pipeline: cd embedder && uv run python main.py --rese
 echo "3. Initialize Episodic DB: cd episodic && uv run python init_db.py"
 echo "4. Start Episodic Service: cd episodic && uv run python main.py &"
 echo "5. Add MCP servers to your agent CLI (Gemini/Claude):"
-echo "   - XANA Memory: $(pwd)/mcp/xana-memory/.venv/bin/python $(pwd)/mcp/xana-memory/server.py"
-echo "   - XANA Episodic: $(pwd)/mcp/xana-episodic/.venv/bin/python $(pwd)/mcp/xana-episodic/server.py"
+echo "   - ZANA Memory: $(pwd)/mcp/zana-memory/.venv/bin/python $(pwd)/mcp/zana-memory/server.py"
+echo "   - ZANA Episodic: $(pwd)/mcp/zana-episodic/.venv/bin/python $(pwd)/mcp/zana-episodic/server.py"
 echo ""

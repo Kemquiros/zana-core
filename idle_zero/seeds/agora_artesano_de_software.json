@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_artesano_de_software",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "artesano_de_software"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Integración directa con editores de código (VS Code, Vim, etc.) para ofrecer feedback de IA en tiempo real sobre buenas prácticas de codificación, patrones de diseño y eficiencia. Transforma las recomendaciones en hábitos mediante ejercicios guiados y auto-corrección."
+    }
+}

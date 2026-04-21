@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_simulaci_n_de_vidas_alternativas",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "simulaci_n_de_vidas_alternativas"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Permite al usuario reflexionar profundamente sobre decisiones pasadas y explorar cómo diferentes elecciones podrían haber alterado su trayectoria vital. A través de escenarios hipotéticos, se fomenta una mayor comprensión de las propias motivaciones y valores."
+    }
+}

@@ -1294,7 +1294,7 @@ wheels = [
 ]
 
 [[package]]
-name = "xana-episodic"
+name = "zana-episodic"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

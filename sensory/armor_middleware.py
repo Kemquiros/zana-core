@@ -1,6 +1,6 @@
 """
-XANA Armor Middleware
-Wraps input/output through the Rust xana_armor crate.
+ZANA Armor Middleware
+Wraps input/output through the Rust zana_armor crate.
 Falls back to a pure-Python implementation if the .so is not compiled yet.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ class ArmorVerdict(TypedDict):
 
 _rust_armor = None
 try:
-    import xana_armor as _rust_armor
+    import zana_armor as _rust_armor
 except ImportError:
     pass
 

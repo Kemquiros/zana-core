@@ -7,7 +7,7 @@ use kalman::CognitiveKalmanFilter;
 use brain::PolicyBrain;
 
 fn main() {
-    println!("--- 🏗️ XANA STEEL CORE: PERFORMANCE BENCHMARK ---");
+    println!("--- 🏗️ ZANA STEEL CORE: PERFORMANCE BENCHMARK ---");
 
     // Sanity: single 384-element dot product baseline
     let w = vec![1.0_f64; 384];

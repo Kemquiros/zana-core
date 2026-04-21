@@ -1,4 +1,4 @@
-//! XANA Steel Core: EML Symbolic Engine
+//! ZANA Steel Core: EML Symbolic Engine
 //! Implementation of the Exp-Minus-Log operator for maximum precision.
 
 /// The EML (Exp-Minus-Log) operator.

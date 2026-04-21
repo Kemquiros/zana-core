@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_sistema_familiar_unificado",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "sistema_familiar_unificado"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Una plataforma centralizada para la gestión colectiva de calendarios familiares, presupuestos compartidos, metas comunes y tareas del hogar. El Aeon ayuda a coordinar las actividades familiares, asegurando que todos los miembros estén alineados y sus necesidades consideradas."
+    }
+}

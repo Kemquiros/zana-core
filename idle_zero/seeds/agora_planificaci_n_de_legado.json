@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_planificaci_n_de_legado",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "planificaci_n_de_legado"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Guía al usuario en la reflexión y planificación de cómo desea transmitir sus conocimientos, valores, experiencias y recursos a futuras generaciones o a la sociedad. El Aeon facilita la documentación y estructuración de este legado."
+    }
+}

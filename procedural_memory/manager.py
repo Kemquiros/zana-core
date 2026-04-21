@@ -6,7 +6,7 @@ import numpy as np
 
 class SkillRegistry:
     """
-    Manages the Procedural Memory (Skills) of XANA.
+    Manages the Procedural Memory (Skills) of ZANA.
     Stores recipes, execution metrics, and Q-values for optimal routing.
     """
     def __init__(self, storage_path: str = "skills_registry.json"):

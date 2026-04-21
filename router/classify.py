@@ -1,5 +1,5 @@
 """
-XANA Router — Classification Module v2
+ZANA Router — Classification Module v2
 
 Two-dimensional routing:
   Dimension 1 — Backend:  NotebookLM | Gemini | Claude
@@ -74,13 +74,13 @@ _NOTEBOOKLM = [
     r"(en mis notas|in my notes|my (docs?|notes?)|mi vault|mi arquitectura)",
     r"(según el doc|according to|based on my|en el doc|in the doc)",
     r"notebooklm\.google\.com/notebook",
-    r"(arquitectura xana|xana architecture|xana design)",
+    r"(arquitectura zana|zana architecture|zana design)",
     r"(sprint|semana \d+|week \d+|w\d{2}).*(qué|what|estado|status|tareas?|tasks?)",
     r"(project|proyecto).*(doc|spec|arquitectura|diseño|architecture|design)",
     r"(portfolio|proyecto).*(estado|status|blocker|pendiente)",
     r"(obsidian|vault|second brain).*(sobre|about|contiene|has)",
     r"(resume|summarize|sintetiza).*(nota|vault|notebook|sprint|mis\s)",
-    r"(resume|summarize|sintetiza).*(documento|archivo|spec).*(xana|project|proyecto)",
+    r"(resume|summarize|sintetiza).*(documento|archivo|spec).*(zana|project|proyecto)",
 ]
 
 # General knowledge, web — Gemini handles entirely

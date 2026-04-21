@@ -11,14 +11,14 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen
 
-COPY ../xana_steel_core.so ../xana_audio_dsp.so ./
+COPY ../zana_steel_core.so ../zana_audio_dsp.so ./
 
 COPY . .
 
-ARG XANA_GATEWAY_PORT=54446
-ENV GATEWAY_PORT=${XANA_GATEWAY_PORT}
+ARG ZANA_GATEWAY_PORT=54446
+ENV GATEWAY_PORT=${ZANA_GATEWAY_PORT}
 ENV PYTHONPATH=/app
 
-EXPOSE ${XANA_GATEWAY_PORT}
+EXPOSE ${ZANA_GATEWAY_PORT}
 
 CMD ["sh", "-c", "uv run uvicorn sensory.multimodal_gateway:app --host 0.0.0.0 --port ${GATEWAY_PORT}"]

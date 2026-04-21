@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    tags: ["v*.*.*"]
   pull_request:
     branches: [main]
 
@@ -52,4 +53,65 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build Docker image
-        run: docker build -t xana-gateway:${{ github.sha }} -f Dockerfile .
+        run: docker build -t zana-gateway:${{ github.sha }} -f Dockerfile .
+
+  release:
+    name: Publish CLI Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint-and-test]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install build dependencies
+        run: uv pip install --system build hatchling
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Update CLI version to match tag
+        run: |
+          sed -i "s/^version = .*/version = \"${{ steps.version.outputs.VERSION }}\"/" cli/pyproject.toml
+
+      - name: Build CLI wheel + sdist
+        run: |
+          cd cli
+          python -m build --wheel --sdist --outdir dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "ZANA ${{ github.ref_name }}"
+          body: |
+            ## ZANA ${{ github.ref_name }}
+
+            ### Install
+            ```bash
+            curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/zana-core/install.sh | sh
+            ```
+
+            Or with uv:
+            ```bash
+            uv tool install zana
+            ```
+
+            *JUNTOS HACEMOS TEMBLAR LOS CIELOS.*
+          files: |
+            cli/dist/*.whl
+            cli/dist/*.tar.gz
+            install.sh
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}

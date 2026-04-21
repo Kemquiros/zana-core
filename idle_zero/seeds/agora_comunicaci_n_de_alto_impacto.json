@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_comunicaci_n_de_alto_impacto",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "comunicaci_n_de_alto_impacto"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Entrenamiento avanzado para la preparación y ejecución de presentaciones de alto impacto. Analiza el discurso, el tono de voz y el lenguaje corporal del usuario (a través de grabaciones de vídeo o sesiones en vivo con el Aeon) para optimizar la conexión con la audiencia."
+    }
+}

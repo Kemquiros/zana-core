@@ -1,5 +1,5 @@
 """
-PerceptionEvent — canonical structure for all sensory data entering XANA.
+PerceptionEvent — canonical structure for all sensory data entering ZANA.
 
 Every multimodal input (audio, video, image, text) is converted to this object
 before reaching the Cortex. It is the "atom" of the sensory system.
@@ -38,7 +38,7 @@ class VisionFeatures:
 @dataclass
 class PerceptionEvent:
     """
-    Atomic unit of XANA perception.
+    Atomic unit of ZANA perception.
     Produced by the MultimodalGateway, consumed by the Cortex.
     """
     id: str                         = field(default_factory=lambda: str(uuid.uuid4()))
@@ -52,7 +52,7 @@ class PerceptionEvent:
     vision_features: Optional[VisionFeatures] = None
     source_mime: Optional[str]      = None   # "audio/wav", "image/jpeg", "video/mp4"
 
-    # ── XANA processing ───────────────────────────────────────────────────────
+    # ── ZANA processing ───────────────────────────────────────────────────────
     kalman_surprise: float          = 0.0    # Bayesian novelty score
     facts_asserted: list[str]       = field(default_factory=list)  # Fact keys sent to ReasoningEngine
 

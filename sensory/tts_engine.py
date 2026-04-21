@@ -17,7 +17,7 @@ import logging
 import os
 from typing import Optional
 
-logger = logging.getLogger("xana.tts")
+logger = logging.getLogger("zana.tts")
 
 # Available voices map (edge-tts)
 VOICES = {

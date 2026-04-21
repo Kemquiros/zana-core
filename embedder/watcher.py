@@ -143,7 +143,7 @@ class VaultEventHandler(FileSystemEventHandler):
 @click.command()
 def watch():
     """Watch the Obsidian vault for changes and automatically update ChromaDB."""
-    console.print(f"[bold blue]XANA Watchdog[/bold blue]")
+    console.print(f"[bold blue]ZANA Watchdog[/bold blue]")
     console.print(f"Watching Vault: [green]{VAULT_PATH}[/green]")
     
     if not VAULT_PATH.exists():

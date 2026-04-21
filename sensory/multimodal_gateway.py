@@ -1,5 +1,5 @@
 """
-MultimodalGateway — XANA's sensory entry point.
+MultimodalGateway — ZANA's sensory entry point.
 Port: 54446
 
 Endpoints:
@@ -11,7 +11,7 @@ Endpoints:
   GET  /aeon/speak       — arbitrary TTS (text → base64 MP3 audio)
   GET  /health           — gateway status and available backends
 
-XANA Cortex integration:
+ZANA Cortex integration:
   Calls POST http://SYMBIOSIS_URL/mcp/context to enrich the response
   with episodic/semantic memory before synthesizing the Aeon's voice.
   If Symbiosis is offline, operates in autonomous local mode.
@@ -38,13 +38,13 @@ from .vision_processor import VisionProcessor
 from .armor_middleware import inspect_input, inspect_output, backend as armor_backend
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
-logger = logging.getLogger("xana.gateway")
+logger = logging.getLogger("zana.gateway")
 
 SYMBIOSIS_URL = os.getenv("SYMBIOSIS_URL", "http://localhost:4444")
 GATEWAY_PORT  = int(os.getenv("GATEWAY_PORT", "54446"))
 
 app = FastAPI(
-    title="XANA Multimodal Sensory Gateway",
+    title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS — The Aeon's sensory layer",
     version="1.1.0",
 )
@@ -62,12 +62,12 @@ _tts = TTSEngine()
 def _build_kalman(dim: int = 64):
     """Returns Rust PyKalmanFilter if available, else Python fallback."""
     try:
-        import xana_steel_core
-        kf = xana_steel_core.PyKalmanFilter(dim, 1e-4, 1e-2)
+        import zana_steel_core
+        kf = zana_steel_core.PyKalmanFilter(dim, 1e-4, 1e-2)
         logger.info("⚙️  [KALMAN] Rust Steel Core active (dim=%d)", dim)
         return kf
     except Exception:
-        logger.warning("⚠️  [KALMAN] Using numpy fallback (install xana_steel_core.so)")
+        logger.warning("⚠️  [KALMAN] Using numpy fallback (install zana_steel_core.so)")
         return None
 
 class _NumpyKalmanGate:
@@ -409,7 +409,7 @@ async def sense_stream(ws: WebSocket):
                 # ── Armor: inspect output ─────────────────────────────
                 out_verdict = inspect_output(event.response_text or "")
                 if not out_verdict["allowed"]:
-                    event.response_text = "[XANA: response blocked by security policy]"
+                    event.response_text = "[ZANA: response blocked by security policy]"
                 else:
                     event.response_text = out_verdict["sanitized"]
 
@@ -487,7 +487,7 @@ def health():
 import sys; sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
     from swarm.agent_card import serve_agent_card
-    serve_agent_card(app, node_id=os.getenv("XANA_NODE_ID", "AEON-001"))
+    serve_agent_card(app, node_id=os.getenv("ZANA_NODE_ID", "AEON-001"))
 except Exception as _e:
     logger.warning("AgentCard not registered: %s", _e)
 
@@ -497,7 +497,7 @@ except Exception as _e:
 if __name__ == "__main__":
     import uvicorn
     print("╔══════════════════════════════════════════════════╗")
-    print("║   XANA MULTIMODAL SENSORY GATEWAY  v1.0          ║")
+    print("║   ZANA MULTIMODAL SENSORY GATEWAY  v1.0          ║")
     print("║   Audio · Vision · TTS                           ║")
     print(f"║   http://0.0.0.0:{GATEWAY_PORT}                         ║")
     print("╚══════════════════════════════════════════════════╝")

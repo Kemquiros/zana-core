@@ -31,6 +31,13 @@ data/
 *.jsonl
 !tests/benchmark_history.jsonl
 
+# Trained model artifacts (rebuild with: python autonomy/brain.py)
+*.pkl
+*.pickle
+
+# Paper PDF (distributed via GitHub Releases and arXiv)
+docs/paper/*.pdf
+
 # OS
 .DS_Store
 Thumbs.db
@@ -39,3 +46,20 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Utility / one-off scripts (not part of public API)
+convert_docs.py
+convert_pdfs.py
+read_docx.py
+ontology_v2.html
+stress_test.py
+test_orchestrator.py
+cortex.log
+simbiosis.log
+texput.log
+
+# LaTeX build artifacts
+docs/paper/*.aux
+docs/paper/*.out
+docs/paper/*.toc
+docs/paper/*.log

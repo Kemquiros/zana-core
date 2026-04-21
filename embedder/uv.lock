@@ -2372,7 +2372,7 @@ wheels = [
 ]
 
 [[package]]
-name = "xana-embedder"
+name = "zana-embedder"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

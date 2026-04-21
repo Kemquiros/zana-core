@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 class RewardEngine:
     """
-    Calculates rewards for XANA's actions to drive Reinforcement Learning.
+    Calculates rewards for ZANA's actions to drive Reinforcement Learning.
     Based on Phase 7 specs: Reward = success_score + learning_gain - token_cost - time_penalty.
     """
     def __init__(self, token_price: float = 0.000015):

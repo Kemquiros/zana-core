@@ -51,7 +51,7 @@ def test_perception_event() -> bool:
     # Caso 1: evento de audio básico
     evt = PerceptionEvent(
         modality="audio",
-        text="Hola XANA, ¿cómo va el proyecto VECANOVA?",
+        text="Hola ZANA, ¿cómo va el proyecto VECANOVA?",
         audio_features=AudioFeatures(
             duration_s=2.5, rms_energy=0.45, zero_crossing_rate=0.08,
             dominant_freq_hz=180.0, speech_rate_wpm=120.0,
@@ -185,13 +185,13 @@ def test_kalman_pipeline() -> bool:
         return surprise
 
     # Primer evento — alta sorpresa (estado frío)
-    s1 = compute_surprise(text_to_emb("Hola XANA"))
+    s1 = compute_surprise(text_to_emb("Hola ZANA"))
     ok1 = s1 > 0
     print(f"  [{'✅' if ok1 else '❌'}] Primera percepción surprise={s1:.4f} (debe ser > 0)")
     if ok1: passed += 1
 
     # Mismo texto repetido — sorpresa baja (estado caliente)
-    s2 = compute_surprise(text_to_emb("Hola XANA"))
+    s2 = compute_surprise(text_to_emb("Hola ZANA"))
     ok2 = s2 < s1
     print(f"  [{'✅' if ok2 else '❌'}] Texto repetido surprise={s2:.4f} < {s1:.4f} (Kalman aprende)")
     if ok2: passed += 1
@@ -237,7 +237,7 @@ def test_agentcard_multimodal() -> bool:
 # ══════════════════════════════════════════════════════════
 if __name__ == "__main__":
     print("\n" + "═" * 58)
-    print("  XANA MULTIMODAL — TEST DE INTEGRACIÓN")
+    print("  ZANA MULTIMODAL — TEST DE INTEGRACIÓN")
     print("═" * 58)
 
     results = {

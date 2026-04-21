@@ -8,12 +8,12 @@
       "eml(1, result)"
     ],
     "metrics": {
-      "executions": 19,
-      "successes": 16,
+      "executions": 29,
+      "successes": 23,
       "avg_score": NaN,
       "last_outcome": null
     },
-    "q_value": 0.7009455710355703,
+    "q_value": 0.45670616820368637,
     "version": "1.0.0",
     "status": "SELF_ORGANIZED"
   },
@@ -24,12 +24,12 @@
       "eml(x, 1)"
     ],
     "metrics": {
-      "executions": 8,
-      "successes": 8,
-      "avg_score": 0.7999999999999999,
+      "executions": 9,
+      "successes": 9,
+      "avg_score": 0.8222222222222222,
       "last_outcome": null
     },
-    "q_value": 0.670859837,
+    "q_value": 0.7037738533,
     "version": "1.0.0"
   },
   "semantic_search": {
@@ -151,7 +151,7 @@
     "domain": "swarm",
     "steps": [
       "compute_fingerprint(rules+weights) \u2192 sha256",
-      "broadcast(registry, XanaDNA{fingerprint, delta_rules})",
+      "broadcast(registry, ZanaDNA{fingerprint, delta_rules})",
       "llm_guard.scan(incoming_rules)",
       "merge_rules(local, remote, strategy=democratic_vote)",
       "update_mastery_map(new_rules)"

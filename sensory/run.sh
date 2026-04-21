@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# XANA Multimodal Sensory Gateway — launcher
+# ZANA Multimodal Sensory Gateway — launcher
 # Usage: ./sensory/run.sh [--reload]
 set -e
 

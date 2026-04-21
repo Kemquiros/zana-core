@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_organizador_de_conocimiento__segundo_cerebro_",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "organizador_de_conocimiento__segundo_cerebro_"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Conecta automáticamente notas, ideas y aprendizajes para revelar patrones, relaciones y nuevo conocimiento. Actúa como un \"segundo cerebro\", ayudando a estructurar y expandir la base de conocimiento del usuario de forma orgánica."
+    }
+}

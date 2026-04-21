@@ -9,7 +9,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from autonomy.autonomous_orchestrator import AutonomousOrchestrator
 
 def test_phase7_e2e():
-    print("--- 🚀 XANA PHASE 7: END-TO-END AUTONOMY TEST ---")
+    print("--- 🚀 ZANA PHASE 7: END-TO-END AUTONOMY TEST ---")
     
     orchestrator = AutonomousOrchestrator()
     
@@ -40,9 +40,9 @@ def test_phase7_e2e():
     print(f"Total Campaign Reward: {total_reward:.4f}")
     print(f"Success Rate: {success_rate * 100:.1f}%")
     
-    brain_path = Path(__file__).parent.parent / "autonomy/xana_brain.pkl"
+    brain_path = Path(__file__).parent.parent / "autonomy/zana_brain.pkl"
     if brain_path.exists():
-        print("✅ SUCCESS: Policy Brain persisted (xana_brain.pkl).")
+        print("✅ SUCCESS: Policy Brain persisted (zana_brain.pkl).")
     else:
         print("❌ FAIL: Policy Brain not saved.")
 

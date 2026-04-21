@@ -1,4 +1,4 @@
-//! XANA Steel Core: Cognitive Kalman Filter
+//! ZANA Steel Core: Cognitive Kalman Filter
 //! Optimized linear algebra for Bayesian surprise detection.
 
 pub struct CognitiveKalmanFilter {

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_optimizaci_n_del_sue_o",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "optimizaci_n_del_sue_o"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Integración con dispositivos y sensores de seguimiento del sueño (wearables, apps de salud) para mejorar la calidad del descanso. El Aeon analiza los datos para identificar correlaciones, patrones y ofrecer recomendaciones personalizadas para optimizar el ciclo de sueño."
+    }
+}

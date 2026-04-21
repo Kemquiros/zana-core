@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_gesti_n_de_enfermedades_cr_nicas",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "gesti_n_de_enfermedades_cr_nicas"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Proporciona apoyo en la gestión diaria de enfermedades crónicas. Facilita el seguimiento de medicación, la coordinación de citas médicas, el registro de síntomas y la comunicación autorizada con profesionales de la salud."
+    }
+}

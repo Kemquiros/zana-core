@@ -2,17 +2,17 @@ import numpy as np
 import os
 from pathlib import Path
 from typing import List
-import xana_steel_core
+import zana_steel_core
 
 class PolicyBrain:
     """
-    XANA Steel Core Wrapper for Policy Network (Rust implementation).
+    ZANA Steel Core Wrapper for Policy Network (Rust implementation).
     Maps context embeddings to skill probabilities.
     """
     def __init__(self, input_dim: int = 384, hidden_dim: int = 64, output_dim: int = 4):
         self.input_dim = input_dim
         self.output_dim = output_dim
-        self.inner = xana_steel_core.PyPolicyBrain(input_dim, hidden_dim, output_dim)
+        self.inner = zana_steel_core.PyPolicyBrain(input_dim, hidden_dim, output_dim)
 
     def forward(self, state: np.ndarray) -> np.ndarray:
         probs = self.inner.forward(state.tolist())

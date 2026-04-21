@@ -1,4 +1,4 @@
-"""XANA Vault Embedding Pipeline"""
+"""ZANA Vault Embedding Pipeline"""
 import os
 import sys
 from pathlib import Path
@@ -96,7 +96,7 @@ def split_long_chunk(text: str, max_chars: int) -> list[str]:
 @click.option("--reset", is_flag=True, help="Reset the collection before embedding")
 def cli(reset: bool):
     """Embed the entire Obsidian vault into ChromaDB."""
-    console.print(f"[bold blue]XANA Embedding Pipeline[/bold blue]")
+    console.print(f"[bold blue]ZANA Embedding Pipeline[/bold blue]")
     console.print(f"Vault: [green]{VAULT_PATH}[/green]")
     console.print(f"Chroma: [green]{CHROMA_HOST}:{CHROMA_PORT}[/green]")
     console.print(f"Model: [green]{EMBED_MODEL}[/green]")

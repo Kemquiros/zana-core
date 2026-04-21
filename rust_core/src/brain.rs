@@ -1,4 +1,4 @@
-//! XANA Steel Core: Policy Brain (π)
+//! ZANA Steel Core: Policy Brain (π)
 //! High-speed neural network for skill selection.
 //!
 //! Layout: W1 is [hidden × input] (row = one hidden neuron's weights over all inputs).

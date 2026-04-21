@@ -1,15 +1,15 @@
-{$XANA_DOMAIN:-:80} {
+{$ZANA_DOMAIN:-:80} {
 
   handle /sense/* {
-    reverse_proxy {$XANA_GATEWAY_HOST:-gateway}:{$XANA_GATEWAY_PORT:-54446}
+    reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
   }
 
   handle /health {
-    reverse_proxy {$XANA_GATEWAY_HOST:-gateway}:{$XANA_GATEWAY_PORT:-54446}
+    reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
   }
 
   handle {
-    reverse_proxy {$XANA_PWA_HOST:-pwa}:3000
+    reverse_proxy {$ZANA_PWA_HOST:-pwa}:3000
   }
 
   encode gzip

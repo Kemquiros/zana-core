@@ -8,7 +8,7 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 
 URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 USER = os.getenv("NEO4J_USER", "neo4j")
-PASSWORD = os.getenv("NEO4J_PASSWORD", "xana_neo4j")
+PASSWORD = os.getenv("NEO4J_PASSWORD", "zana_neo4j")
 
 def init_ontology():
     print(f"Connecting to Neo4j at {URI}...")
@@ -34,10 +34,10 @@ def init_ontology():
         print("Forging the Foundation...")
         session.run("""
         MERGE (v:Valor {id: 'core_principles', nombre: 'Core Principles', descripcion: 'Engineering excellence and cognitive integrity'})
-        MERGE (xana:AEON {id: 'zana_core', nombre: 'ZANA', rol: 'Cognitive Architect'})
+        MERGE (zana:AEON {id: 'zana_core', nombre: 'ZANA', rol: 'Cognitive Architect'})
         MERGE (aria:AEON {id: 'aria_design', nombre: 'ARIA', rol: 'Elite Design Agency'})
 
-        MERGE (v)-[:RESTRINGE]->(xana)
+        MERGE (v)-[:RESTRINGE]->(zana)
         MERGE (v)-[:RESTRINGE]->(aria)
 
         MERGE (i:Intencion {id: 'primary_goal', nombre: 'Primary Goal', descripcion: 'Sovereignty and radical scalability'})
@@ -48,7 +48,7 @@ def init_ontology():
         MERGE (r_liq:Recurso {id: 'liquidity', nombre: 'Liquidity', unidad: 'USD'})
         MERGE (r_time:Recurso {id: 'time', nombre: 'Time', unidad: 'Hours'})
 
-        MERGE (xana)-[:CONSUME]->(r_time)
+        MERGE (zana)-[:CONSUME]->(r_time)
         """)
         
         print("✅ World Model Ontology initialized.")

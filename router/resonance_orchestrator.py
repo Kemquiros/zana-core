@@ -16,7 +16,7 @@ from episodic.kalman import CognitiveKalmanFilter
 
 class ResonanceOrchestrator:
     """
-    XANA Resonance Orchestrator (Phase 5).
+    ZANA Resonance Orchestrator (Phase 5).
     Coordinates Bayesian Surprise Filtering, Phi Token Management, and Model Routing.
     """
     def __init__(self, token_budget: int = 128000):
@@ -30,7 +30,7 @@ class ResonanceOrchestrator:
         """
         Main entry point for Phase 5 Routing.
         """
-        print(f"--- 🌀 XANA RESONANCE: ANALYZING '{query[:50]}...' ---")
+        print(f"--- 🌀 ZANA RESONANCE: ANALYZING '{query[:50]}...' ---")
 
         # 1. Check Semantic Cache
         cached = self.cache.get(query)
@@ -82,7 +82,7 @@ class ResonanceOrchestrator:
         }
 
 def main():
-    parser = argparse.ArgumentParser(description="XANA Resonance Orchestrator")
+    parser = argparse.ArgumentParser(description="ZANA Resonance Orchestrator")
     parser.add_argument("query", help="The user query or task")
     parser.add_argument("--tokens", type=int, default=128000, help="Total token budget")
     args = parser.parse_args()

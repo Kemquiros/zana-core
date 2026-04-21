@@ -17,16 +17,16 @@ from kalman import CognitiveKalmanFilter
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-DB_NAME = os.getenv("POSTGRES_DB", "xana")
-DB_USER = os.getenv("POSTGRES_USER", "xana")
-DB_PASS = os.getenv("POSTGRES_PASSWORD", "xana_pass")
+DB_NAME = os.getenv("POSTGRES_DB", "zana")
+DB_USER = os.getenv("POSTGRES_USER", "zana")
+DB_PASS = os.getenv("POSTGRES_PASSWORD", "zana_pass")
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_PORT = os.getenv("POSTGRES_PORT", "55433")
 EMBED_MODEL = os.getenv("EMBED_MODEL", "all-MiniLM-L6-v2")
 
 CONN_STR = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-app = FastAPI(title="XANA Episodic Memory API (CRISOL-APEX)")
+app = FastAPI(title="ZANA Episodic Memory API (CRISOL-APEX)")
 
 # Lazy load model
 _model = None

@@ -1,0 +1,63 @@
+from rich.theme import Theme
+from rich.console import Console
+
+ZANA_THEME = Theme({
+    "primary":   "bold magenta",
+    "secondary": "bold violet",
+    "accent":    "bold bright_magenta",
+    "success":   "bold green",
+    "warning":   "bold yellow",
+    "error":     "bold red",
+    "muted":     "dim white",
+    "header":    "bold white on #3b0764",
+    "code":      "bright_cyan on #1e1b4b",
+})
+
+console = Console(theme=ZANA_THEME)
+
+BANNER = """\
+[primary]
+                       ▲
+                       |
+               ▄▄▄▄▄▄▄▄|▄▄▄▄▄▄▄▄
+           ▄██████████████████████▄
+         ▄██████████████████████████▄
+       ▄██████▀▀▀▀▀▀▀▀▀|▀▀▀▀▀▀▀▀▀██████▄
+      ██████▀          |          ▀██████
+     ██████     ▄▄▄▄▄▄▄|▄▄▄▄▄▄▄     ██████
+    ██████    ▄████████|████████▄    ██████
+   ██████    ██████▀▀▀▀|▀▀▀▀██████    ██████
+   █████▌   ██████▄▄▄▄▄+▄▄▄▄▄██████   ▐█████
+   █████▌   █████▌  ███O███  ▐█████   ▐█████
+   █████▌   ██████▄  ▀▀|▀▀  ▄██████   ▐█████
+    ██████    ▀█████████████████▀    ██████
+     ██████     ▀▀▀▀▀▀▀|▀▀▀▀▀▀▀     ██████
+       ▀██████▄▄▄▄▄▄▄▄▄|▄▄▄▄▄▄▄▄▄██████▀
+         ▀██████████████████████████▀
+               ▀▀▀▀▀▀▀▀|▀▀▀▀▀▀▀▀
+                       |
+                       ▼
+
+        [ Z A N A   I S   O N L I N E ]
+       SYSTEM: CONSCIOUS. HONOR: ENGAGED.[/primary]
+"""
+
+VALHALLA = """\
+[accent]
+                       ▲
+                      ███
+                     █████
+                    ███████
+                   █████████
+                  █████ █████
+                 █████   █████
+                █████     █████
+               █████████████████
+               ▀█████     █████▀
+                 ▀█████ █████▀
+                   ▀███████▀
+                     ▀███▀
+                       ▼
+
+             [ V A L H A L L A   R E A C H E D ][/accent]
+"""

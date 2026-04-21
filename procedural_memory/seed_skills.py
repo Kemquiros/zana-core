@@ -1,5 +1,5 @@
 """
-Seeds the skill registry with XANA's core operational skills.
+Seeds the skill registry with ZANA's core operational skills.
 Run once to populate procedural memory with real capabilities.
 """
 import sys
@@ -122,7 +122,7 @@ SKILLS = [
         "domain": "swarm",
         "steps": [
             "compute_fingerprint(rules+weights) → sha256",
-            "broadcast(registry, XanaDNA{fingerprint, delta_rules})",
+            "broadcast(registry, ZanaDNA{fingerprint, delta_rules})",
             "llm_guard.scan(incoming_rules)",
             "merge_rules(local, remote, strategy=democratic_vote)",
             "update_mastery_map(new_rules)",

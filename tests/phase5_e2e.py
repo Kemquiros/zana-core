@@ -8,7 +8,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from router.resonance_orchestrator import ResonanceOrchestrator
 
 def test_phase5_e2e():
-    print("--- 🌀 XANA PHASE 5: END-TO-END RESONANCE TEST ---")
+    print("--- 🌀 ZANA PHASE 5: END-TO-END RESONANCE TEST ---")
     
     orchestrator = ResonanceOrchestrator(token_budget=100000)
     

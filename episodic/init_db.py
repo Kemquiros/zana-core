@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-DB_NAME = os.getenv("POSTGRES_DB", "xana")
-DB_USER = os.getenv("POSTGRES_USER", "xana")
-DB_PASS = os.getenv("POSTGRES_PASSWORD", "xana_pass")
+DB_NAME = os.getenv("POSTGRES_DB", "zana")
+DB_USER = os.getenv("POSTGRES_USER", "zana")
+DB_PASS = os.getenv("POSTGRES_PASSWORD", "zana_pass")
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
 DB_PORT = os.getenv("POSTGRES_PORT", "5433")
 
@@ -33,7 +33,7 @@ def init_db():
                 outcome_type TEXT,            -- 'success', 'failure', 'partial', 'pending'
                 embedding    vector(384),     -- for similarity search (all-MiniLM-L6-v2)
                 tags         TEXT[],
-                project      TEXT             -- 'VECANOVA', 'XANA', etc.
+                project      TEXT             -- 'VECANOVA', 'ZANA', etc.
             );
             """)
             

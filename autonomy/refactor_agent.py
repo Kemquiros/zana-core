@@ -5,11 +5,11 @@ from typing import Dict, Any
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from router.xana_router import route
+from router.zana_router import route
 
 class RefactorAgent:
     """
-    XANA Refactor Agent (Phase 8).
+    ZANA Refactor Agent (Phase 8).
     Translates Python modules to Rust using Claude Opus for high-fidelity porting.
     """
     def __init__(self):
@@ -25,7 +25,7 @@ class RefactorAgent:
         code = file_path.read_text()
 
         prompt = f"""
-        You are a XANA Senior Systems Engineer. 
+        You are a ZANA Senior Systems Engineer. 
         Your task is to translate this Python module into idiomatic, high-performance RUST code.
         
         CRITERIA:

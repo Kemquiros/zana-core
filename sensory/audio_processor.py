@@ -21,7 +21,7 @@ import numpy as np
 
 from .perception_event import AudioFeatures
 
-logger = logging.getLogger("xana.audio")
+logger = logging.getLogger("zana.audio")
 
 # Whisper model to use. "tiny" = fast on CPU, low RAM usage.
 WHISPER_MODEL = os.getenv("WHISPER_MODEL", "tiny")
@@ -124,10 +124,10 @@ class AudioProcessor:
     # ── Feature extraction (Rust DSP → numpy fallback) ───────────────────────
 
     def _extract_features(self, audio_bytes: bytes) -> AudioFeatures:
-        # Primary: Rust xana_audio_dsp (zero-copy, Cooley-Tukey FFT)
+        # Primary: Rust zana_audio_dsp (zero-copy, Cooley-Tukey FFT)
         try:
-            import xana_audio_dsp
-            f = xana_audio_dsp.extract_features(audio_bytes)
+            import zana_audio_dsp
+            f = zana_audio_dsp.extract_features(audio_bytes)
             return AudioFeatures(
                 duration_s=round(f.duration_s, 2),
                 rms_energy=round(f.rms_energy, 3),
@@ -170,8 +170,8 @@ class AudioProcessor:
     def infer_emotion_from_features(self, f: AudioFeatures) -> str:
         # Delegate to Rust if available, otherwise Python heuristic
         try:
-            import xana_audio_dsp
-            return xana_audio_dsp.infer_emotion(
+            import zana_audio_dsp
+            return zana_audio_dsp.infer_emotion(
                 f.rms_energy, f.zero_crossing_rate, f.speech_rate_wpm
             )
         except Exception:

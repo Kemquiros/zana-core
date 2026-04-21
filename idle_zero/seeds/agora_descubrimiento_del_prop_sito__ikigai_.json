@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_descubrimiento_del_prop_sito__ikigai_",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "descubrimiento_del_prop_sito__ikigai_"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Proceso guiado diseñado para ayudar al usuario a identificar su propósito vital, alineando sus pasiones, talentos, contribuciones al mundo y necesidades económicas, basado en el concepto japonés de Ikigai."
+    }
+}

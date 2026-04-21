@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-XANA Orchestrator — Multi-Agent Coordinator
+ZANA Orchestrator — Multi-Agent Coordinator
 ============================================
 
 Coordinates parallel and sequential execution across:
@@ -30,7 +30,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 
-from xana_router import route as _route
+from zana_router import route as _route
 from classify import ClaudeModel, Route
 
 
@@ -218,8 +218,8 @@ def format_results(results: list[AgentResult], fmt: str = "text") -> str:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="xana_orchestrator",
-        description="XANA Orchestrator — multi-agent coordination.",
+        prog="zana_orchestrator",
+        description="ZANA Orchestrator — multi-agent coordination.",
     )
     p.add_argument("query", nargs="?", help="Task/query (reads stdin if omitted)")
     p.add_argument(

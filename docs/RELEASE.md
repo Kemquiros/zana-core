@@ -1,12 +1,12 @@
 # Release Guide
 
-How to cut and publish a XANA Core release on GitHub.
+How to cut and publish a ZANA Core release on GitHub.
 
 ---
 
 ## Versioning
 
-XANA follows [Semantic Versioning](https://semver.org/):
+ZANA follows [Semantic Versioning](https://semver.org/):
 
 - `MAJOR.MINOR.PATCH`
 - **MAJOR**: breaking API changes
@@ -67,7 +67,7 @@ git push origin v1.1.0
 
 ```bash
 gh release create v1.1.0 \
-  --title "XANA Core v1.1.0" \
+  --title "ZANA Core v1.1.0" \
   --notes-file <(cat CHANGELOG.md | head -30) \
   --latest
 ```
@@ -85,7 +85,7 @@ RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
 cd ..
 
 # Attach to release
-gh release upload v1.1.0 xana_steel_core.so xana_armor.so
+gh release upload v1.1.0 zana_steel_core.so zana_armor.so
 ```
 
 Note: compiled `.so` files are architecture-specific (x86-64 with AVX2). Users on different CPUs should build from source.

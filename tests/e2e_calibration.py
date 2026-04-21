@@ -17,16 +17,16 @@ def test_kalman_calibration():
     # 1. Definir secuencias de contexto (Simuladas con frases reales)
     context_sequences = [
         # Contexto A: Arquitectura de Software
-        "XANA es una arquitectura cognitiva diseñada para escalar agentes de IA.",
-        "El núcleo de XANA utiliza Model Context Protocol para interactuar con herramientas.",
+        "ZANA es una arquitectura cognitiva diseñada para escalar agentes de IA.",
+        "El núcleo de ZANA utiliza Model Context Protocol para interactuar con herramientas.",
         "La fase 4 de la arquitectura implementa un World Model con Neo4j y Redis.",
         
         # Contexto B: Receta de cocina (Cambio drástico)
         "Para preparar empanadas, primero debes hacer la masa con harina y sal.",
         "El relleno puede ser de carne, cebolla y huevo duro.",
         
-        # Contexto C: Volver a XANA (Otro cambio)
-        "El filtro de Kalman en XANA permite gestionar la memoria episódica intra-sesión.",
+        # Contexto C: Volver a ZANA (Otro cambio)
+        "El filtro de Kalman en ZANA permite gestionar la memoria episódica intra-sesión.",
     ]
     
     print(f"{'Contexto':<60} | {'Surprise':<10} | {'Uncertainty':<10} | {'Status'}")

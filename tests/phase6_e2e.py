@@ -10,7 +10,7 @@ from procedural_memory.math_agent import EMLMathAgent
 from procedural_memory.manager import SkillRegistry
 
 def test_phase6_e2e():
-    print("--- 🧠 XANA PHASE 6: END-TO-END PROCEDURAL MEMORY TEST ---")
+    print("--- 🧠 ZANA PHASE 6: END-TO-END PROCEDURAL MEMORY TEST ---")
     
     # 1. Setup
     agent = EMLMathAgent()

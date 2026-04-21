@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_preparaci_n_para_entrevistas_de_trabajo",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "preparaci_n_para_entrevistas_de_trabajo"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Guía completa para la preparación de entrevistas de trabajo. Incluye investigación exhaustiva de empresas y entrevistadores, así como la realización de entrevistas simuladas con el Aeon, proporcionando feedback detallado sobre respuestas, lenguaje y estrategia."
+    }
+}

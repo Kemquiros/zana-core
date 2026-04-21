@@ -9,7 +9,7 @@ from episodic.kalman import CognitiveKalmanFilter
 from world_model.eml import eml_op, exp_eml, log_eml
 
 def test_steel_core_integrity():
-    print("--- 🦾 XANA STEEL CORE: INTEGRITY AUDIT ---")
+    print("--- 🦾 ZANA STEEL CORE: INTEGRITY AUDIT ---")
     
     # 1. EML Precision
     val = 5.0

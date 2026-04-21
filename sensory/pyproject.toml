@@ -1,7 +1,7 @@
 [project]
-name = "xana-sensory"
+name = "zana-sensory"
 version = "1.1.0"
-description = "XANA Multimodal Sensory Gateway — audio, vision, TTS"
+description = "ZANA Multimodal Sensory Gateway — audio, vision, TTS"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.136.0",

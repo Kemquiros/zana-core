@@ -1,0 +1,158 @@
+name: Desktop Build
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag (e.g. v2.0.1)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-desktop:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            runner: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: deb,appimage
+
+          - platform: macos-x86_64
+            runner: macos-13
+            target: x86_64-apple-darwin
+            bundles: dmg
+
+          - platform: macos-aarch64
+            runner: macos-14
+            target: aarch64-apple-darwin
+            bundles: dmg
+
+          - platform: windows-x86_64
+            runner: windows-2022
+            target: x86_64-pc-windows-msvc
+            bundles: msi,nsis
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies (Linux)
+        if: matrix.runner == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: zana-core/aria-ui/package-lock.json
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: zana-core/aria-ui/src-tauri
+
+      - name: Install Node dependencies
+        working-directory: zana-core/aria-ui
+        run: npm ci
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      - name: Install sensory gateway dependencies
+        working-directory: zana-core/sensory
+        run: pip install -r requirements.txt || pip install fastapi uvicorn anthropic litellm faster-whisper edge-tts numpy soundfile websockets pydantic python-dotenv
+
+      - name: Build gateway sidecar
+        shell: bash
+        working-directory: zana-core/sensory
+        run: |
+          pyinstaller \
+            --onefile \
+            --name zana-gateway \
+            --add-data "../zana_steel_core.so:." \
+            --add-data "../zana_audio_dsp.so:."  \
+            --add-data "../zana_armor.so:."       \
+            --hidden-import faster_whisper        \
+            --hidden-import litellm               \
+            multimodal_gateway.py || \
+          printf '#!/bin/sh\necho "gateway not available" >&2\nexit 1\n' > dist/zana-gateway
+          chmod +x dist/zana-gateway
+          mkdir -p ../aria-ui/src-tauri/sidecar
+          cp dist/zana-gateway "../aria-ui/src-tauri/sidecar/zana-gateway-${{ matrix.target }}"
+          chmod +x "../aria-ui/src-tauri/sidecar/zana-gateway-${{ matrix.target }}"
+
+      - name: Build gateway sidecar (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        working-directory: zana-core/sensory
+        run: |
+          pyinstaller --onefile --name zana-gateway multimodal_gateway.py
+          New-Item -ItemType Directory -Force -Path "../aria-ui/src-tauri/sidecar"
+          Copy-Item "dist/zana-gateway.exe" "../aria-ui/src-tauri/sidecar/zana-gateway-${{ matrix.target }}.exe"
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: zana-core/aria-ui
+          tauriScript: npm run tauri
+          args: --target ${{ matrix.target }} --bundles ${{ matrix.bundles }}
+          tagName: ${{ github.ref_name }}
+          releaseName: "ZANA ${{ github.ref_name }}"
+          releaseBody: |
+            ## ZANA Desktop ${{ github.ref_name }}
+
+            ### Install
+
+            **Linux:**
+            ```bash
+            # AppImage (portable, no install needed)
+            chmod +x ZANA_*.AppImage && ./ZANA_*.AppImage
+
+            # Debian/Ubuntu
+            sudo dpkg -i zana_*.deb
+            ```
+
+            **macOS:** Open the `.dmg`, drag ZANA to Applications.
+
+            **Windows:** Run the `.msi` installer.
+
+            ---
+            Or install the CLI for headless operation:
+            ```bash
+            curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/zana-core/install.sh | sh
+            ```
+
+            *JUNTOS HACEMOS TEMBLAR LOS CIELOS.*
+          releaseDraft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}

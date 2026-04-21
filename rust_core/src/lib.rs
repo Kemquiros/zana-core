@@ -172,7 +172,7 @@ impl PyPolicyBrain {
 
 #[cfg(feature = "python")]
 #[pymodule]
-fn xana_steel_core(_py: Python, m: &PyModule) -> PyResult<()> {
+fn zana_steel_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(eml_op, m)?)?;
     m.add_function(wrap_pyfunction!(exp_eml, m)?)?;
     m.add_function(wrap_pyfunction!(log_eml, m)?)?;

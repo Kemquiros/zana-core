@@ -7,11 +7,13 @@ from typing import Optional, Dict, Any
 
 class SemanticCache:
     """
-    XANA Semantic Cache using Redis.
+    ZANA Semantic Cache using Redis.
     Uses query hashing for exact/near-exact matches in Phase 5.
     Future: Use RediSearch for true vector similarity.
     """
-    def __init__(self, redis_url: str = "redis://localhost:6380", ttl: int = 3600):
+    def __init__(self, redis_url: str = None, ttl: int = 3600):
+        import os
+        redis_url = redis_url or os.environ.get("REDIS_URL", "redis://localhost:6380")
         self.redis = redis.Redis.from_url(redis_url, decode_responses=True)
         self.ttl = ttl
 

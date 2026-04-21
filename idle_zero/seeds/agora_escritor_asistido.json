@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_escritor_asistido",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "escritor_asistido"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ayuda en la estructuración de narrativas, el desarrollo de arcos de personajes y la mejora del estilo de escritura. El Aeon proporciona sugerencias contextuales para guiar al escritor a través del proceso creativo, desde la idea inicial hasta el borrador final."
+    }
+}

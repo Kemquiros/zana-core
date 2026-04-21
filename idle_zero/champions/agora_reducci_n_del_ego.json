@@ -1,0 +1,123 @@
+{
+  "id": "b67dd7db-50b2-47f2-9f8e-aa28f3020108",
+  "generation": 531,
+  "setup": [
+    {
+      "op": "Log",
+      "out_addr": 22,
+      "in1_addr": 39,
+      "in2_addr": 11,
+      "constant": -0.8248472289233797,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 15,
+      "in1_addr": 39,
+      "in2_addr": 47,
+      "constant": 0.8717986023594309,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 62,
+      "in1_addr": 50,
+      "in2_addr": 37,
+      "constant": 0.19882291637173993,
+      "model_id": null
+    }
+  ],
+  "predict": [
+    {
+      "op": "Add",
+      "out_addr": 30,
+      "in1_addr": 25,
+      "in2_addr": 9,
+      "constant": -0.3830970795539242,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 1,
+      "in1_addr": 10,
+      "in2_addr": 30,
+      "constant": -0.7194847254488599,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 41,
+      "in1_addr": 19,
+      "in2_addr": 55,
+      "constant": 0.4202490884931249,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 60,
+      "in1_addr": 52,
+      "in2_addr": 45,
+      "constant": 0.21784670067249623,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 18,
+      "in1_addr": 17,
+      "in2_addr": 1,
+      "constant": 0.8404233240761662,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 37,
+      "in1_addr": 21,
+      "in2_addr": 47,
+      "constant": -0.64941640236658,
+      "model_id": null
+    }
+  ],
+  "learn": [
+    {
+      "op": "Subtract",
+      "out_addr": 9,
+      "in1_addr": 15,
+      "in2_addr": 57,
+      "constant": -0.3130653706796974,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 23,
+      "in1_addr": 50,
+      "in2_addr": 29,
+      "constant": 0.3495735079866371,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 18,
+      "in1_addr": 9,
+      "in2_addr": 0,
+      "constant": 0.5241949851259212,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 56,
+      "in1_addr": 1,
+      "in2_addr": 4,
+      "constant": 0.5625141474883333,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 10,
+      "in1_addr": 53,
+      "in2_addr": 22,
+      "constant": -0.8545645120098633,
+      "model_id": null
+    }
+  ],
+  "fitness": 1.5531706730391328
+}

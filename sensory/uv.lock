@@ -2178,7 +2178,7 @@ wheels = [
 ]
 
 [[package]]
-name = "xana-sensory"
+name = "zana-sensory"
 version = "1.1.0"
 source = { virtual = "." }
 dependencies = [

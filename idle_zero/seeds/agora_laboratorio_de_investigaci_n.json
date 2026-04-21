@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_laboratorio_de_investigaci_n",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "laboratorio_de_investigaci_n"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Facilita la investigación de temas complejos mediante lenguaje natural. El Aeon ayuda a formular preguntas de investigación precisas, encontrar y sintetizar información de diversas fuentes, y organizar los hallazgos."
+    }
+}

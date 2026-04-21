@@ -4,7 +4,7 @@ from typing import List, Dict, Any
 
 class StrategyEvolution:
     """
-    Tournament of Ideas: Distribution of XANA.
+    Tournament of Ideas: Distribution of ZANA.
     Uses Evolutionary Algorithms to find the optimal deployment strategy.
     """
     def __init__(self):
@@ -54,7 +54,7 @@ class StrategyEvolution:
         return {"id": random.randint(1000, 9999), "name": "Hybrid_Strategy", "traits": child_traits, "fitness": 0}
 
     def evaluate_fitness(self, idea: Dict[str, Any]) -> float:
-        """Score based on XANA's Constitutional Principles."""
+        """Score based on ZANA's Constitutional Principles."""
         t = idea["traits"]
         score = 0
         
@@ -80,7 +80,7 @@ class StrategyEvolution:
         return score + (random.random() * 5)
 
     def run_tournament(self):
-        print(f"--- 🏆 XANA TOURNAMENT OF IDEAS: THE STRATEGY GENESIS ---")
+        print(f"--- 🏆 ZANA TOURNAMENT OF IDEAS: THE STRATEGY GENESIS ---")
         self.seed_initial_population()
         
         stages = [

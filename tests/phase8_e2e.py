@@ -8,7 +8,7 @@ Verifica los 4 sub-hitos sin dependencias de servicios externos:
   8.4 LLMGuard     — detección de reglas envenenadas
 
 Ejecutar:
-    cd xana-core && python tests/phase8_e2e.py
+    cd zana-core && python tests/phase8_e2e.py
 """
 import json
 import sys
@@ -93,7 +93,7 @@ def test_llm_guard() -> bool:
 # ══════════════════════════════════════════════════════════════
 def test_remote_query() -> bool:
     separator("HITO 8.3 — Remote Query (Razonamiento Distribuido)")
-    rq = RemoteQuery("XANA_TEST_NODE", registry_url="http://localhost:54445")
+    rq = RemoteQuery("ZANA_TEST_NODE", registry_url="http://localhost:54445")
 
     # Con el registry offline, el sistema debe fallar silenciosamente
     result = rq.query_swarm("machine_health_avg", context={"value": 0.3})
@@ -148,8 +148,8 @@ def test_civic_ledger_logic() -> bool:
     rule_a = json.dumps({"name": "Empire_Survival_v2", "conditions": [], "actions": []})
     rule_b = json.dumps({"name": "Wisdom_Threshold", "conditions": [], "actions": []})
 
-    h1 = mirror(rule_a, "Add", "XANA_CORE")
-    h2 = mirror(rule_b, "Add", "XANA_CORE")
+    h1 = mirror(rule_a, "Add", "ZANA_CORE")
+    h2 = mirror(rule_b, "Add", "ZANA_CORE")
     h3 = mirror(rule_a, "Modify", "aeon_node_01")
 
     ok_chain = verify()
@@ -214,7 +214,7 @@ def test_mastery_map_logic() -> bool:
 # ══════════════════════════════════════════════════════════════
 if __name__ == "__main__":
     print("\n" + "═"*60)
-    print("  XANA — PHASE 8 END-TO-END TEST: SOBERANÍA PÚBLICA")
+    print("  ZANA — PHASE 8 END-TO-END TEST: SOBERANÍA PÚBLICA")
     print("═"*60)
 
     results = {

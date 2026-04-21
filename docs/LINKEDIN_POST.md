@@ -1,4 +1,4 @@
-# LinkedIn Post — XANA Launch
+# LinkedIn Post — ZANA Launch
 
 ---
 
@@ -6,7 +6,7 @@ I've been building something different for the past year.
 
 Not a chatbot. Not another LLM wrapper. A **cognitive AI runtime** — designed to reason, remember, and protect itself, running entirely on your own hardware.
 
-Introducing **XANA Core** — now open source.
+Introducing **ZANA Core** — now open source.
 
 ---
 
