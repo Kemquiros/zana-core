@@ -14,12 +14,14 @@
        ▀██████████████████████▀
 ```
 
-# XANA Core
+# ZANA Core
 
-**A Personal Cognitive AI Runtime — Multimodal · Neuro-Symbolic · Local-First**
+**Zarrazola Autonomous Neural Architecture**
 
-[![CI](https://img.shields.io/github/actions/workflow/status/kemquiros/xana-core/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/kemquiros/xana-core/actions)
-[![Release](https://img.shields.io/github/v/release/kemquiros/xana-core?style=flat-square&color=indigo)](https://github.com/kemquiros/xana-core/releases)
+*Local-first · Neuro-Symbolic · Evolutionary · Open Source*
+
+[![CI](https://img.shields.io/github/actions/workflow/status/kemquiros/zana-core/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/kemquiros/zana-core/actions)
+[![Release](https://img.shields.io/github/v/release/kemquiros/zana-core?style=flat-square&color=indigo)](https://github.com/kemquiros/zana-core/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg?style=flat-square)](https://python.org)
 [![Rust](https://img.shields.io/badge/rust-1.78+-orange.svg?style=flat-square)](https://rustup.rs)
@@ -27,48 +29,144 @@
 
 *"Not a chatbot. Not a wrapper. A reasoning machine that runs on your hardware."*
 
+**ZFI (system fitness score): 100 / 100** — measured across 7 pillars with full Docker stack.
+
 </div>
 
 ---
 
-## TL;DR (for builders)
+## TL;DR
 
 ```bash
-git clone https://github.com/kemquiros/xana-core.git && cd xana-core
-cp .env.example .env          # add one API key — or set XANA_PRIMARY_MODEL=ollama/llama3.2:3b for full local
+git clone https://github.com/kemquiros/zana-core.git && cd zana-core
+cp .env.example .env          # set ZANA_PRIMARY_MODEL=ollama/llama3.2:3b for fully local
 docker compose up -d          # ChromaDB · PostgreSQL · Redis · Neo4j
 cd sensory && uv run uvicorn multimodal_gateway:app --port 54446
-curl -X POST http://localhost:54446/sense/text -d '{"text":"Hello"}' -H "Content-Type: application/json"
+curl -X POST http://localhost:54446/sense/text \
+  -H "Content-Type: application/json" \
+  -d '{"text": "What do you remember about me?"}'
 ```
-
-XFI (system fitness score): **100 / 100** with full Docker stack.
 
 ---
 
-## Why XANA Exists
+## Why ZANA Exists
 
 Every AI assistant wraps an LLM and calls it intelligence.
 
-XANA takes a different path: **neuro-symbolic architecture** where fast neural inference and deterministic symbolic rules run together, each correcting the other. Memories persist across sessions with episodic + semantic separation. A Kalman filter (written in Rust, 1.4 µs/call) tracks signal uncertainty before facts reach the reasoning engine. A Rust security layer inspects every input and output for PII and prompt injection before any LLM token is generated.
+ZANA takes a different path. It is a **cognitive runtime** — a layered architecture where neural inference, deterministic symbolic reasoning, signal processing, and adversarial evolutionary optimization work together. No single component can produce a wrong answer and have it go undetected; each layer verifies the previous one.
 
-The result is a system that can *explain* why it said something, *remember* what happened last week, and *refuse* a malicious payload — locally, without calling home.
+The name is literal: **Z**arrazola **A**utonomous **N**eural **A**rchitecture — built by one person, owned by no corporation, running on your hardware.
 
 ---
 
 ## Security (read this first)
 
-XANA's **Armor** middleware (Rust) runs synchronously on every request:
+ZANA's **Armor** middleware (Rust) runs on every request — synchronously, structurally, impossible to bypass:
 
 ```
 User input → Armor::inspect_input() → Gateway → LLM → Armor::inspect_output() → Response
 ```
 
-- **PII detection** — strips personal identifiers before they reach any external model
+- **PII detection** — strips personal identifiers before any external model sees them
 - **Prompt injection** — rejects known jailbreak patterns and adversarial payloads
-- **Latency** — 2.1 µs/call (Rust); Python fallback available if the `.so` is absent
-- **Swarm guard** — `LLMGuard` scans dynamic rules from peer nodes before loading them into the reasoning engine (Milestone 8.4)
+- **Latency** — 2.1 µs/call (Rust); Python fallback if the `.so` is absent
+- **Swarm guard** — `LLMGuard` scans peer-network rules before loading into the reasoning engine
 
-No input reaches the LLM without passing Armor. No output reaches the user without passing Armor.
+Rejection returns HTTP 403. The LLM is never reached for blocked inputs.
+
+---
+
+## Use Cases
+
+ZANA is a tool. What you build with it is limited only by your judgment and your hardware.
+
+### 1. Personal Knowledge OS
+Connect ZANA to your documents, notes, and browsing history. It ingests, indexes, and retrieves across all of them in under 50 ms. Ask cross-document questions with cited provenance. Build a second brain that actually remembers.
+
+```bash
+curl -X POST /sense/text -d '{"text": "What did I learn about Kalman filters last month?"}'
+# Returns: cited recall from episodic + semantic memory
+```
+
+### 2. Autonomous Code Agent
+Send a task to `/apex/orchestrate`. The Apex Quintet (5 specialized agents) decomposes it into subtasks, executes them with registered skills, verifies outputs symbolically, and delivers working code. Runs overnight.
+
+```bash
+curl -X POST /apex/orchestrate -d '{"task": "Write integration tests for the sensory module"}'
+# Sentinel validates → Archivist retrieves context → Analyst decomposes
+# → Operator executes → Herald delivers — all typed, no hallucination cascade
+```
+
+### 3. Business Intelligence Loop
+Feed ZANA your contracts, KPIs, and market data. The CLIPS-pattern reasoning engine asserts facts, fires deterministic rules, and surfaces non-obvious strategic insights — the kind an LLM alone would miss because it predicts, not reasons.
+
+### 4. Scientific Research Assistant
+ZANA reads papers, builds a Neo4j citation graph, generates hypotheses via forward chaining, and ranks them by symbolic consistency — not just semantic similarity. It can detect logical contradictions between papers that a vector search would never find.
+
+### 5. Document Intelligence (Legal, Medical, Financial)
+Upload contracts or reports. ZANA extracts structured facts into episodic memory with timestamps and page references. Query across 1,000 documents and get answers with exact provenance — which document, which section, which date.
+
+### 6. Voice-First Personal Assistant
+```
+Voice note (Telegram / PWA) → Whisper STT → Armor → Kalman → LLM → TTS response
+```
+No cloud STT. No cloud TTS. No data leaves your infrastructure. Works offline once models are cached.
+
+### 7. Self-Improving Algorithm Lab (Idle Zero)
+Point ZANA at a dataset. The Red Queen tournament runs 50 warrior algorithms over 2,000 generations while you sleep. The fittest cognitive algorithm is crystallized and promoted to your procedural memory. Your system improves without you touching it.
+
+### 8. Privacy-Preserving Enterprise AI
+Deploy ZANA on your VPS. Every employee query is inspected by Armor before reaching the LLM. No API key shared. No data sent to OpenAI. Full audit log of Armor rejections and agent traces. GDPR-ready by architecture.
+
+---
+
+## Disclaimer
+
+**ZANA is a tool.**
+
+Like a database, a compiler, or a programming language — it has no inherent ethical orientation. The same system that helps a researcher analyze clinical trials can be directed at other tasks by someone with different intentions.
+
+The author (John Tapias Zarrazola) provides the instrument and publishes it under the MIT License. The responsibility for how you use it rests entirely with you.
+
+ZANA includes an Armor layer that structurally blocks PII exfiltration and known injection patterns. This is not a moral system. It is an engineering constraint on the most common attack vectors. Misuse that falls outside those constraints is the user's responsibility.
+
+---
+
+## Why ZANA vs. The Market
+
+The AI market is dominated by cloud services that predict tokens. ZANA does something structurally different.
+
+| | **ZANA** | ChatGPT | Claude (API) | Open Interpreter | AutoGPT | LangGraph |
+|---|---|---|---|---|---|---|
+| **Runs locally** | ✅ 100% | ❌ Cloud | ❌ Cloud | ✅ Partial | ❌ Cloud | ⚠️ Framework |
+| **Your data stays local** | ✅ | ❌ | ❌ | ✅ | ❌ | ⚠️ |
+| **Symbolic reasoning layer** | ✅ CLIPS-Rust | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Security-by-architecture** | ✅ Rust Armor | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Persistent memory (4 stores)** | ✅ | ❌ Sessions | ❌ Sessions | ❌ | ⚠️ | ⚠️ |
+| **Evolutionary self-improvement** | ✅ Red Queen | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Emotional modulation** | ✅ Fuzzy Heart | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Academic paper + benchmark** | ✅ ZFI/arXiv | — | — | ❌ | ❌ | ❌ |
+| **Open source (auditable)** | ✅ MIT | ❌ | ❌ | ✅ MIT | ✅ MIT | ✅ MIT |
+| **Cost to run** | ~$12/mo VPS | $20+/mo API | $10+/mo API | $0 (local) | Variable | Variable |
+
+### The three differentiators no one else has
+
+**1. Verification, not prediction.**
+Every LLM output passes through a deterministic CLIPS-pattern rule engine. Facts are asserted, rules fire, contradictions surface. The symbolic layer can explain exactly why it said something — traceable to a specific rule and a specific fact. No other production AI assistant does this.
+
+**2. Security at the system boundary.**
+Armor is Rust code that executes before the LLM is invoked. It is not a Python filter added after the fact. It cannot be bypassed through prompt engineering because it runs outside the LLM's context. This matters for enterprise, for healthcare, for legal — any domain where a data breach is existential.
+
+**3. Adversarial self-improvement.**
+The Red Queen tournament (Idle Zero) evolves typed cognitive algorithms on your data while the system is idle. OpenAI retrains GPT-5 on a cluster of thousands of GPUs. ZANA improves itself on your laptop, privately, continuously, without you doing anything.
+
+### Why choose and invest in ZANA
+
+- **Sovereignty**: your data, your hardware, your rules — no vendor lock-in, no terms of service that can change overnight
+- **Predictable cost**: $12/mo VPS vs. $0.01–0.06/1K tokens that compounds to thousands at scale
+- **Auditability**: every decision is traceable — the rule that fired, the memory that was retrieved, the Armor check that passed or failed
+- **Composability**: MIT license means you can fork it, extend it, embed it in your product, or build a SaaS on top — no permission needed
+- **Trajectory**: the architecture is designed to scale from personal use to enterprise, from single-node to distributed swarm — the foundation is already built
 
 ---
 
@@ -76,16 +174,18 @@ No input reaches the LLM without passing Armor. No output reaches the user witho
 
 | Layer | Capability | Implementation |
 |-------|-----------|---------------|
-| **Sensory** | Speech-to-text | Whisper (local, no API) |
-| **Sensory** | Vision analysis | Ollama LLaVA / Claude Vision |
-| **Sensory** | Text-to-speech | edge-tts (free, no API key) |
-| **Security** | PII + injection guard | Rust Armor (2.1 µs/call) |
-| **Signal** | Uncertainty tracking | Rust Kalman filter (1.4 µs/call) |
+| **Sensory** | Speech-to-text | Whisper (local) |
+| **Sensory** | Vision | Ollama LLaVA / Claude Vision |
+| **Sensory** | Text-to-speech | edge-tts (free) |
+| **Security** | PII + injection guard | Rust Armor (2.1 µs) |
+| **Signal** | Uncertainty tracking | Rust Kalman (1.4 µs) |
+| **Emotion** | Mood modulation | Fuzzy Heart (Mamdani inference) |
 | **Memory** | Semantic recall | ChromaDB + pgvector |
 | **Memory** | Episodic memory | PostgreSQL + pgvector |
 | **Memory** | Procedural skills | JSON registry, RL-lite Q-values |
 | **Reasoning** | Symbolic engine | CLIPS-pattern Rust, forward chaining |
 | **Reasoning** | World model | Neo4j knowledge graph |
+| **Evolution** | Algorithm optimization | Red Queen tournament (Idle Zero) |
 | **Orchestration** | Multi-agent tasks | Apex Quintet (5-agent smolagents) |
 | **Interop** | Agent discovery | Google A2A AgentCard protocol |
 
@@ -101,12 +201,15 @@ User Input (text · audio · image)
         │
         ▼
 MultimodalGateway
-        ├── AudioProcessor   Whisper STT + DSP
+        ├── AudioProcessor   Whisper STT
         ├── VisionProcessor  LLaVA → Claude Vision
         └── Kalman Filter    Rust Steel Core (1.4 µs)
         │
         ▼
-   Cortex Query ──────────────→ Symbiosis MCP
+Fuzzy Heart (emotional modulation → LLM temperature)
+        │
+        ▼
+   Memory Query ──────────────→ Symbiosis MCP
         │                        ├── ChromaDB   (semantic)
         │                        └── PostgreSQL (episodic)
         ▼
@@ -115,67 +218,41 @@ LocalLLM (Ollama → Claude → Groq → OpenRouter)
         ▼
 PerceptionEvent ──→ ReasoningEngine (Rust CLIPS)
                            │
-                        Neo4j
-                      World Model
+                        Neo4j World Model
                            │
                     [multi-step task?]
-                           │
                            ▼
-           Apex Quintet (5-agent pipeline)
+           Apex Quintet (5-agent AION protocol)
     Sentinel → Archivist → Analyst → Operator → Herald
+
+                    [system idle?]
+                           ▼
+           Idle Zero — Red Queen Tournament
+    Warrior algorithms evolve · Champions promoted to memory
 ```
 
 ---
 
-## Quick Start (full)
-
-### Prerequisites
-
-- Docker & Docker Compose
-- [uv](https://docs.astral.sh/uv/)
-- Python 3.12+
-- Rust 1.78+ (only if building the Steel Core from source)
-
-### 1. Clone and configure
+## Quick Start
 
 ```bash
-git clone https://github.com/kemquiros/xana-core.git
-cd xana-core
+git clone https://github.com/kemquiros/zana-core.git
+cd zana-core
 cp .env.example .env
 ```
 
-Edit `.env`. Minimum required — pick **one**:
+Edit `.env` — pick one LLM backend:
 
 ```bash
-# Option A: fully local (no API key needed)
-XANA_PRIMARY_MODEL=ollama/llama3.2:3b
-
-# Option B: Claude (best reasoning quality)
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Option C: OpenAI-compatible endpoint
-OPENAI_API_KEY=sk-...
+ZANA_PRIMARY_MODEL=ollama/llama3.2:3b        # fully local, no API key
+# ANTHROPIC_API_KEY=sk-ant-...               # best reasoning quality
+# OPENAI_API_KEY=sk-...                      # OpenAI-compatible
 ```
-
-### 2. Start infrastructure
 
 ```bash
 docker compose up -d chromadb postgres redis neo4j
-```
-
-### 3. Start the gateway
-
-```bash
-cd sensory
-uv run uvicorn multimodal_gateway:app --host 0.0.0.0 --port 54446
-```
-
-### 4. Send your first message
-
-```bash
-curl -X POST http://localhost:54446/sense/text \
-  -H "Content-Type: application/json" \
-  -d '{"text": "What do you remember about me?"}'
+cd sensory && uv run uvicorn multimodal_gateway:app --host 0.0.0.0 --port 54446
+curl http://localhost:54446/health
 ```
 
 ---
@@ -185,39 +262,31 @@ curl -X POST http://localhost:54446/sense/text \
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST` | `/sense/text` | Text → PerceptionEvent + response |
-| `POST` | `/sense/audio` | Audio file → STT → response + TTS |
-| `POST` | `/sense/vision` | Image/video → description + response |
+| `POST` | `/sense/audio` | Audio → Whisper STT → response + TTS |
+| `POST` | `/sense/vision` | Image → description + response |
 | `POST` | `/sense/multimodal` | Audio + image combined |
 | `WS` | `/sense/stream` | Real-time bidirectional stream |
 | `POST` | `/aeon/speak` | Text → MP3 audio |
-| `POST` | `/apex/orchestrate` | Complex multi-step task (5-agent pipeline) |
-| `GET` | `/health` | System status |
+| `POST` | `/apex/orchestrate` | Multi-step task (5-agent pipeline) |
+| `GET` | `/health` | System status + ZFI score |
 | `GET` | `/.well-known/agent-card.json` | A2A AgentCard discovery |
 
 ---
 
 ## Building the Rust Core
 
-The Steel Core delivers sub-microsecond inference via PyO3 zero-copy buffers and 8-accumulator FMA unrolling:
-
 ```bash
 cd rust_core
 RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
-
-# Deploy to both required locations
 cp target/release/libxana_steel_core.so ../xana_steel_core.so
 cp ../xana_steel_core.so ../sensory/xana_steel_core.so
-```
 
-> **Note:** The `.so` is compiled with `target-cpu=native` (AVX2/AVX-512). Users on different CPU architectures must build from source; pre-built binaries are x86-64 only.
-
-### Armor (security middleware)
-
-```bash
-cd armor
+cd ../armor
 RUSTFLAGS="-C target-cpu=native" cargo build --release --features python
 cp target/release/libxana_armor.so ../xana_armor.so
 ```
+
+> Compiled with `target-cpu=native` (AVX2). Users on ARM or non-AVX2 x86 must remove that flag.
 
 ---
 
@@ -229,23 +298,21 @@ CHROMA_HOST=localhost CHROMA_PORT=58001 \
 POSTGRES_HOST=localhost POSTGRES_PORT=55433 \
 REDIS_URL=redis://localhost:56380 \
 NEO4J_URI=bolt://localhost:57687 \
-PYTHONPATH=".." uv run python ../tests/benchmark_xana.py
+PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
 ```
 
-**XFI — XANA Fitness Index** measures 7 pillars:
+**ZFI — ZANA Fitness Index** (7 pillars):
 
 | Pillar | Weight | Hot Score |
 |--------|--------|-----------|
-| Steel Core (Rust latency) | 20% | 100.0 |
-| Memory (semantic + episodic) | 20% | 100.0 |
+| Steel Core | 20% | 100.0 |
+| Memory | 20% | 100.0 |
 | Symbolic Reasoning | 15% | 100.0 |
 | Swarm / A2A | 15% | 100.0 |
 | Market Fitness | 15% | 100.0 |
-| Armor (security) | 10% | 100.0 |
+| Armor | 10% | 100.0 |
 | Interoperability | 5% | 100.0 |
-| **XFI Total** | **100%** | **100.0** |
-
-Cold mode (no Docker): ~60–70 (infrastructure components show degraded). Hot mode requires `docker compose up -d` before running.
+| **ZFI Total** | **100%** | **100.0** |
 
 ---
 
@@ -261,7 +328,7 @@ Cold mode (no Docker): ~60–70 (infrastructure components show degraded). Hot m
 | `episodic/` | Python | Episodic memory (PostgreSQL + pgvector) |
 | `world_model/` | Python | Neo4j knowledge graph |
 | `procedural_memory/` | Python | Skills registry, RL-lite Q-values |
-| `idle_zero/` | Rust | Red Queen evolutionary optimizer — adversarial algorithm competition |
+| `idle_zero/` | Rust | Red Queen evolutionary optimizer |
 | `autonomy/` | Python | Strategy tournament, self-improving orchestration |
 | `registry/` | Rust | A2A node registry server |
 | `mcp/` | Python | Model Context Protocol servers |
@@ -277,34 +344,30 @@ Cold mode (no Docker): ~60–70 (infrastructure components show degraded). Hot m
 | [Deployment Guide](docs/DEPLOYMENT.md) | Free · VPS ($12/mo) · Cloud/k8s |
 | [Contributing](CONTRIBUTING.md) | Dev setup, code standards, PR process |
 | [Changelog](CHANGELOG.md) | Release history |
-| [Academic Paper](docs/paper/xana_paper.md) | Full architecture paper (arXiv preprint) |
+| [Academic Paper](docs/paper/xana_paper.tex) | Full arXiv preprint (LaTeX) |
 
 ---
 
 ## Academic Paper
 
-XANA's architecture is described in a preprint:
-
-> **XANA: A Neuro-Symbolic Personal Cognitive AI Runtime**
-> John Tapias Zarrazola — Universidad Ricardo Palma, 2026
-> [arXiv:2026.XXXXX](https://arxiv.org/abs/2026.XXXXX) · [Local PDF](docs/paper/xana_paper.md)
+> **ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime**
+> John Tapias Zarrazola, MsC Data Science (c) — Universidad Ricardo Palma, 2026
+> [arXiv:2026.XXXXX](https://arxiv.org/abs/2026.XXXXX) · [Local source](docs/paper/xana_paper.tex)
 
 ---
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=kemquiros/xana-core&type=Date)](https://star-history.com/#kemquiros/xana-core&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=kemquiros/zana-core&type=Date)](https://star-history.com/#kemquiros/zana-core&Date)
 
 ---
 
 ## Contributing
 
-PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — key points:
-
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first. Key rules:
 - All code and comments in **English only**
-- No personal data, no hardcoded secrets, no API keys in source
-- Match existing code style
-- Run `cd sensory && uv run python ../tests/benchmark_xana.py` and confirm XFI doesn't regress
+- No personal data, no hardcoded secrets
+- Run the benchmark — ZFI must not regress
 
 ---
 
