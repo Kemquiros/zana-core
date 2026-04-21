@@ -14,7 +14,7 @@ Three tiers depending on budget and requirements.
 
 ```bash
 # 1. Start infrastructure
-cd xana-core
+cd zana-core
 docker compose up -d
 
 # 2. Start gateway
@@ -60,8 +60,8 @@ Set `XANA_PUBLIC_URL=https://abc123.ngrok.io` in `.env` so the A2A AgentCard is 
 apt update && apt install -y docker.io docker-compose-plugin uv git
 
 # 2. Clone
-git clone https://github.com/your-org/xana-core.git
-cd xana-core
+git clone https://github.com/kemquiros/zana-core.git
+cd zana-core
 cp .env.example .env
 # Edit .env — set your domain and API keys
 

@@ -43,7 +43,7 @@ jobs:
       - name: Run benchmark (cold mode — no Docker)
         run: |
           cd sensory
-          PYTHONPATH=".." uv run python ../tests/benchmark_xana.py
+          PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
         continue-on-error: true  # cold score is lower; don't fail CI
 
   docker-build:

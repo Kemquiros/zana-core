@@ -32,7 +32,7 @@ This is the system I wish existed when I started thinking seriously about person
 
 ---
 
-🔗 **GitHub:** github.com/kemquiros/xana-core
+🔗 **GitHub:** github.com/kemquiros/zana-core
 📄 **Paper:** arxiv.org/abs/2026.XXXXX
 
 MIT licensed. Full source. Build it, fork it, study it.

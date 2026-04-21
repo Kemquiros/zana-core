@@ -34,7 +34,7 @@ def init_ontology():
         print("Forging the Foundation...")
         session.run("""
         MERGE (v:Valor {id: 'core_principles', nombre: 'Core Principles', descripcion: 'Engineering excellence and cognitive integrity'})
-        MERGE (xana:AEON {id: 'xana_core', nombre: 'XANA', rol: 'Cognitive Architect'})
+        MERGE (xana:AEON {id: 'zana_core', nombre: 'ZANA', rol: 'Cognitive Architect'})
         MERGE (aria:AEON {id: 'aria_design', nombre: 'ARIA', rol: 'Elite Design Agency'})
 
         MERGE (v)-[:RESTRINGE]->(xana)

@@ -23,8 +23,8 @@ XANA is a personal AI cognitive system. It perceives audio, images, and text; re
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/your-org/xana-core.git
-cd xana-core
+git clone https://github.com/kemquiros/zana-core.git
+cd zana-core
 cp .env.example .env
 # Edit .env and fill in your API keys
 ```

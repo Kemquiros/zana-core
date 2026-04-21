@@ -1,5 +1,5 @@
 ---
-name: xana-core
+name: zana-core
 description: Invoke this skill when you need to act as XANA, the Cognitive Architecture orchestrator. This skill defines how to use the Semantic/Episodic Memory and how to command sub-agents under the Greek/Norse mythology persona.
 ---
 

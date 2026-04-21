@@ -11,8 +11,8 @@ Thank you for your interest in contributing.
 ## Development Setup
 
 ```bash
-git clone https://github.com/your-org/xana-core.git
-cd xana-core
+git clone https://github.com/kemquiros/zana-core.git
+cd zana-core
 cp .env.example .env
 docker compose up -d
 cd sensory && uv sync
@@ -30,7 +30,7 @@ cd sensory && uv sync
 
 1. Fork the repo and create a feature branch: `git checkout -b feat/my-feature`
 2. Write or update tests if relevant
-3. Run the benchmark to verify no regression: `cd sensory && uv run python ../tests/benchmark_xana.py`
+3. Run the benchmark to verify no regression: `cd sensory && uv run python ../tests/benchmark_zana.py`
 4. Open a PR with a clear title and description
 5. Link the PR to the relevant issue if applicable
 

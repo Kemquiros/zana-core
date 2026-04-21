@@ -11,7 +11,7 @@ Universidad Ricardo Palma, Lima, Perú
 
 ## Abstract
 
-We present XANA, an open-source personal cognitive AI runtime that integrates neural inference, deterministic symbolic reasoning, and multi-modal sensory processing into a unified local-first architecture. Unlike systems that wrap a large language model (LLM) with API calls, XANA maintains explicit separation between fast sub-symbolic pathways and verifiable rule-based deduction. A Rust implementation of a Kalman filter (1.4 µs/call via PyO3 zero-copy buffers) tracks epistemic uncertainty before facts enter a CLIPS-pattern forward-chaining engine. A second Rust module — Armor — inspects every input and output for personally identifiable information (PII) and adversarial prompt injection at 2.1 µs/call. Five specialized agents (the Apex Quintet) collaborate through a typed message protocol (AION) to decompose multi-step tasks without hallucination cascade. We evaluate XANA using the XANA Fitness Index (XFI), a seven-pillar composite score measuring latency, memory fidelity, reasoning correctness, agent interoperability, and security hardness. Running with a full Docker infrastructure stack, XANA achieves XFI = 100.0/100. The complete system is available at `https://github.com/kemquiros/xana-core`.
+We present XANA, an open-source personal cognitive AI runtime that integrates neural inference, deterministic symbolic reasoning, and multi-modal sensory processing into a unified local-first architecture. Unlike systems that wrap a large language model (LLM) with API calls, XANA maintains explicit separation between fast sub-symbolic pathways and verifiable rule-based deduction. A Rust implementation of a Kalman filter (1.4 µs/call via PyO3 zero-copy buffers) tracks epistemic uncertainty before facts enter a CLIPS-pattern forward-chaining engine. A second Rust module — Armor — inspects every input and output for personally identifiable information (PII) and adversarial prompt injection at 2.1 µs/call. Five specialized agents (the Apex Quintet) collaborate through a typed message protocol (AION) to decompose multi-step tasks without hallucination cascade. We evaluate XANA using the XANA Fitness Index (XFI), a seven-pillar composite score measuring latency, memory fidelity, reasoning correctness, agent interoperability, and security hardness. Running with a full Docker infrastructure stack, XANA achieves XFI = 100.0/100. The complete system is available at `https://github.com/kemquiros/zana-core`.
 
 ---
 
@@ -236,7 +236,7 @@ XANA demonstrates that a personal cognitive AI can be both architecturally rigor
 
 4. An **XFI evaluation framework** that scores cognitive AI systems across seven measurable pillars, providing a reproducible benchmark for future work.
 
-The complete system — including all Rust source, Python source, Docker infrastructure, and benchmark suite — is available at `https://github.com/kemquiros/xana-core` under the MIT License.
+The complete system — including all Rust source, Python source, Docker infrastructure, and benchmark suite — is available at `https://github.com/kemquiros/zana-core` under the MIT License.
 
 ---
 
@@ -265,4 +265,4 @@ Ollama. (2024). Ollama: Get up and running with large language models locally. O
 ---
 
 *Preprint — submitted to arXiv cs.AI, April 2026.*  
-*Repository: `https://github.com/kemquiros/xana-core`*
+*Repository: `https://github.com/kemquiros/zana-core`*

@@ -20,7 +20,7 @@ labels: bug
 
 ## Environment
 
-- XANA version / commit:
+- ZANA version / commit:
 - OS:
 - Python version:
 - Docker version:
