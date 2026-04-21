@@ -261,6 +261,8 @@ Cold mode (no Docker): ~60–70 (infrastructure components show degraded). Hot m
 | `episodic/` | Python | Episodic memory (PostgreSQL + pgvector) |
 | `world_model/` | Python | Neo4j knowledge graph |
 | `procedural_memory/` | Python | Skills registry, RL-lite Q-values |
+| `idle_zero/` | Rust | Red Queen evolutionary optimizer — adversarial algorithm competition |
+| `autonomy/` | Python | Strategy tournament, self-improving orchestration |
 | `registry/` | Rust | A2A node registry server |
 | `mcp/` | Python | Model Context Protocol servers |
 | `aria-ui/` | TypeScript | Next.js PWA + Tauri desktop frontend |
@@ -310,4 +312,8 @@ PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) first — key points:
 
 MIT — see [LICENSE](LICENSE).
 
-Built by **[John Tapias Zarrazola](https://github.com/kemquiros)** · *JUNTOS HACEMOS TEMBLAR LOS CIELOS*
+---
+
+Built by **[John Tapias Zarrazola](https://github.com/kemquiros)** ([@kemquiros](https://github.com/kemquiros))
+
+*Este es mi regalo para el mundo.*
