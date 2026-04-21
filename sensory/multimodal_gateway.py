@@ -45,11 +45,23 @@ GATEWAY_PORT  = int(os.getenv("GATEWAY_PORT", "54446"))
 
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
-    description="Audio · Vision · TTS — The Aeon's sensory layer",
-    version="1.1.0",
+    description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
+    version="2.0.0",
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
+
+# ─── Power-user routers (v2.1 / v2.2) ─────────────────────────────────────────
+try:
+    from sensory.reasoning_router import router as _reason_router
+    from sensory.memory_router import router as _memory_router
+    from sensory.control_router import router as _control_router
+    app.include_router(_reason_router)
+    app.include_router(_memory_router)
+    app.include_router(_control_router)
+    logger.info("✓  [GATEWAY] reason / memory / control routers loaded")
+except Exception as _e:
+    logger.warning("Power-user routers not loaded: %s", _e)
 
 # Procesadores (lazy-loaded)
 _audio = AudioProcessor()
@@ -471,13 +483,17 @@ def health():
             "armor":  armor_backend(),
         },
         "endpoints": {
-            "audio":      "POST /sense/audio",
-            "vision":     "POST /sense/vision",
-            "text":       "POST /sense/text",
-            "multimodal": "POST /sense/multimodal",
-            "stream":     "WS   /sense/stream",
-            "speak":      "POST /aeon/speak",
-            "agent_card": "GET  /.well-known/agent-card.json",
+            "audio":       "POST /sense/audio",
+            "vision":      "POST /sense/vision",
+            "text":        "POST /sense/text",
+            "multimodal":  "POST /sense/multimodal",
+            "stream":      "WS   /sense/stream",
+            "speak":       "POST /aeon/speak",
+            "reason":      "POST /reason",
+            "memory":      "GET  /memory/episodic  GET /memory/stats",
+            "shadow":      "POST /shadow/enable|disable  GET /shadow/status",
+            "swarm":       "POST /swarm/init|stop|assimilate|query  GET /swarm/status",
+            "agent_card":  "GET  /.well-known/agent-card.json",
         },
     }
 

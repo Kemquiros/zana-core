@@ -104,6 +104,20 @@ services:
       gateway:
         condition: service_healthy
 
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: telegram_bot/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - ZANA_GATEWAY_URL=http://gateway:${ZANA_GATEWAY_PORT:-54446}
+    depends_on:
+      gateway:
+        condition: service_healthy
+    profiles:
+      - telegram
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
