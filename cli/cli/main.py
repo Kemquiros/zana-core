@@ -20,6 +20,30 @@ aeon_app = typer.Typer(
 )
 app.add_typer(aeon_app, name="aeon")
 
+memory_app = typer.Typer(
+    name="memory",
+    help="Query and inspect ZANA's 4-store memory system.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(memory_app, name="memory")
+
+shadow_app = typer.Typer(
+    name="shadow",
+    help="Shadow Observer daemon — silent background monitoring.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(shadow_app, name="shadow")
+
+swarm_app = typer.Typer(
+    name="swarm",
+    help="Red Queen swarm layer — multi-Aeon evolutionary fleet.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(swarm_app, name="swarm")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -117,6 +141,21 @@ def setup() -> None:
     run_onboarding()
 
 
+@app.command(help="Full system health audit — environment, services, config.")
+def doctor() -> None:
+    from cli.commands.doctor import cmd_doctor
+    cmd_doctor()
+
+
+@app.command(help="Trigger manual forward-chaining in the Rust reasoning engine.")
+def reason(
+    fact: Annotated[str, typer.Argument(help="Fact as JSON or key=value. E.g. machine_health_avg=0.3")],
+    remote: Annotated[bool, typer.Option("--remote", "-r", help="Also query the swarm if local rules are insufficient.")] = False,
+) -> None:
+    from cli.commands.reason import cmd_reason
+    cmd_reason(fact, remote=remote)
+
+
 # ── Aeon sub-commands ─────────────────────────────────────────────────────────
 
 @aeon_app.command("list", help="Show all available Aeons and the active one.")
@@ -145,6 +184,91 @@ def aeon_recommend(
 def aeon_status() -> None:
     from cli.commands.aeon import cmd_status
     cmd_status()
+
+
+# ── Memory sub-commands ───────────────────────────────────────────────────────
+
+@memory_app.command("search", help="Semantic search in ChromaDB vault.")
+def memory_search(
+    query: Annotated[str, typer.Argument(help="Natural language query.")],
+    collection: Annotated[str, typer.Option("--collection", "-c", help="ChromaDB collection name.")] = "zana_vault",
+    n: Annotated[int, typer.Option("--top", "-n", help="Number of results.")] = 5,
+) -> None:
+    from cli.commands.memory import cmd_memory_search
+    cmd_memory_search(query, collection=collection, n=n)
+
+
+@memory_app.command("recall", help="Last N episodic memories from PostgreSQL.")
+def memory_recall(
+    n: Annotated[int, typer.Argument(help="Number of records to retrieve.")] = 10,
+) -> None:
+    from cli.commands.memory import cmd_memory_recall
+    cmd_memory_recall(n)
+
+
+@memory_app.command("stats", help="Collection sizes across all 4 memory stores.")
+def memory_stats() -> None:
+    from cli.commands.memory import cmd_memory_stats
+    cmd_memory_stats()
+
+
+# ── Shadow sub-commands ───────────────────────────────────────────────────────
+
+@shadow_app.command("enable", help="Start the Shadow Observer daemon.")
+def shadow_enable() -> None:
+    from cli.commands.shadow import cmd_shadow_enable
+    cmd_shadow_enable()
+
+
+@shadow_app.command("disable", help="Stop the Shadow Observer daemon.")
+def shadow_disable() -> None:
+    from cli.commands.shadow import cmd_shadow_disable
+    cmd_shadow_disable()
+
+
+@shadow_app.command("status", help="Show Shadow Observer daemon health.")
+def shadow_status() -> None:
+    from cli.commands.shadow import cmd_shadow_status
+    cmd_shadow_status()
+
+
+# ── Swarm sub-commands (v2.2) ─────────────────────────────────────────────────
+
+@swarm_app.command("init", help="Bootstrap Red Queen — spawn and evolve the warrior fleet.")
+def swarm_init(
+    warriors: Annotated[int, typer.Option("--warriors", "-w", help="Number of warriors to spawn.")] = 50,
+    generations: Annotated[int, typer.Option("--generations", "-g", help="Evolution generations.")] = 2000,
+) -> None:
+    from cli.commands.swarm import cmd_swarm_init
+    cmd_swarm_init(warriors=warriors, generations=generations)
+
+
+@swarm_app.command("status", help="Live warrior fleet dashboard.")
+def swarm_status(
+    watch: Annotated[bool, typer.Option("--watch", "-w", help="Auto-refresh every 3 seconds.")] = False,
+) -> None:
+    from cli.commands.swarm import cmd_swarm_status
+    cmd_swarm_status(watch=watch)
+
+
+@swarm_app.command("stop", help="Stop all swarm warriors.")
+def swarm_stop() -> None:
+    from cli.commands.swarm import cmd_swarm_stop
+    cmd_swarm_stop()
+
+
+@swarm_app.command("sync", help="Pull validated WisdomRules from the Wisdom Hub.")
+def swarm_sync() -> None:
+    from cli.commands.swarm import cmd_swarm_sync
+    cmd_swarm_sync()
+
+
+@swarm_app.command("query", help="Ask the swarm for rules covering a given fact.")
+def swarm_query(
+    fact_key: Annotated[str, typer.Argument(help="Fact key to query (e.g. machine_health_avg).")],
+) -> None:
+    from cli.commands.swarm import cmd_swarm_query
+    cmd_swarm_query(fact_key)
 
 
 if __name__ == "__main__":

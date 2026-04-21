@@ -2,83 +2,121 @@
 
 > The stable cognitive layer in a world where AI changes every six weeks.
 
-This document tracks what ZANA is building and where it is headed.
+ZANA is a **plug&play architecture**: swap your LLM provider with one env var.
+Claude → GPT-4o → Gemini → Llama 3 (Ollama) → Groq — ZANA doesn't care.
+The cognitive runtime, memory, and reasoning stay constant.
+
 Status markers: **shipped** · **in progress** · **next** · **future**
 
 ---
 
-## Now — v2.0 (shipped)
+## v2.0 — Foundation (shipped)
 
-Foundation of the sovereign AI runtime.
+The sovereign AI runtime.
 
-- **Neuro-symbolic core** — LLM reasoning anchored by a CLIPS-pattern Rust engine
+- **Neuro-symbolic core** — LLM + CLIPS-pattern Rust reasoning engine
+- **LiteLLM router** — Claude / GPT / Gemini / Groq / **Ollama (local)** behind one env var
 - **4-store memory** — semantic (ChromaDB) · episodic (PostgreSQL+pgvector) · world model (Neo4j) · procedural (JSON)
 - **Armor layer** — PII + prompt-injection guard in Rust at 2.1 µs
-- **LiteLLM router** — Claude / GPT / Gemini / Groq behind one env var; no rewrite when providers change
-- **Kalman context window** — latent state vector instead of raw token dump
-- **ZFI (ZANA Fitness Index)** — real-time cognitive health score across 7 pillars
+- **Kalman context window** — latent state vector, not raw token dump
+- **ZFI (ZANA Fitness Index)** — cognitive health score across 7 pillars
 - **CLI `zana`** — `start · stop · status · chat · login · embed · upgrade`
-- **Aeon Fleet** — 8 specialized agents (Sentinel, Archivist, Analyst, Operator, Herald, Forge, Scholar, Watcher)
+- **Aeon Fleet** — 8 specialized agents: Sentinel · Archivist · Analyst · Operator · Herald · Forge · Scholar · Watcher
 - **`zana aeon`** — `list · use · recommend · status`
 - **PWA (aria-ui)** — mobile/web interface, 6 locales, installable
-- **Desktop app (Tauri v2)** — Linux (.deb · .AppImage) · macOS (.dmg) · Windows (.msi)
-- **Curl installer** — `curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh`
+- **Desktop (Tauri v2)** — Linux (.deb · .AppImage) · macOS (.dmg) · Windows (.msi)
+- **Curl installer** — one line, works on Linux / macOS / WSL2
 
 ---
 
-## Next — v2.1 (in progress)
+## v2.1 — Power Users (shipped)
 
-Power-user layer and observability.
+Full observability and manual cognitive control.
 
-- `zana doctor` — full system health table (patrón: `mise doctor`)
-- `zana memory search <query>` — semantic query into ChromaDB from the terminal
-- `zana reason <fact>` — manual forward-chaining trigger for the Rust engine
-- Benchmark dashboard in PWA — live ZFI chart, latency per pillar
-- Aeon auto-selection — ZANA recommends the right Aeon based on detected task context, no manual `zana aeon use`
-- Streaming TTS in desktop — real-time voice response via `edge-tts`
+- **`zana doctor`** — complete system audit: runtime, services, env, Aeon state (like `mise doctor`)
+- **`zana memory search <query>`** — semantic search directly into ChromaDB vault
+- **`zana memory recall [n]`** — last N episodic memories from PostgreSQL
+- **`zana memory stats`** — collection sizes across all 4 stores
+- **`zana reason <fact>`** — manual forward-chaining in the Rust engine; displays deduction trace
+- **`zana reason --remote`** — escalates to swarm if local rules don't cover the fact
+- **`zana shadow enable/disable/status`** — Shadow Observer daemon: silent background monitoring for meta-evolution
+- **Ollama** listed in `zana doctor` as optional local LLM service (port 11434)
 
 ---
 
-## v2.2 — Swarm Layer (next)
+## v2.2 — Swarm Layer (shipped)
 
-Coordinated multi-Aeon execution.
+Coordinated multi-Aeon evolutionary fleet.
 
-- `zana swarm init` — bootstrap Red Queen: 50 warriors, 2 000 generations
-- `zana swarm status` — live warrior dashboard in the terminal
-- Distributed reasoning (`Remote_Query`) — if local rules don't cover a fact, the swarm is queried
-- Wisdom Hub sync — pull community-validated rules from the ZANA Grid; cryptographic signature per rule
-- Aeon evolution — Larva → Warrior → Legend progression tied to solved tasks and absorbed rules
+- **`zana swarm init [--warriors N] [--generations N]`** — bootstrap Red Queen
+- **`zana swarm status [--watch]`** — live warrior dashboard: ID, stage (Larva→Warrior→Legend), generation, fitness, DNA hash
+- **`zana swarm stop`** — graceful shutdown of the fleet
+- **`zana swarm sync`** — pull community-validated WisdomRules from the Wisdom Hub (LLMGuard validated)
+- **`zana swarm query <fact_key>`** — manual distributed remote query: ask peers for rules covering a fact
+- Aeon evolution tiers: **Larva → Warrior → Legend** (driven by fitness + absorbed rules)
+- DNA fingerprinting (SHA-256) for architecture sharing via A2A protocol
+
+---
+
+## v2.3 — Messaging Interfaces (next)
+
+ZANA everywhere — no app install required for end users.
+
+- **Telegram bot** — `zana telegram connect` wires your ZANA instance to a Telegram bot token
+  - Commands: `/sense <text>` · `/recall <n>` · `/reason <fact>` · `/status` · `/aeon`
+  - Streaming responses via Telegram message edits
+  - Voice message → Whisper transcription → ZANA response → TTS reply
+- **WhatsApp** — Meta Cloud API integration (requires Business account)
+  - Same command surface as Telegram via natural language parsing
+  - Media: images and voice notes pass through the multimodal pipeline
+- Webhook manager: `zana-gateway` handles inbound hooks from both platforms
+- Privacy: messages pass through Armor layer before hitting the LLM
 
 ---
 
 ## v3.0 — Sovereign Identity (future)
 
-ZANA as a persistent digital identity layer.
+ZANA as a persistent, portable digital identity layer.
 
-- **ZANA ID** — portable, signed cognitive profile; moves with the user across devices
-- **OAuth device flow** — browser-free authentication, works in headless environments
-- **Private cloud sync** — end-to-end encrypted memory sync across devices; no vendor lock-in
-- **Civic Ledger** — public audit trail of reasoning decisions; SHA-256 signed, immutable
-- **Public rule governance** — every change to the RuleBase is signed and visible in the PWA
+- **ZANA ID** — cryptographically signed cognitive profile; moves across devices
+- **OAuth device flow** — browser-free auth for headless environments
+- **Private cloud sync** — E2E-encrypted memory sync; no vendor lock-in
+- **Civic Ledger** — public audit trail of reasoning decisions, SHA-256 signed
+- **Public rule governance** — every RuleBase change signed and visible in the PWA
 
 ---
 
-## v3.x — Ecosystem (future)
+## v3.x — Open Platform (future)
 
-ZANA as an open platform.
+ZANA as an ecosystem substrate.
 
-- **MCP servers** — `zana-memory · zana-episodic · zana-world · zana-symbiosis` published to the MCP registry
-- **ZANA SDK** — embed the cognitive runtime in any Python or Rust application in 3 lines
+- **MCP servers** — `zana-memory · zana-episodic · zana-world · zana-symbiosis` in the MCP registry
+- **ZANA SDK** — embed the runtime in any Python or Rust project in 3 lines
 - **Plugin API** — third-party Aeons installable via `zana aeon install <id>`
-- **KoruOS integration** — ZANA as the AI substrate of KoruOS (symbiosis bridge already built)
-- **Telegram interface** — `/sense · /recall · /reason` from any Telegram client
+- **KoruOS integration** — ZANA as the AI substrate of KoruOS (symbiosis bridge built)
+- **Multi-provider Aeon routing** — each Aeon can pin its own LLM: Forge → Opus, Watcher → Ollama local
+
+---
+
+## Plug&Play Provider Matrix
+
+| Provider        | How to activate                              |
+|-----------------|----------------------------------------------|
+| Anthropic Claude| `ANTHROPIC_API_KEY=sk-...`                   |
+| OpenAI GPT      | `OPENAI_API_KEY=sk-...`                      |
+| Google Gemini   | `GOOGLE_API_KEY=AIza...`                     |
+| Groq            | `GROQ_API_KEY=gsk_...`                       |
+| Ollama (local)  | `OLLAMA_BASE_URL=http://localhost:11434`      |
+| Any LiteLLM     | `ZANA_MODEL=provider/model-name`             |
+
+No code changes. One env var. ZANA adapts.
 
 ---
 
 ## What we are not building
 
-- A general-purpose chat wrapper
-- A hosted AI service with vendor data retention
+- A chat wrapper around a single LLM
+- A hosted service with vendor data retention
 - A replacement for your LLM provider — ZANA routes to whichever you choose
 
 ---
