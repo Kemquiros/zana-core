@@ -250,6 +250,7 @@ operator and the digital world.
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   human/.style={draw=xblue, fill=xblue!10, rounded corners=10pt,
                 minimum width=2.8cm, minimum height=3.8cm,
@@ -274,9 +275,9 @@ operator and the digital world.
   arr/.style={-Stealth, thick, line width=1.5pt},
   doublearr/.style={Stealth-Stealth, thick, line width=1.5pt}
 ]
-  \node[human]  (human)  at (-5.5, 0) {Human\\Operator\\[6pt]\scriptsize\normalfont (Goals,\\Intent,\\Attention)};
+  \node[human]  (human)  at (-5.0, 0) {Human\\Operator\\[6pt]\footnotesize\normalfont (Goals,\\Intent,\\Attention)};
   \node[cortex] (cortex) at (0, 0)  {};
-  \node[world]  (world)  at (5.5, 0){Digital\\World\\[6pt]\scriptsize\normalfont (APIs,\\Files,\\Sensors)};
+  \node[world]  (world)  at (5.0, 0){Digital\\World\\[6pt]\footnotesize\normalfont (APIs,\\Files,\\Sensors)};
 
   % Internal components of cortex
   \node[inner, text=xpink]     at (0,  1.5) {Armor (Security)};
@@ -288,12 +289,13 @@ operator and the digital world.
   \node[font=\small\sffamily\bfseries, text=xamethyst!80!black] at (0, 2.15) {ZANA Core};
 
   \draw[doublearr, color=xblue!80] (human.east) --
-    node[below, font=\scriptsize\sffamily, color=gray!80!black, yshift=-2pt]{\textbf{intent} / context} (cortex.west);
+    node[below, font=\footnotesize\sffamily, color=gray!80!black, yshift=-2pt]{\textbf{intent} / context} (cortex.west);
   \draw[doublearr, color=xjade!90] (cortex.east) --
-    node[below, font=\scriptsize\sffamily, color=gray!80!black, yshift=-2pt]{\textbf{actions} / responses} (world.west);
+    node[below, font=\footnotesize\sffamily, color=gray!80!black, yshift=-2pt]{\textbf{actions} / responses} (world.west);
   \draw[arr, color=xblue!60, dashed, line width=1.2pt] (human.north east) to[bend left=45]
-    node[right, font=\scriptsize\sffamily, color=gray!70!black, align=left]{\textbf{augmented}\\cognition} (human.south east);
-\end{tikzpicture}
+    node[right, font=\footnotesize\sffamily, color=gray!70!black, align=left]{\textbf{augmented}\\cognition} (human.south east);
+\end{tikzpicture}%
+}
 \caption{ZANA as an \emph{External Cognitive Cortex}. The system mediates between the human
 operator and the digital world, applying security, noise filtering, emotional modulation, LLM
 inference, symbolic verification, structured memory, and multi-agent orchestration to every
@@ -593,6 +595,7 @@ focus evolutionary pressure on that branch. Together, they implement the
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   layer/.style={
     draw=white, fill=#1, rounded corners=8pt,
@@ -641,7 +644,8 @@ focus evolutionary pressure on that branch. Together, they implement the
   \node[sidelabel, right=0.3cm of L5] {\textcolor{xblue}{ROUTING}};
   \node[sidelabel, right=0.3cm of L6] {\textcolor{xamethyst}{FIXED-POINT}};
   \node[sidelabel, right=0.3cm of L7] {\textcolor{xgold}{5 AGENTS}};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{ZANA seven-layer architecture. Data flows bottom (L1) to top (L7); each layer adds
 verification or enrichment before passing the payload upward. The Armor layer (L2) is the
 only rejection path for poisoned inputs --- no bypass is possible from the Python tier. The
@@ -657,6 +661,7 @@ the Orchestration layer.}
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   box/.style={draw=xblue, fill=xdark!95, rounded corners=8pt,
               minimum width=3.2cm, minimum height=1.4cm,
@@ -668,12 +673,12 @@ the Orchestration layer.}
               drop shadow={shadow xshift=2pt, shadow yshift=-2pt, fill=black!40, opacity=0.5}},
   arr/.style={-Stealth, thick, color=xblue!70, line width=1pt},
   redarr/.style={-Stealth, thick, color=xrust!70, line width=1pt},
-  eq/.style={font=\scriptsize\sffamily, color=gray!80, align=center, text width=3.5cm}
+  eq/.style={font=\footnotesize\sffamily, color=gray!80, align=center, text width=3.5cm}
 ]
   \node[box] (prior) at (0,0)    {\textcolor{xblue}{Prior State}\\[3pt] $\hat{x}_{k|k-1},\;P_{k|k-1}$};
-  \node[box] (gain)  at (5,0)    {\textcolor{xjade}{Kalman Gain}\\[3pt] $K_k$};
-  \node[box] (post)  at (10,0)   {\textcolor{xamethyst}{Posterior}\\[3pt] $\hat{x}_{k|k},\;P_{k|k}$};
-  \node[obs] (obs)   at (5,-2.5) {\textcolor{xrust}{Observation}\\[3pt] $z_k$};
+  \node[box] (gain)  at (4.5,0)    {\textcolor{xjade}{Kalman Gain}\\[3pt] $K_k$};
+  \node[box] (post)  at (9,0)   {\textcolor{xamethyst}{Posterior}\\[3pt] $\hat{x}_{k|k},\;P_{k|k}$};
+  \node[obs] (obs)   at (4.5,-2.5) {\textcolor{xrust}{Observation}\\[3pt] $z_k$};
 
   \draw[arr]    (prior.east)  -- node[above,eq]{\textbf{Predict}} (gain.west);
   \draw[redarr] (obs.north)   -- node[right,eq,xshift=4pt]{\textbf{Measure}} (gain.south);
@@ -682,13 +687,14 @@ the Orchestration layer.}
     node[pos=0.25, below, eq, text width=2.5cm]{\textbf{Loop} $k \leftarrow k+1$} (prior.south);
 
   % Equation panel
-  \node[eq, below=2.8cm of prior, text width=4cm, align=center]
+  \node[eq, below=2.8cm of prior, text width=4.5cm, align=center]
     {$P_{k|k-1} = P_{k-1} + Q$};
-  \node[eq, below=2.8cm of gain, text width=4cm, align=center]
+  \node[eq, below=2.8cm of gain, text width=4.5cm, align=center]
     {$K_k = \dfrac{P_{k|k-1}}{P_{k|k-1}+R}$};
-  \node[eq, below=2.8cm of post, text width=4cm, align=center]
+  \node[eq, below=2.8cm of post, text width=4.5cm, align=center]
     {$P_{k|k} = (1-K_k)\,P_{k|k-1}$};
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Cognitive Kalman Filter loop in the Steel Core. The filter operates on a scalar
 signal-quality state. The zero-copy PyO3 buffer path achieves $1.4\,\mu$s per call ---
 $4.6\times$ faster than the Python list path ($6.5\,\mu$s). $Q$ = process noise;
@@ -732,6 +738,7 @@ debug_assert!((x.exp().ln() - x).abs() == 0.0);
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   box/.style={draw=gray!50, fill=xdark!95, rounded corners=7pt,
               minimum width=3.2cm, minimum height=1.3cm,
@@ -760,7 +767,8 @@ debug_assert!((x.exp().ln() - x).abs() == 0.0);
   \draw[arr]    (armout) -- node[above,note]{Pass} (resp);
   \draw[redarr] (armin.south)  -- node[right,note,xshift=2pt]{PII or\\injection\\detected} (rej1.north);
   \draw[redarr] (armout.south) -- node[right,note,xshift=2pt]{PII in\\output} (rej2.north);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Armor middleware wraps every request at the Rust layer. Both \texttt{inspect\_input}
 and \texttt{inspect\_output} execute synchronously before any Python code sees the payload.
 A rejection short-circuits the entire pipeline and returns HTTP 403 --- the LLM is never
@@ -773,6 +781,7 @@ Python-layer filters, which can be bypassed via indirect prompt injection~\cite{
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   store/.style={draw=#1, fill=xdark!95, rounded corners=10pt,
                 minimum width=5cm, minimum height=2.5cm,
@@ -812,7 +821,8 @@ Python-layer filters, which can be bypassed via indirect prompt injection~\cite{
 
   \foreach \n in {sem,epi,proc,wm}
     \draw[arr] (hub) -- (\n);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{ZANA's four-store memory architecture. The Memory Manager (MCP Symbiosis server)
 routes queries to the appropriate store based on query type. Episodic and semantic stores
 are always separated, preventing the false-association errors common in monolithic vector
@@ -917,6 +927,7 @@ rule injection attacks (Milestone~8.4, Section~\ref{sec:future}).
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   box/.style={draw=xamethyst, fill=xdark!95, rounded corners=8pt,
               minimum width=3.3cm, minimum height=1.4cm,
@@ -928,13 +939,13 @@ rule injection attacks (Milestone~8.4, Section~\ref{sec:future}).
                 drop shadow={shadow xshift=2pt, shadow yshift=-2pt, fill=black!20, opacity=0.5}},
   arr/.style={-Stealth, thick, color=xamethyst!80, line width=1pt},
   goldarr/.style={-Stealth, thick, color=xgold!90, line width=1.5pt},
-  note/.style={font=\scriptsize\sffamily, color=gray!80, align=center, text width=2.8cm}
+  note/.style={font=\footnotesize\sffamily, color=gray!80, align=center, text width=2.8cm}
 ]
   \node[box]   (seed)  at (0, 0)    {\textcolor{xamethyst}{Seed Skills}\\[3pt] (JSON)};
-  \node[box]   (pop)   at (4.5, 0)    {\textcolor{xamethyst}{Population}\\[3pt] $N=50$ Warriors};
-  \node[box]   (vm)    at (9, 0)    {\textcolor{xamethyst}{CognitiveVM}\\[3pt] Execution};
-  \node[box]   (fit)   at (9,-2.5)  {\textcolor{xamethyst}{Fitness}\\[3pt] Evaluation};
-  \node[box]   (mut)   at (4.5,-2.5)  {\textcolor{xblue}{Mutation} \&\\[3pt] \textcolor{xrust}{Selection}};
+  \node[box]   (pop)   at (4.2, 0)    {\textcolor{xamethyst}{Population}\\[3pt] $N=50$ Warriors};
+  \node[box]   (vm)    at (8.4, 0)    {\textcolor{xamethyst}{CognitiveVM}\\[3pt] Execution};
+  \node[box]   (fit)   at (8.4,-2.5)  {\textcolor{xamethyst}{Fitness}\\[3pt] Evaluation};
+  \node[box]   (mut)   at (4.2,-2.5)  {\textcolor{xblue}{Mutation} \&\\[3pt] \textcolor{xrust}{Selection}};
   \node[champ] (champ) at (0,-2.5)  {\textbf{Champions}\\[3pt] Crystallized};
   \node[box, draw=xjade]   (reg)   at (0,-5)  {\textcolor{xjade}{Procedural}\\[3pt] \textcolor{xjade}{Registry}};
 
@@ -945,7 +956,8 @@ rule injection attacks (Milestone~8.4, Section~\ref{sec:future}).
   \draw[arr]     (mut)   -- (champ);
   \draw[arr]     (mut.north) -- ++(0,0.6) -- node[right,note,xshift=4pt]{survivors\\promote} (pop.south);
   \draw[goldarr] (champ) -- node[left,note]{\textbf{promote}\\ \textbf{champion}} (reg);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Red Queen Tournament in Idle Zero. Fifty warrior algorithms compete adversarially
 in the CognitiveVM over $G=2000$ generations. Fitness is evaluated on real personal data
 with curriculum learning~\cite{bengio2009curriculum}. Champions are crystallized to
@@ -985,6 +997,7 @@ framework of Sections~\ref{sec:irl} and~\ref{sec:curriculum} as executable compo
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   box/.style={draw=#1, fill=xdark!95, rounded corners=8pt,
               minimum width=3.6cm, minimum height=1.4cm,
@@ -1016,7 +1029,8 @@ framework of Sections~\ref{sec:irl} and~\ref{sec:curriculum} as executable compo
      Level 1 $\to$ Level 2 $\to \cdots \to$ Level 10\\[4pt]
      \textcolor{xgold}{\emph{Genetic inheritance between levels}}};
   \draw[purparr, dashed] (organize.south) -- (dag.north);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{ZANA v3.0 SENSE-INFER-EVOLVE cycle. The Shadow Observer captures implicit operator
 actions; the IRL Engine recovers the latent reward function from correction signals;
 the Curriculum Manager selects the skill DAG branch that warrants evolution; Idle Zero
@@ -1072,6 +1086,7 @@ in the Apex Quintet.
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
   agent/.style={draw=#1, fill=xdark!95, rounded corners=10pt,
                 minimum width=4.2cm, minimum height=1.4cm,
@@ -1098,7 +1113,8 @@ in the Apex Quintet.
 
   \draw[arr, dashed, color=xcyan, line width=1pt]
     (h.east) -- ++(2.5,0) |- node[right,payload,xshift=4pt]{loop if\\confidence\\$<$ threshold} (s1.east);
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Apex Quintet sequential pipeline. Each agent communicates exclusively through typed
 AION messages (Pydantic structures with payload type, content, confidence, and provenance).
 Plain-text inter-agent communication is structurally rejected at the protocol level,
@@ -1411,6 +1427,7 @@ infrastructure services.}
 \begin{table}[H]
 \centering
 \caption{Comparative Analysis (ZFI rubric applied to publicly documented capabilities)}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}lcccccc@{}}
 \toprule
 \textbf{System} & \textbf{ZFI} & \textbf{Local} & \textbf{Symbolic} &
@@ -1423,7 +1440,8 @@ Claude Code      & $\approx 41$   & $\times$   & $\times$ & $\times$ & $\times$ 
 N8N + AI         & $\approx 60$   & partial    & $\times$ & partial & $\times$ & $\times$\\
 ChatGPT          & $\approx 57$   & $\times$   & $\times$ & cloud   & $\times$ & $\times$\\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 
 \medskip
 \noindent\textit{Note: competitor ZFI scores are approximations using ZANA's rubric applied
