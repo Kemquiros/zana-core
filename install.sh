@@ -20,7 +20,7 @@ cat << 'EOF'
 
         [ Z A N A   I S   O N L I N E ]
      Zero Autonomous Neural Architecture
-     Sovereign Cognitive Runtime v2.0.0
+     Sovereign Cognitive Runtime v2.0.0-stable
 
 EOF
 }
@@ -76,7 +76,7 @@ install_python_cli() {
     fi
 
     if [ "$ZANA_VERSION" = "latest" ]; then
-        uv tool install "zana @ git+https://github.com/$REPO.git#subdirectory=zana-core/cli" 2>/dev/null \
+        uv tool install "zana @ git+https://github.com/$REPO.git#subdirectory=cli" 2>/dev/null \
             || uv pip install --system zana 2>/dev/null \
             || true
     else
@@ -173,7 +173,7 @@ ensure_in_path
 install_python_cli
 
 if command -v zana &>/dev/null; then
-    success "ZANA CLI installed: $(zana --version 2>/dev/null || echo 'zana v2.0.0')"
+    success "ZANA CLI installed: $(zana --version 2>/dev/null || echo 'zana v2.0.0-stable')"
 else
     warn "CLI install may require restarting your shell."
 fi

@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-2.0.0--Stable-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-2.0.0--stable-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![ZFI Score](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](https://github.com/kemquiros/zana-core)
