@@ -1,0 +1,111 @@
+{
+    "id": "seed_agora_maestria_liderazgo",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "1.0.0",
+        "intents": [
+            "leadership_development",
+            "personal_growth",
+            "professional_development",
+            "management",
+            "influence",
+            "self_improvement"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "user_profile": {
+                        "type": "object",
+                        "description": "User's current leadership profile and self-assessment.",
+                        "required": true,
+                        "properties": {
+                            "current_level": {
+                                "type": "string",
+                                "description": "Current perceived leadership level (e.g., 'Follower', 'Team Member', 'Manager', 'Leader')."
+                            },
+                            "strengths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "weaknesses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "goals": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Leadership goals for personal and professional growth."
+                            }
+                        }
+                    },
+                    "leadership_principles_focus": {
+                        "type": "array",
+                        "description": "Optional focus on specific Maxwell's leadership principles.",
+                        "required": false,
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "user_profile"
+                ]
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Status of the leadership program execution (e.g., 'assessment_complete', 'plan_generated', 'module_assigned', 'progress_tracked', 'completed').",
+                        "required": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the current status or outcome.",
+                        "required": true
+                    },
+                    "leadership_plan": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "A personalized development plan with actionable steps based on Maxwell's principles.",
+                        "required": false
+                    },
+                    "current_focus_principle": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "The leadership principle currently being emphasized or studied.",
+                        "required": false
+                    },
+                    "next_steps": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Suggested next actions for the user.",
+                        "required": false
+                    }
+                },
+                "required": [
+                    "status",
+                    "message"
+                ]
+            }
+        },
+        "description": "Comprehensive program based on Maxwell's leadership principles for personal and professional growth."
+    }
+}

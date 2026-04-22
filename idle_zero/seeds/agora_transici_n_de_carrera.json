@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_transici_n_de_carrera",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "transici_n_de_carrera"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Utiliza el Grafo Viviente (representación de las habilidades, intereses y experiencias del usuario) para identificar profesiones alineadas y simular rutas de transición de carrera viables. El Aeon actúa como consejero de carrera, analizando el perfil del usuario y sugiriendo caminos de desarrollo."
+    }
+}

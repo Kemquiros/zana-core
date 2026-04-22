@@ -1,0 +1,22 @@
+{$ZANA_DOMAIN:-:80} {
+
+  handle /sense/* {
+    reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
+  }
+
+  handle /health {
+    reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
+  }
+
+  handle {
+    reverse_proxy {$ZANA_PWA_HOST:-pwa}:3000
+  }
+
+  encode gzip
+  header {
+    Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    X-Frame-Options DENY
+    X-Content-Type-Options nosniff
+    Referrer-Policy strict-origin-when-cross-origin
+  }
+}

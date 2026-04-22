@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_gestor_de_ansiedad_y_estr_s__tcc_",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "gestor_de_ansiedad_y_estr_s__tcc_"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Proporciona intervenciones proactivas basadas en la Terapia Cognitivo-Conductual (TCC) ante disparadores de estrés o ansiedad identificados. El Aeon ayuda a reconocer patrones de pensamiento negativos y a implementar estrategias de afrontamiento efectivas."
+    }
+}

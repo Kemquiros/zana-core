@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_mentor_a_inversa",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "mentor_a_inversa"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ayuda a profesionales senior a mantenerse relevantes y actualizados aprendiendo nuevas tendencias, tecnologías y metodologías directamente de sus equipos junior o de fuentes de conocimiento gestionadas por el Aeon. Fomenta un ciclo de aprendizaje continuo y mutuo."
+    }
+}

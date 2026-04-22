@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_duelo_y_p_rdida",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "duelo_y_p_rdida"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ofrece un espacio seguro y guiado para procesar el duelo y la pérdida. El Aeon acompaña al usuario a través de reflexiones, ejercicios de memoria y herramientas de afrontamiento, proporcionando un apoyo constante y comprensivo durante un período difícil."
+    }
+}

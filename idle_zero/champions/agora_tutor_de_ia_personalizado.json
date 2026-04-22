@@ -1,0 +1,59 @@
+{
+  "id": "80bbc2c4-70b2-48df-a923-dd3638636bbd",
+  "generation": 768,
+  "setup": [
+    {
+      "op": "Cos",
+      "out_addr": 2,
+      "in1_addr": 23,
+      "in2_addr": 20,
+      "constant": -0.5261086705906675,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 2,
+      "in1_addr": 2,
+      "in2_addr": 17,
+      "constant": -0.12543112988330116,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 55,
+      "in1_addr": 48,
+      "in2_addr": 1,
+      "constant": -0.45392184300498645,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 31,
+      "in1_addr": 13,
+      "in2_addr": 54,
+      "constant": -0.9218509762581403,
+      "model_id": null
+    }
+  ],
+  "predict": [
+    {
+      "op": "Add",
+      "out_addr": 1,
+      "in1_addr": 55,
+      "in2_addr": 31,
+      "constant": -0.7873203593912961,
+      "model_id": null
+    }
+  ],
+  "learn": [
+    {
+      "op": "Divide",
+      "out_addr": 55,
+      "in1_addr": 2,
+      "in2_addr": 0,
+      "constant": -0.7893445837478836,
+      "model_id": null
+    }
+  ],
+  "fitness": 14683.507737117732
+}

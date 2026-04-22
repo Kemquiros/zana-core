@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_acelerador_de_aprendizaje",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "acelerador_de_aprendizaje"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Aplica principios de práctica deliberada y repetición espaciada a cualquier habilidad o área de conocimiento que el usuario desee dominar. El Aeon crea planes de estudio personalizados y sistemas de revisión eficientes."
+    }
+}

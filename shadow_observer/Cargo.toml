@@ -1,0 +1,27 @@
+[package]
+name = "shadow_observer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+active-win-pos-rs = "0.10.0"
+arboard = "3.6.1"
+axum = { version = "0.8.9", features = ["ws"] }
+chrono = { version = "0.4.44", features = ["serde"] }
+civic_bridge = { version = "0.1.0", path = "../civic_bridge" }
+corporate_core = { version = "0.1.0", path = "../corporate_core" }
+curriculum_manager = { version = "0.1.0", path = "../curriculum_manager" }
+economy = { version = "0.1.0", path = "../economy" }
+futures-util = "0.3.32"
+fuzzy_heart = { version = "0.1.0", path = "../fuzzy_heart" }
+industrial_core = { version = "0.1.0", path = "../industrial_core" }
+irl_engine = { version = "0.1.0", path = "../irl_engine" }
+reasoning_engine = { version = "0.1.0", path = "../reasoning_engine" }
+reqwest = { version = "0.13.2", features = ["json"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.149"
+tokio = { version = "1.52.1", features = ["full"] }
+tower-http = { version = "0.6.8", features = ["cors"] }
+uuid = { version = "1.23.1", features = ["v4"] }
+zana_idle_zero = { version = "0.1.0", path = "../idle_zero" }
+zana_logger = { version = "0.1.0", path = "../logger" }

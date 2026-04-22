@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_arquitectura_de_la_virtud",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "arquitectura_de_la_virtud"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Presenta al usuario dilemas éticos diarios y escenarios complejos para fortalecer su \"músculo moral\". El Aeon fomenta la reflexión sobre principios éticos y la toma de decisiones virtuosas en situaciones cotidianas."
+    }
+}

@@ -1,0 +1,140 @@
+{
+    "id": "seed_agora_incubadora_negocios",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "1.0.0",
+        "intents": [
+            "business_creation",
+            "entrepreneurship",
+            "startup",
+            "business_model_validation",
+            "financial_planning",
+            "product_launch"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "idea_description": {
+                        "type": "string",
+                        "description": "A detailed description of the business idea.",
+                        "required": true
+                    },
+                    "target_market": {
+                        "type": "string",
+                        "description": "Description of the intended target market.",
+                        "required": false
+                    },
+                    "business_model_canvas": {
+                        "type": "object",
+                        "description": "Optional pre-filled Business Model Canvas components.",
+                        "required": false,
+                        "properties": {
+                            "value_proposition": {
+                                "type": "string"
+                            },
+                            "customer_segments": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "channels": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "customer_relationships": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "revenue_streams": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "key_resources": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "key_activities": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "key_partnerships": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "cost_structure": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "idea_description"
+                ]
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "The status of the incubation process (e.g., 'idea_received', 'validation_in_progress', 'model_validated', 'launch_plan_created', 'completed', 'failed').",
+                        "required": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the current status or outcome.",
+                        "required": true
+                    },
+                    "business_model_canvas": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "The generated or validated Business Model Canvas.",
+                        "required": false
+                    },
+                    "financial_projections": {
+                        "type": [
+                            "object",
+                            "null"
+                        ],
+                        "description": "Key financial projections (e.g., revenue, costs, profit).",
+                        "required": false
+                    },
+                    "launch_strategy": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "Outline of the recommended launch strategy.",
+                        "required": false
+                    }
+                },
+                "required": [
+                    "status",
+                    "message"
+                ]
+            }
+        }
+    }
+}

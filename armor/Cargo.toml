@@ -1,0 +1,18 @@
+[package]
+name    = "zana-armor"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+name      = "zana_armor"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+python  = ["pyo3"]
+
+[dependencies]
+regex    = "1"
+serde    = { version = "1", features = ["derive"] }
+serde_json = "1"
+pyo3     = { version = "0.20", features = ["extension-module"], optional = true }

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_conquista_del_miedo",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "conquista_del_miedo"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Diseña programas personalizados de terapia de exposición progresiva y segura para ayudar a los usuarios a enfrentar y superar miedos específicos (fobias, miedos sociales, miedo al fracaso). El Aeon guía al usuario a través de un proceso controlado de confrontación."
+    }
+}

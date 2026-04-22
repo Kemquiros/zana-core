@@ -1,0 +1,5 @@
+#!/bin/sh
+# ZANA Gateway sidecar stub
+# Real binary is built by build-desktop.sh / CI pipeline
+echo "zana-gateway: real binary not built yet. Run build-desktop.sh first." >&2
+exit 1

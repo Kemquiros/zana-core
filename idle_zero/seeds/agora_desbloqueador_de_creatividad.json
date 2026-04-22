@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_desbloqueador_de_creatividad",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "desbloqueador_de_creatividad"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Utiliza el \"Modo Iniciativa\" para forzar nuevas conexiones neuronales y superar bloqueos creativos. El Aeon expone al usuario a estímulos inesperados, combinaciones inusuales y desafíos creativos para fomentar la generación de ideas novedosas."
+    }
+}

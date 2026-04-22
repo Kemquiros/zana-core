@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_paternidad_consciente",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "paternidad_consciente"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ofrece estrategias de crianza personalizadas y basadas en la evidencia, adaptadas a la edad, personalidad y contexto específico de los hijos y la familia. El Aeon apoya a los padres en la toma de decisiones conscientes y en la construcción de relaciones positivas con sus hijos."
+    }
+}

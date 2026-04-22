@@ -1,0 +1,20 @@
+[project]
+name = "zana-slack"
+version = "2.0.0"
+description = "ZANA MCP Server for Slack — expose cognitive tools + run Slack bot"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp[cli]>=1.3.0",
+    "slack-bolt>=1.20.0",
+    "slack-sdk>=3.30.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.5.0",
+]
+
+[project.scripts]
+zana-slack = "server:main"
+zana-slack-bot = "bot:main"
+
+[tool.uv]
+package = false

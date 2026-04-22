@@ -1,0 +1,68 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Compiled binaries (rebuild from source)
+*.so
+*.dylib
+*.dll
+target/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Data directories (not versioned)
+data/
+*.log
+*.jsonl
+!tests/benchmark_history.jsonl
+
+# Trained model artifacts (rebuild with: python autonomy/brain.py)
+*.pkl
+*.pickle
+
+# Paper build artifacts (only PDF is versioned)
+docs/paper/*.aux
+docs/paper/*.out
+docs/paper/*.toc
+docs/paper/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Utility / one-off scripts (not part of public API)
+convert_docs.py
+convert_pdfs.py
+read_docx.py
+ontology_v2.html
+stress_test.py
+test_orchestrator.py
+cortex.log
+simbiosis.log
+texput.log
+
+# LaTeX build artifacts
+docs/paper/*.aux
+docs/paper/*.out
+docs/paper/*.toc
+docs/paper/*.log
