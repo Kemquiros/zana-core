@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-2.0.0--stable-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-2.5.0--sovereign-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![ZFI Score](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](https://github.com/kemquiros/zana-core)
@@ -37,7 +37,7 @@ ZANA fuses the fluency of Large Language Models with the deterministic rigor of 
 Performance-critical components are written in native Rust and integrated via PyO3:
 *   **Cognitive Kalman Filter (1.4μs):** Tracks epistemic uncertainty and manages the context window mathematically.
 *   **Armor Security (2.1μs):** Structural PII detection and injection blocking at the binary level.
-*   **EML Operator:** A universal arithmetic primitive `eml(x,y) = eˣ − ln(y)` that ensures bit-level reproducibility across different hardware.
+*   **EML Operator:** A universal arithmetic primitive `eml(x,y) = eˣ − ln(y)` that ensures bit-level reproducibility.
 
 ### 3. 4-Store Memory System
 ZANA maintains four distinct memory systems to prevent the "false association" errors common in monolithic vector databases:
@@ -45,6 +45,9 @@ ZANA maintains four distinct memory systems to prevent the "false association" e
 *   **Episodic (PostgreSQL):** A temporal stream of every conversation and event.
 *   **World Model (Neo4j):** Causal relationships and entity graphs.
 *   **Procedural (JSON):** Evolved skills and champion algorithms.
+
+### 4. Project-Centric Context
+Manage multi-faceted cognitive workflows with integrated **Project Modules**. Auto-switch memory scopes, file context, and Aeon behavioral profiles based on the active mission.
 
 ---
 
@@ -59,7 +62,7 @@ ZANA coordinates a specialized squad of sub-agents communicating via the **AION 
 5.  📣 **Herald:** Synthesis & Reporting. The human interface.
 
 ### 🖥️ Operational Cockpit
-The **Aria UI** (`/aria-ui`) is the official sensory interface. It is built with Next.js and Tauri, providing a sovereign PWA and desktop experience that connects directly to the local ZANA engine.
+The **Aria UI** (`/aria-ui`) is the official sensory interface. It is built with Next.js and Tauri, providing a **fully responsive**, sovereign PWA and desktop experience that connects directly to the local ZANA engine.
 
 ---
 
@@ -69,7 +72,7 @@ ZANA requires **Docker** and **Python 3.12+**.
 
 ### 🐧 Linux
 ```bash
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
+curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
 
 ### 🍎 macOS
@@ -78,16 +81,13 @@ Requires [Homebrew](https://brew.sh/).
 # Install dependencies
 brew install docker docker-compose python@3.12 rustup
 # Install ZANA
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
+curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
 
-### 🪟 Windows
-ZANA requires **WSL2** (Windows Subsystem for Linux).
-1.  Open PowerShell as Administrator: `wsl --install`
-2.  Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and enable the WSL2 engine.
-3.  Inside your WSL terminal (e.g., Ubuntu):
+### 🪟 Windows (WSL2)
+Inside your WSL terminal (e.g., Ubuntu):
 ```bash
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
+curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
 
 ---
@@ -105,7 +105,7 @@ zana start
 zana chat
 ```
 
-> **Offline Mode:** Set `ZANA_PRIMARY_MODEL=ollama/llama3.1:8b` in your `.env` to run fully private and free.
+> **Offline Mode:** Set `ZANA_PRIMARY_MODEL=ollama/gemma4` in your `.env` to run fully private and free with our recommended local model.
 
 ---
 
@@ -114,7 +114,7 @@ zana chat
 ZANA is built for collective intelligence without central control.
 *   **Red Queen Tournament:** While idle, ZANA evolves its own cognitive modules through adversarial competition.
 *   **Digital DNA (SDA):** Champion modules are crystallized as *Self-Describing Architecture* packets.
-*   **LUMA Grid:** Export and share your evolved skills with other ZANA instances via the private mesh.
+*   **Z-Network (Red Z):** Export and share your evolved skills (Wisdom NFTs) with other ZANA instances via the decentralized mesh.
 
 ---
 
@@ -122,7 +122,7 @@ ZANA is built for collective intelligence without central control.
 
 For a deep dive into the mathematical foundations, EML completeness, and Kalman-based context management, read our preprint:
 
-[**ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime (PDF)**](docs/paper/zana_paper.pdf)
+[**ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime (PDF)**](https://github.com/kemquiros/zana-core/blob/main/docs/paper/zana_paper.pdf)
 
 ---
 
@@ -135,6 +135,8 @@ With gratitude to: `eglejsr`, `ferchus_nandus`, `domination`, `kamo`, `virtus_sa
 ---
 
 <div align="center">
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Support%20ZANA-Ko--fi-red?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/kemquiros)
 
 Built with honor in Medellín, Colombia. 🇨🇴  
 **[VECANOVA](https://vecanova.com)** · MIT License
