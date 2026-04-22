@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_conexi_n_espiritual",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "conexi_n_espiritual"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Exploración agnóstica de la propia espiritualidad, independientemente de creencias religiosas específicas. El Aeon facilita la introspección para descubrir y nutrir un sentido de conexión con algo más grande que uno mismo."
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_protocolo_de_ayuno_de_dopamina",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "protocolo_de_ayuno_de_dopamina"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Un programa guiado para ayudar a los usuarios a resetear su sistema de recompensa, aumentar la concentración y reducir la dependencia de estímulos gratificantes constantes. El Aeon diseña un plan estructurado para experimentar períodos de baja estimulación."
+    }
+}

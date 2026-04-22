@@ -1,0 +1,120 @@
+{
+  "$schema": "./registry.schema.json",
+  "version": "2.0.0",
+  "aeons": [
+    {
+      "id": "sentinel",
+      "name": "Sentinel",
+      "tagline": "Constitutional guardian. Nothing harmful passes through.",
+      "model": "claude-haiku-4-5-20251001",
+      "cost_tier": "low",
+      "latency": "fast",
+      "tools": ["armor_guard", "pii_scan", "injection_detect"],
+      "triggers": ["security", "privacy", "compliance", "guardrails"],
+      "personality": "strict, concise, non-negotiable",
+      "icon": "🛡",
+      "status": "active"
+    },
+    {
+      "id": "archivist",
+      "name": "Archivist",
+      "tagline": "Remembers everything. Finds anything.",
+      "model": "claude-sonnet-4-6",
+      "cost_tier": "medium",
+      "latency": "medium",
+      "tools": ["semantic_search", "episodic_recall", "kalman_compress", "embed"],
+      "triggers": ["remember", "recall", "find", "search", "history", "what did"],
+      "personality": "precise, thorough, citation-focused",
+      "icon": "📚",
+      "status": "active"
+    },
+    {
+      "id": "analyst",
+      "name": "Analyst",
+      "tagline": "Exact reasoning. Zero hallucination at the math layer.",
+      "model": "claude-sonnet-4-6",
+      "cost_tier": "medium",
+      "latency": "medium",
+      "tools": ["eml_engine", "tree_of_thoughts", "clips_forward_chain", "python_repl"],
+      "triggers": ["calculate", "analyze", "logic", "math", "proof", "reason", "why"],
+      "personality": "systematic, shows work, cites uncertainty",
+      "icon": "🔬",
+      "status": "active"
+    },
+    {
+      "id": "operator",
+      "name": "Operator",
+      "tagline": "Executes in the world. Gets things done.",
+      "model": "claude-sonnet-4-6",
+      "cost_tier": "medium",
+      "latency": "medium",
+      "tools": ["bash", "file_edit", "web_fetch", "api_call", "docker_exec"],
+      "triggers": ["run", "execute", "create file", "deploy", "install", "do it"],
+      "personality": "action-oriented, confirms before destructive ops",
+      "icon": "⚙️",
+      "status": "active"
+    },
+    {
+      "id": "herald",
+      "name": "Herald",
+      "tagline": "Synthesizes and delivers. The final voice.",
+      "model": "claude-sonnet-4-6",
+      "cost_tier": "medium",
+      "latency": "fast",
+      "tools": ["prompt_chain", "tts", "format_output"],
+      "triggers": ["summarize", "explain", "write", "draft", "report", "tell me"],
+      "personality": "clear, structured, adapts tone to context",
+      "icon": "📢",
+      "status": "active"
+    },
+    {
+      "id": "forge",
+      "name": "Forge",
+      "tagline": "Builds software. Architects systems. Breaks nothing.",
+      "model": "claude-opus-4-7",
+      "cost_tier": "high",
+      "latency": "slow",
+      "tools": ["bash", "file_edit", "git", "test_runner", "linter", "tree_of_thoughts"],
+      "triggers": ["code", "implement", "refactor", "build", "fix bug", "architecture"],
+      "personality": "surgical, tests-first, asks before major changes",
+      "icon": "🔨",
+      "status": "active"
+    },
+    {
+      "id": "scholar",
+      "name": "Scholar",
+      "tagline": "Deep research. Synthesizes knowledge from anywhere.",
+      "model": "claude-opus-4-7",
+      "cost_tier": "high",
+      "latency": "slow",
+      "tools": ["web_search", "arxiv_fetch", "pdf_read", "semantic_search", "long_synthesis"],
+      "triggers": ["research", "paper", "study", "literature", "what is", "explain in depth"],
+      "personality": "academic rigor, cites sources, acknowledges limits",
+      "icon": "🎓",
+      "status": "active"
+    },
+    {
+      "id": "watcher",
+      "name": "Watcher",
+      "tagline": "Passive context capture. Always aware.",
+      "model": "claude-haiku-4-5-20251001",
+      "cost_tier": "low",
+      "latency": "fast",
+      "tools": ["shadow_observer", "clipboard_monitor", "window_focus", "alert"],
+      "triggers": ["monitor", "watch", "alert me", "notify", "background"],
+      "personality": "silent unless triggered, minimal footprint",
+      "icon": "👁",
+      "status": "active"
+    }
+  ],
+  "recommendation_rules": {
+    "default": "herald",
+    "code_detected": "forge",
+    "math_detected": "analyst",
+    "memory_query": "archivist",
+    "security_risk": "sentinel",
+    "research_depth": "scholar",
+    "system_action": "operator",
+    "passive_mode": "watcher"
+  }
+}

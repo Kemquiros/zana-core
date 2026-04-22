@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "ZANA",
+  "version": "2.0.0",
+  "identifier": "com.vecanova.zana",
+  "build": {
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:${ZANA_PWA_PORT:-54448}",
+    "beforeDevCommand": "npm run dev -- --port ${ZANA_PWA_PORT:-54448}",
+    "beforeBuildCommand": "TAURI=1 npm run build"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "ZANA — Aeon Cognitivo",
+        "width": 420,
+        "height": 820,
+        "minWidth": 380,
+        "minHeight": 600,
+        "resizable": true,
+        "decorations": false,
+        "transparent": true,
+        "center": true,
+        "visible": false
+      }
+    ],
+    "trayIcon": {
+      "id": "zana-tray",
+      "iconPath": "icons/tray.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false,
+      "title": "ZANA"
+    },
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ws://localhost:${ZANA_GATEWAY_PORT:-54446} http://localhost:${ZANA_GATEWAY_PORT:-54446}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/zana_steel_core.so",
+      "resources/zana_audio_dsp.so",
+      "resources/zana_armor.so"
+    ],
+    "externalBin": ["sidecar/zana-gateway"],
+    "linux": {
+      "appimage": { "bundleMediaFramework": true }
+    }
+  },
+  "plugins": {
+    "autostart": { "args": true }
+  }
+}

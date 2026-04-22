@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_maestr_a_acelerada_de_idiomas",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "maestr_a_acelerada_de_idiomas"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Desarrolla un plan de aprendizaje de idiomas hiper-personalizado que integra vocabulario, gramática y práctica conversacional de manera fluida. El Aeon se adapta al ritmo del usuario, enfocándose en sus necesidades específicas y estilo de aprendizaje."
+    }
+}

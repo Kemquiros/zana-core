@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_prevenci_n_del_burnout",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "prevenci_n_del_burnout"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Monitoriza la carga de trabajo, los patrones de sueño y los niveles de estrés del usuario para predecir riesgos de burnout. El Aeon propone intervenciones proactivas, como ajustes en la agenda, técnicas de relajación o sugerencias para mejorar la calidad del descanso."
+    }
+}

@@ -1,0 +1,13 @@
+[package]
+name = "zana_logger"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+chrono = "0.4"
+tokio = { version = "1.52.1", features = ["time"] }
+
+[lib]
+name = "zana_logger"
+path = "src/lib.rs"

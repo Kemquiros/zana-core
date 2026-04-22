@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_el_rito_de_paso",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "el_rito_de_paso"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Guía al usuario a través de transiciones vitales importantes (ej. graduación, cambio de carrera, paternidad, jubilación). El Aeon ayuda a procesar el significado de estas transiciones, a desprenderse de lo viejo y a abrazar lo nuevo de manera consciente."
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_planificaci_n_de_eventos_sociales",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "planificaci_n_de_eventos_sociales"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Simplifica la gestión de eventos sociales, desde pequeñas reuniones hasta celebraciones importantes. El Aeon ayuda con la gestión de invitados, presupuestos, tareas logísticas y recordatorios, reduciendo significativamente el estrés asociado a la organización."
+    }
+}

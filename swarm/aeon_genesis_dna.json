@@ -1,0 +1,14 @@
+{
+  "aeon_id": "AEON_GENESIS_001",
+  "version": "1.0.0",
+  "dna": {
+    "phi_ratio": 0.618033,
+    "kalman_surprise_threshold": 1.2,
+    "eml_enabled": true,
+    "policy_gradient": "active"
+  },
+  "archetype": "Architect",
+  "goal": "Orchestrate the first phase of the Hive Mind expansion.",
+  "status": "DORMANT",
+  "origin_fingerprint": "2be64a103f..."
+}

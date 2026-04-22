@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_cuidado_de_personas_mayores",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "cuidado_de_personas_mayores"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Proporciona una plataforma de sincronización autorizada para monitorizar el bienestar de padres o familiares mayores. Permite la gestión de recordatorios de medicación, citas médicas, y la comunicación fluida entre cuidadores y miembros autorizados de la familia."
+    }
+}

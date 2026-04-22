@@ -1,0 +1,36 @@
+{
+  "header": {
+    "brand": "ZANA",
+    "module": "AEON",
+    "online": "EN LIGNE",
+    "offline": "HORS LIGNE"
+  },
+  "aeonState": {
+    "idle": "INACTIF",
+    "listening": "ÉCOUTE",
+    "thinking": "RÉFLEXION",
+    "speaking": "PARLE"
+  },
+  "sensorBar": {
+    "placeholder": "Envoyer un message...",
+    "send": "Envoyer",
+    "record": "Enregistrer l'audio",
+    "stopRecording": "Arrêter l'enregistrement",
+    "attachImage": "Joindre une image",
+    "disabled": "Connectez-vous à ZANA pour commencer"
+  },
+  "feed": {
+    "you": "Vous",
+    "aeon": "AEON",
+    "empty": "ZANA est prêt. Dites quelque chose."
+  },
+  "footer": {
+    "sensoryNode": "NŒUD SENSORIEL"
+  },
+  "errors": {
+    "notFound": "Page introuvable.",
+    "notFoundAction": "Retour à ZANA",
+    "unexpected": "Une erreur est survenue.",
+    "retry": "Réessayer"
+  }
+}

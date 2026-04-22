@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_filantrop_a_estrat_gica",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "filantrop_a_estrat_gica"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ayuda a los usuarios a alinear sus donaciones y actividades de voluntariado con sus valores personales y metas de impacto. El Aeon facilita la identificación de causas significativas y la planificación estratégica de contribuciones."
+    }
+}

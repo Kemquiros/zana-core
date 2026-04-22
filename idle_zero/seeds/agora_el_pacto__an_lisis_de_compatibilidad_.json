@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_el_pacto__an_lisis_de_compatibilidad_",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "el_pacto__an_lisis_de_compatibilidad_"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Genera \"Informes de Simbiosis\" detallados entre usuarios (amigos, parejas, colaboradores) para revelar patrones de compatibilidad, posibles puntos de fricción y dinámicas de relación. El Aeon actúa como un mediador neutral, facilitando la comprensión mutua."
+    }
+}

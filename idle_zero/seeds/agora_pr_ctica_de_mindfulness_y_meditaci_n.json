@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_pr_ctica_de_mindfulness_y_meditaci_n",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "pr_ctica_de_mindfulness_y_meditaci_n"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ofrece una biblioteca de meditaciones guiadas y prácticas de mindfulness personalizadas según las necesidades y preferencias del usuario. El Aeon recomienda sesiones basadas en el estado actual del usuario o sus objetivos de bienestar."
+    }
+}

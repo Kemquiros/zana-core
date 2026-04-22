@@ -1,0 +1,158 @@
+{
+    "id": "seed_agora_transicion_carrera",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "1.0.0",
+        "intents": [
+            "career_transition",
+            "career_counseling",
+            "professional_path",
+            "skill_analysis",
+            "job_search_strategy",
+            "life_graph_analysis"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "current_skills_interests": {
+                        "type": "object",
+                        "description": "User's current skills, interests, and experiences.",
+                        "required": true,
+                        "properties": {
+                            "skills": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "interests": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "experience_areas": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "career_goals": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Desired career outcomes or roles."
+                            }
+                        }
+                    },
+                    "career_preferences": {
+                        "type": "object",
+                        "description": "User's preferences for work environment, type of work, etc.",
+                        "required": false,
+                        "properties": {
+                            "work_environment": {
+                                "type": "string",
+                                "enum": [
+                                    "remote",
+                                    "hybrid",
+                                    "on-site",
+                                    "flexible"
+                                ]
+                            },
+                            "company_culture": {
+                                "type": "string",
+                                "enum": [
+                                    "startup",
+                                    "corporate",
+                                    "non-profit",
+                                    "academic"
+                                ]
+                            },
+                            "work_life_balance": {
+                                "type": "string",
+                                "enum": [
+                                    "high",
+                                    "moderate",
+                                    "flexible"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "current_skills_interests"
+                ]
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "description": "Status of the career transition analysis (e.g., 'analysis_complete', 'paths_identified', 'simulation_run', 'recommendations_generated', 'failed').",
+                        "required": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable message about the current status or outcome.",
+                        "required": true
+                    },
+                    "aligned_professions": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "List of professions that align well with the user's profile.",
+                        "required": false,
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "transition_paths": {
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "description": "Simulated paths for transitioning to aligned professions, including required skills/training.",
+                        "required": false,
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "profession": {
+                                    "type": "string"
+                                },
+                                "path_description": {
+                                    "type": "string"
+                                },
+                                "required_training": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "recommendations": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "description": "General recommendations based on the analysis.",
+                        "required": false
+                    }
+                },
+                "required": [
+                    "status",
+                    "message"
+                ]
+            }
+        },
+        "description": "Analyzes the Living Graph to identify aligned professions and simulate career transition paths."
+    }
+}

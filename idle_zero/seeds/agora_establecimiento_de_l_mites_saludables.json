@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_establecimiento_de_l_mites_saludables",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "establecimiento_de_l_mites_saludables"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Apoya a los usuarios en la identificación y comunicación asertiva de sus límites personales. El Aeon ayuda a reconocer cuándo y cómo establecer límites en diversas relaciones (laborales, personales, familiares) para proteger el bienestar propio."
+    }
+}

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZANA: KoruOS Simbiosis v3.2.5 (Active Industrial)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;700;800&family=JetBrains+Mono:wght@300;500&display=swap');
+        :root { --jade: #10b981; --amethyst: #a855f7; }
+        body { background-color: #050505; color: #e5e7eb; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        .glass-panel { background: rgba(15, 15, 20, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .aeon-core { width: 120px; height: 120px; border-radius: 50%; position: relative; z-index: 10; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .aeon-container.idle .aeon-core { box-shadow: 0 0 60px rgba(79, 70, 229, 0.4), inset 0 0 30px rgba(255,255,255,0.1); background: radial-gradient(circle at 30% 30%, #6366f1, #312e81, #000); animation: breathe 5s infinite ease-in-out; }
+        @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .tab-pane.hidden { display: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .resonant-glow { animation: resonant-pulse 2s infinite alternate; }
+        @keyframes resonant-pulse { from { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); } to { box-shadow: 0 0 40px rgba(16, 185, 129, 0.6); } }
+    </style>
+</head>
+<body class="p-6">
+    <div id="main-ui" class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-4 space-y-6">
+            <div class="glass-panel p-8 rounded-3xl text-center relative overflow-hidden">
+                <div id="aeon-container" class="aeon-container idle flex flex-col items-center">
+                    <div id="aeon-visual" class="aeon-core mb-6"></div>
+                    <h2 class="text-2xl font-black tracking-tighter text-white uppercase italic">ÆON CORE</h2>
+                    <p id="aeon-status" class="text-[10px] font-mono text-gray-500 mt-1 tracking-widest">SENSING // SYMBIONT</p>
+                </div>
+                <div class="mt-8 pt-8 border-t border-white/5 space-y-4">
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                        <span class="text-[9px] font-mono text-gray-500 uppercase">Evolution</span>
+                        <span id="aeon-stage" class="text-[10px] font-bold text-amethyst uppercase">SEED</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                        <span class="text-[9px] font-mono text-gray-500 uppercase">Mood</span>
+                        <span id="aeon-mood" class="text-[10px] font-bold text-indigo-400 uppercase">CURIOUS</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                        <span class="text-[9px] font-mono text-gray-500 uppercase">Resonance Status</span>
+                        <span id="resonance-status" class="text-[9px] font-bold text-gray-600 uppercase">Standby</span>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-panel p-6 rounded-3xl">
+                <h3 class="text-xs font-mono text-gray-500 mb-4 uppercase tracking-widest">🕸️ ZANA Grid Grid Swarm</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-gray-400">Registry</span>
+                        <span id="registry-status" class="text-cyan-400 font-bold uppercase">Linked</span>
+                    </div>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <span class="text-gray-400">Active Peers</span>
+                        <span id="peer-count" class="text-white font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-8 space-y-6">
+            <div class="glass-panel p-6 rounded-3xl h-full flex flex-col">
+                <div class="flex border-b border-white/5 mb-6 overflow-x-auto custom-scrollbar">
+                    <button onclick="switchTab('telemetry')" id="tab-telemetry" class="px-6 py-3 text-xs font-bold border-b-2 border-indigo-500 text-white uppercase tracking-widest whitespace-nowrap">Telemetría</button>
+                    <button onclick="switchTab('sanctuary')" id="tab-sanctuary" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Santuario</button>
+                    <button onclick="switchTab('messenger')" id="tab-messenger" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Messenger</button>
+                    <button onclick="switchTab('hub')" id="tab-hub" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Global Hub</button>
+                    <button onclick="switchTab('wisdom')" id="tab-wisdom" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap transition-all">Wisdom Hub</button>
+                    <button onclick="switchTab('industrial')" id="tab-industrial" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Industrial</button>
+                    <button onclick="switchTab('corporate')" id="tab-corporate" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Corporate</button>
+                    <button onclick="switchTab('cortex')" id="tab-cortex" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap transition-all">Neuro-Symbolic</button>
+                    <button onclick="switchTab('mastery')" id="tab-mastery" class="px-6 py-3 text-xs font-bold border-b-2 border-transparent text-gray-500 hover:text-gray-300 uppercase tracking-widest whitespace-nowrap">Mastery</button>
+                    </div>
+
+                    <!-- ... -->
+                    <div id="content-cortex" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="mb-6 p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl">
+                        <h4 class="text-[10px] text-white font-black uppercase mb-1 tracking-tighter">CLIPS Reasoning Engine</h4>
+                        <p class="text-[9px] text-indigo-300/70 italic">Encadenamiento hacia adelante: Deducción simbólica y explicabilidad total.</p>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto space-y-3 custom-scrollbar min-h-[350px]" id="reasoning-list">
+                        <!-- Reasoning Traces here -->
+                        <div class="text-[10px] text-gray-600 italic">Esperando hechos para iniciar inferencia...</div>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                        <div class="flex justify-between items-center text-[8px] text-gray-500 uppercase font-mono">
+                            <span>Knowledge Base (Facts)</span>
+                            <span class="text-indigo-400">Rete Algorithm Active</span>
+                        </div>
+                    </div>
+                    </div>
+
+
+                <!-- ... -->
+                <div id="content-corporate" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-black/40 p-4 rounded-2xl border border-white/5 text-center">
+                            <span class="text-[8px] text-gray-500 block mb-1">TOTAL ASSETS</span>
+                            <span id="corp-assets" class="text-xs font-black text-white">$1,000,000</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-2xl border border-white/5 text-center">
+                            <span class="text-[8px] text-gray-500 block mb-1">LIQUIDITY</span>
+                            <span id="corp-liquidity" class="text-xs font-black text-jade">$250,000</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-2xl border border-white/5 text-center">
+                            <span class="text-[8px] text-gray-500 block mb-1">BURN RATE</span>
+                            <span id="corp-burn" class="text-xs font-black text-red-400">-$15,000</span>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-2xl border border-white/5 text-center">
+                            <span class="text-[8px] text-gray-500 block mb-1">GROWTH</span>
+                            <span id="corp-growth" class="text-xs font-black text-cyan-400">+12%</span>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto space-y-4 custom-scrollbar min-h-[300px]" id="proposal-list">
+                        <!-- Proposals here -->
+                    </div>
+
+                    <div class="mt-6 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                        <h4 class="text-[10px] text-gray-500 uppercase mb-4 font-bold tracking-widest">Consultoría CxO-Aeon</h4>
+                        <div class="flex flex-col gap-3">
+                            <input id="prop-title" type="text" placeholder="Título del proyecto..." class="bg-white/5 border-none rounded-xl px-4 py-2 text-[10px] text-white">
+                            <textarea id="prop-desc" placeholder="Descripción estratégica (incluye 'Soberanía' o 'Simbiosis' para mejor alineamiento)..." class="bg-white/5 border-none rounded-xl px-4 py-2 text-[10px] text-white h-20"></textarea>
+                            <div class="flex gap-2">
+                                <input id="prop-cost" type="number" placeholder="Costo ($)" class="flex-1 bg-white/5 border-none rounded-xl px-4 py-2 text-[10px] text-white">
+                                <input id="prop-gain" type="number" placeholder="Ganancia Potencial ($)" class="flex-1 bg-white/5 border-none rounded-xl px-4 py-2 text-[10px] text-white">
+                            </div>
+                            <button onclick="sendProposal()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-bold uppercase transition-all shadow-lg">Solicitar Evaluación Estratégica</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="content-telemetry" class="tab-pane flex-1 flex flex-col">
+                    <div id="logs" class="flex-1 overflow-y-auto mb-4 p-4 bg-black/40 rounded-2xl border border-white/5 font-mono text-[11px] space-y-1 custom-scrollbar min-h-[300px]">
+                        <p class="text-gray-600 italic">Inicializando flujo de resonancia...</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="mic-btn" onclick="toggleListening()" class="flex-1 py-4 rounded-2xl bg-indigo-600/10 border border-indigo-500/30 text-indigo-300 font-bold tracking-widest hover:bg-indigo-600/20 transition-all uppercase text-xs">Activar Interfaz Neural</button>
+                        <div class="w-1/3 flex flex-col justify-center px-4 bg-black/40 rounded-2xl border border-white/5">
+                            <div class="flex justify-between text-[8px] text-gray-500 uppercase mb-1"><span>Alineamiento IRL</span><span id="alignment-value">50.0%</span></div>
+                            <div class="w-full h-1 bg-gray-900 rounded-full overflow-hidden"><div id="alignment-bar" class="w-[50%] h-full bg-indigo-500 transition-all duration-1000"></div></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-sanctuary" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="relative flex-1 bg-black/60 rounded-3xl border border-indigo-500/20 overflow-hidden">
+                        <canvas id="sanctuary-canvas" class="w-full h-full"></canvas>
+                        <div class="absolute bottom-6 left-6 p-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl">
+                            <span class="text-[9px] text-gray-500 block uppercase mb-1">Habitat Latente</span>
+                            <span id="habitat-type" class="text-lg text-indigo-400 font-black uppercase tracking-tighter italic">Digital Void</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid grid-cols-3 gap-4">
+                        <button onclick="setHabitat('Cyberpunk')" class="py-3 bg-white/5 rounded-2xl text-[10px] font-bold uppercase hover:bg-indigo-500/20 transition-all border border-white/5">Cyberpunk</button>
+                        <button onclick="setHabitat('Zen')" class="py-3 bg-white/5 rounded-2xl text-[10px] font-bold uppercase hover:bg-jade/20 transition-all border border-white/5">Zen Garden</button>
+                        <button onclick="setHabitat('Brutalist')" class="py-3 bg-white/5 rounded-2xl text-[10px] font-bold uppercase hover:bg-amethyst/20 transition-all border border-white/5">Brutalist</button>
+                    </div>
+                </div>
+                <div id="content-messenger" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="flex-1 flex flex-col bg-black/40 rounded-3xl border border-white/5 overflow-hidden">
+                        <div id="msg-list" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] min-h-[350px]"></div>
+                        <div class="p-4 bg-black/60 border-t border-white/5 flex gap-3">
+                            <input id="msg-input" type="text" placeholder="Pulso de resonancia..." class="flex-1 bg-white/5 border-none rounded-2xl px-6 py-3 text-sm focus:ring-1 focus:ring-indigo-500 text-white placeholder-gray-700">
+                            <button onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white p-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.4)]">
+                                <svg width="20" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-hub" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="flex justify-between items-center mb-6 bg-white/5 p-6 rounded-3xl border border-white/10">
+                        <div><span class="text-[10px] text-gray-500 block uppercase mb-1">Balance de Resonancia</span><span id="resonance-balance" class="text-3xl font-black text-jade tracking-tighter">1,000.00 RC</span></div>
+                        <button onclick="updateBalance()" class="p-3 bg-jade/10 text-jade rounded-2xl border border-jade/20 hover:bg-jade/20 transition-all"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"></path></svg></button>
+                    </div>
+                    <div id="node-explorer" class="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2 min-h-[300px]"></div>
+                </div>
+                <div id="content-wisdom" class="tab-pane hidden flex-1 flex flex-col">
+                    <div class="mb-6 p-4 bg-cyan-600/10 border border-cyan-500/20 rounded-2xl">
+                        <h4 class="text-[10px] text-white font-black uppercase mb-1 tracking-tighter">Wisdom Hub (Comunidad ZANA Grid)</h4>
+                        <p class="text-[9px] text-cyan-300/70 italic">Repositorio de patrones lógicos compartidos por otros Aeons.</p>
+                    </div>
+                    <div id="community-rules" class="flex-1 overflow-y-auto space-y-3 custom-scrollbar min-h-[400px]"></div>
+                </div>
+
+                <div id="content-industrial" class="tab-pane hidden flex-1 flex flex-col">
+
+                    <div class="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl hidden mb-6" id="industrial-alert-box">
+                        <span class="text-[10px] text-red-400 font-bold uppercase block mb-1 tracking-widest">⚠️ DISONANCIA INDUSTRIAL</span>
+                        <p id="industrial-alert-msg" class="text-xs text-white italic">Anomaly detected.</p>
+                    </div>
+                    <div class="mb-6 space-y-3" id="intervention-container">
+                        <h4 class="text-[10px] text-indigo-400 uppercase font-bold tracking-widest flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-ping"></span>Intervenciones Actuadoras</h4>
+                        <div id="intervention-list" class="space-y-2"></div>
+                    </div>
+                    <div id="machine-list" class="flex-1 overflow-y-auto space-y-4 custom-scrollbar min-h-[250px]"></div>
+                    <div class="mt-6 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                        <h4 class="text-[10px] text-gray-500 uppercase mb-4 font-bold tracking-widest">Simulación PLC</h4>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button onclick="sendSensor('Turbine-01', 'TEMPERATURE', 160.0)" class="py-3 bg-red-500/20 text-red-400 text-[10px] font-bold rounded-2xl border border-red-500/30 uppercase">CRITICAL</button>
+                            <button onclick="sendSensor('Turbine-01', 'VIBRATION', 8.5)" class="py-3 bg-yellow-500/20 text-yellow-400 text-[10px] font-bold rounded-2xl border border-yellow-500/30 uppercase">Anomalous</button>
+                            <button onclick="sendSensor('Turbine-01', 'LOAD', 45.0)" class="py-3 bg-jade/20 text-jade text-[10px] font-bold rounded-2xl border border-jade/30 uppercase">Normal</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-mastery" class="tab-pane hidden flex-1 custom-scrollbar overflow-y-auto">
+                    <div id="skill-tree-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let ws; let currentTab = 'telemetry';
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(b => { b.classList.remove('border-indigo-500', 'text-white'); b.classList.add('border-transparent', 'text-gray-500'); });
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            activeTab.classList.add('border-indigo-500', 'text-white');
+            activeTab.classList.remove('border-transparent', 'text-gray-500');
+            currentTab = tabId;
+            if (tabId === 'sanctuary') initSanctuary();
+            if (tabId === 'mastery') loadSkills();
+            if (tabId === 'hub') { updateBalance(); exploreNodes(); }
+            if (tabId === 'wisdom') updateWisdomUI();
+            if (tabId === 'industrial') { updateIndustrialUI(); updateInterventionsUI(); }
+            if (tabId === 'corporate') updateCorporateUI();
+            if (tabId === 'cortex') updateReasoningUI();
+        }
+
+        async function updateWisdomUI() {
+            const container = document.getElementById('community-rules');
+            try {
+                const res = await fetch('http://localhost:50000/wisdom/list');
+                const rules = await res.json();
+                container.innerHTML = rules.map(r => `
+                    <div class="p-5 bg-white/5 border border-white/10 rounded-3xl flex flex-col gap-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black text-cyan-400 uppercase tracking-tighter">${r.rule_data.name}</span>
+                            <span class="text-[8px] text-gray-500 font-mono">Votos: ${r.votes} | Por: ${r.creator_node.substring(0,8)}</span>
+                        </div>
+                        <p class="text-[9px] text-gray-400 italic">${r.rule_data.explanation_template}</p>
+                        <button onclick="learnRule(${JSON.stringify(r.rule_data).replace(/"/g, '&quot;')})" class="w-full py-2 bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 rounded-xl text-[8px] font-bold uppercase transition-all">Sincronizar Lógica</button>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+
+        async function learnRule(rule) {
+            try {
+                await fetch('http://localhost:54444/mcp/reasoning/add_rule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rule })
+                });
+                addLog(`Lógica comunitaria '${rule.name}' integrada con éxito.`, 'zana');
+            } catch(e) {}
+        }
+
+        async function updateReasoningUI() {
+            const container = document.getElementById('reasoning-list');
+            try {
+                const res = await fetch('http://localhost:54444/mcp/reasoning/traces');
+                const traces = await res.json();
+                if (traces.length === 0) return;
+                
+                container.innerHTML = traces.reverse().map(t => `
+                    <div class="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl flex flex-col gap-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[9px] font-black text-indigo-400 uppercase tracking-tighter">${t.rule_name}</span>
+                            <span class="text-[7px] text-gray-600 font-mono">${new Date(t.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-300 leading-relaxed font-mono">
+                            <span class="text-indigo-500 mr-1">▶</span> ${t.deduction}
+                        </p>
+                        <div class="pt-2 border-t border-white/5">
+                            <span class="text-[8px] text-gray-500 uppercase block mb-1">Contexto Simbólico:</span>
+                            <p class="text-[9px] text-indigo-300/60 italic">${t.explanation}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        function addLog(text, type = 'info') {
+            const logs = document.getElementById('logs'); const p = document.createElement('p'); const now = new Date().toLocaleTimeString();
+            let color = "text-gray-400"; if (type === 'zana') color = "text-indigo-400 font-bold"; if (type === 'aeon') color = "text-amethyst italic"; if (type === 'error') color = "text-red-400";
+            p.className = `${color} border-l-2 border-current pl-3 py-1 text-[10px]`; p.innerHTML = `<span class="opacity-30 mr-2">[${now}]</span> ${text}`;
+            logs.appendChild(p); logs.scrollTop = logs.scrollHeight;
+        }
+        async function sendMessage() {
+            const input = document.getElementById('msg-input'); const text = input.value.trim(); if (!text) return;
+            addMessage(text, 'user'); input.value = '';
+            try { await fetch('http://localhost:50000/messenger/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sender_id: "john_tapias", recipient_id: "swarm", content: text }) }); } catch (e) { addLog("XRM Error: Red ZANA Grid inaccesible.", 'error'); }
+        }
+        function addMessage(text, side) {
+            const list = document.getElementById('msg-list'); const div = document.createElement('div');
+            div.className = `flex ${side === 'user' ? 'justify-end' : 'justify-start'}`;
+            div.innerHTML = `<div class="max-w-[85%] p-4 rounded-3xl text-[11px] ${side === 'user' ? 'bg-indigo-600 text-white rounded-tr-none shadow-[0_10px_20px_rgba(79,70,229,0.2)]' : 'bg-white/5 border border-white/10 text-gray-300 rounded-tl-none'}">${text}</div>`;
+            list.appendChild(div); list.scrollTop = list.scrollHeight;
+        }
+        async function sendSensor(machine_id, type, value) {
+            addLog(`PLC TRANSMISSION: ${machine_id} // ${type} -> ${value}`, 'info');
+            try { await fetch('http://localhost:54444/industrial/sensor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ machine_id, sensor_type: type, value, unit: "SI" }) }); updateIndustrialUI(); updateInterventionsUI(); } catch (e) {}
+        }
+        async function updateIndustrialUI() {
+            const container = document.getElementById('machine-list');
+            try {
+                const res = await fetch('http://localhost:54444/industrial/status'); const machines = await res.json();
+                container.innerHTML = machines.map(m => `
+                    <div class="p-5 bg-white/5 border ${m.overall_status < 0.4 ? 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]' : 'border-white/5'} rounded-3xl flex flex-col gap-4">
+                        <div class="flex justify-between items-center"><span class="text-sm font-black text-white uppercase tracking-tighter">${m.machine_id}</span><span class="px-2 py-0.5 rounded-full text-[8px] font-bold ${m.overall_status > 0.8 ? 'bg-jade/20 text-jade' : 'bg-red-500/20 text-red-400'} uppercase">Status: ${(m.overall_status*100).toFixed(0)}%</span></div>
+                        <div class="w-full h-1.5 bg-gray-900 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r ${m.overall_status > 0.8 ? 'from-jade to-emerald-500' : 'from-red-600 to-orange-500'}" style="width: ${m.overall_status*100}%"></div></div>
+                        <div class="flex justify-between text-[8px] text-gray-500 font-mono"><span>SURPRISE: ${m.surprise_level.toFixed(4)}</span><span>FAIL_PROB: ${m.failure_probability.toFixed(4)}</span></div>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+        async function updateInterventionsUI() {
+            const container = document.getElementById('intervention-list');
+            try {
+                const res = await fetch('http://localhost:54444/industrial/interventions'); const interventions = await res.json();
+                if (interventions.length === 0) { container.innerHTML = '<div class="text-[9px] text-gray-700 italic">No hay intervenciones activas.</div>'; return; }
+                container.innerHTML = interventions.filter(i => i.status === 'PENDING').map(i => `
+                    <div class="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl flex justify-between items-center animate-pulse">
+                        <div class="flex-1"><span class="text-[9px] font-black text-indigo-300 uppercase block">${i.command.command}</span><span class="text-[8px] text-gray-500 italic block">${i.trigger_reason}</span></div>
+                        <div class="flex gap-2">
+                            <button onclick="processActuation('${i.id}', 'EXECUTE')" class="px-3 py-1 bg-jade text-black text-[8px] font-bold rounded-lg uppercase">Confirm</button>
+                            <button onclick="processActuation('${i.id}', 'REJECT')" class="px-3 py-1 bg-red-500 text-white text-[8px] font-bold rounded-lg uppercase">Abort</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+        async function processActuation(id, action) {
+            try { await fetch('http://localhost:54444/industrial/actuate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ intervention_id: id, action }) }); updateInterventionsUI(); addLog(`Acción Industrial ${action} confirmada.`, 'zana'); } catch (e) {}
+        }
+
+        async function updateCorporateUI() {
+            const container = document.getElementById('proposal-list');
+            try {
+                const res = await fetch('http://localhost:54444/corporate/status');
+                const data = await res.json();
+                document.getElementById('corp-assets').innerText = `$${data.financials.total_assets.toLocaleString()}`;
+                document.getElementById('corp-liquidity').innerText = `$${data.financials.liquidity.toLocaleString()}`;
+                document.getElementById('corp-burn').innerText = `-$${data.financials.monthly_burn_rate.toLocaleString()}`;
+                document.getElementById('corp-growth').innerText = `+${(data.financials.revenue_growth * 100).toFixed(1)}%`;
+
+                container.innerHTML = data.proposals.map(p => `
+                    <div class="p-5 bg-white/5 border ${p.status === 'PROPOSED' ? 'border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]' : 'border-white/5'} rounded-3xl flex flex-col gap-4">
+                        <div class="flex justify-between items-start">
+                            <div><span class="text-[10px] font-black text-white uppercase tracking-tighter block mb-1">${p.title}</span><p class="text-[9px] text-gray-500 italic">${p.description}</p></div>
+                            <span class="px-2 py-0.5 rounded-full text-[7px] font-bold ${p.status === 'APPROVED' ? 'bg-jade/20 text-jade' : 'bg-indigo-500/20 text-indigo-300'} uppercase">${p.status}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div><span class="text-[7px] text-gray-600 block uppercase mb-1">Vision Align</span><div class="w-full h-1 bg-gray-900 rounded-full overflow-hidden"><div class="h-full bg-indigo-500" style="width: ${p.vision_alignment * 100}%"></div></div></div>
+                            <div><span class="text-[7px] text-gray-600 block uppercase mb-1">ROI (X)</span><span class="text-[10px] font-bold text-jade">${p.expected_roi.toFixed(2)}x</span></div>
+                            <div><span class="text-[7px] text-gray-600 block uppercase mb-1">Risk</span><div class="w-full h-1 bg-gray-900 rounded-full overflow-hidden"><div class="h-full bg-red-500" style="width: ${p.risk_factor * 100}%"></div></div></div>
+                        </div>
+                        ${p.status === 'PROPOSED' ? `
+                        <div class="flex gap-2">
+                            <button onclick="decideProposal('${p.id}', 'APPROVE')" class="flex-1 py-1.5 bg-jade text-black text-[9px] font-black rounded-xl uppercase">Aprobar</button>
+                            <button onclick="decideProposal('${p.id}', 'REJECT')" class="flex-1 py-1.5 bg-white/5 text-gray-500 text-[9px] font-bold rounded-xl uppercase hover:bg-red-500/20">Rechazar</button>
+                        </div>` : ''}
+                    </div>
+                `).join('');
+            } catch (e) {}
+        }
+
+        async function sendProposal() {
+            const title = document.getElementById('prop-title').value;
+            const description = document.getElementById('prop-desc').value;
+            const cost = parseFloat(document.getElementById('prop-cost').value);
+            const potential_gain = parseFloat(document.getElementById('prop-gain').value);
+            if (!title || !description || isNaN(cost)) return;
+            try {
+                await fetch('http://localhost:54444/corporate/proposal', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, description, cost, potential_gain }) });
+                updateCorporateUI();
+                document.getElementById('prop-title').value = ''; document.getElementById('prop-desc').value = '';
+            } catch (e) {}
+        }
+
+        async function decideProposal(id, action) {
+            try { await fetch('http://localhost:54444/corporate/decide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, action }) }); updateCorporateUI(); } catch (e) {}
+        }
+
+        function showIndustrialAlert(msg, type = 'alert') {
+            const box = document.getElementById('industrial-alert-box'); const txt = document.getElementById('industrial-alert-msg');
+            txt.innerText = msg; box.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/20', 'bg-indigo-500/10', 'border-indigo-500/20');
+            if (type === 'intervention') { box.classList.add('bg-indigo-500/10', 'border-indigo-500/20'); box.querySelector('span').innerText = "🛡️ PROTOCOLO DE PROTECCIÓN"; }
+            else { box.classList.add('bg-red-500/10', 'border-red-500/20'); box.querySelector('span').innerText = "⚠️ DISONANCIA INDUSTRIAL"; }
+            box.classList.remove('hidden'); setTimeout(() => box.classList.add('hidden'), 10000);
+        }
+        async function updateBalance() {
+            try { const res = await fetch('http://localhost:54444/mcp/economy/balance'); const data = await res.json(); document.getElementById('resonance-balance').innerText = `${data.balance.toLocaleString()} RC`; } catch(e) {}
+        }
+        async function exploreNodes() {
+            const container = document.getElementById('node-explorer');
+            try {
+                const res = await fetch('http://localhost:50000/nodes'); const nodes = await res.json();
+                container.innerHTML = nodes.map(n => `
+                    <div class="p-5 bg-white/5 border border-white/10 rounded-3xl flex justify-between items-center group hover:border-cyan-500/30 transition-all">
+                        <div><span class="text-xs font-bold text-gray-200 block mb-1">${n.id.substring(0,12)}...</span><span class="text-[9px] text-gray-500 font-mono">${n.addr}</span><div class="flex gap-1.5 mt-3">${n.capabilities.map(c => `<span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 text-[7px] rounded-lg uppercase font-bold border border-cyan-500/20">${c}</span>`).join('')}</div></div>
+                        <button class="px-4 py-2 bg-cyan-500 text-black text-[10px] font-black rounded-xl opacity-0 group-hover:opacity-100 transition-all uppercase">Link</button>
+                    </div>
+                `).join('');
+            } catch(e) { container.innerHTML = '<div class="text-red-500 text-[10px]">Hub Desconectado.</div>'; }
+        }
+        let canvas, ctx;
+        function initSanctuary() { canvas = document.getElementById('sanctuary-canvas'); ctx = canvas.getContext('2d'); canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; animateSanctuary(); }
+        function animateSanctuary() {
+            if (currentTab !== 'sanctuary') return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height); const time = Date.now() * 0.001;
+            const moodColor = document.getElementById('aeon-mood').innerText === 'Concerned' ? '#ef4444' : '#6366f1';
+            ctx.fillStyle = moodColor; for(let i=0; i<30; i++) { const x = canvas.width/2 + Math.cos(time + i*0.5) * (150 + Math.sin(time)*20); const y = canvas.height/2 + Math.sin(time*0.7 + i*0.5) * (80 + Math.cos(time)*10); ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI*2); ctx.fill(); }
+            requestAnimationFrame(animateSanctuary);
+        }
+        function setHabitat(type) { document.getElementById('habitat-type').innerText = type; addLog(`Santuario reconfigurado: ${type}.`, 'zana'); }
+        function connect() {
+            ws = new WebSocket('ws://localhost:54444/ws/mcp');
+            ws.onopen = () => { addLog("Vínculo Simbiótico Establecido.", 'zana'); updateSwarmStatus(); };
+            ws.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'alignment_update') updateStats(data.data);
+                if (data.type === 'industrial_alert') { showIndustrialAlert(data.message, 'alert'); addLog(`🚨 [INDUSTRIAL] ${data.message}`, 'error'); }
+                if (data.type === 'industrial_intervention') { showIndustrialAlert(data.message, 'intervention'); addLog(`🛡️ [PROTECTION] ${data.message}`, 'zana'); updateInterventionsUI(); }
+                if (data.type === 'strategic_consult') { addLog(`💼 [CXO] ${data.message}`, 'zana'); if (currentTab === 'corporate') updateCorporateUI(); }
+            };
+        }
+        function updateStats(data) {
+            document.getElementById('alignment-value').innerText = `${data.score.toFixed(1)}%`; document.getElementById('alignment-bar').style.width = `${data.score}%`; document.getElementById('aeon-mood').innerText = data.mood; document.getElementById('aeon-stage').innerText = data.stage;
+            const resStatus = document.getElementById('resonance-status');
+            if (data.resonant) { resStatus.innerText = "RESONANT"; resStatus.className = "text-[9px] font-bold text-jade uppercase animate-pulse"; document.getElementById('aeon-visual').classList.add('resonant-glow'); }
+            else { resStatus.innerText = "Sensing"; resStatus.className = "text-[9px] font-bold text-gray-600 uppercase"; document.getElementById('aeon-visual').classList.remove('resonant-glow'); }
+        }
+        async function updateSwarmStatus() { try { const res = await fetch('http://localhost:50000/nodes'); const nodes = await res.json(); document.getElementById('peer-count').innerText = nodes.length; } catch(e) {} }
+        async function loadSkills() {
+            const container = document.getElementById('skill-tree-container');
+            try {
+                const res = await fetch('http://localhost:54444/mcp/skills'); const skills = await res.json();
+                container.innerHTML = skills.sort((a,b)=>a.level-b.level).map(s => `
+                    <div class="p-5 bg-white/5 border border-white/5 rounded-3xl hover:border-indigo-500/30 transition-all group">
+                        <div class="flex justify-between items-start mb-2"><span class="text-[9px] font-mono text-gray-600 uppercase">Level ${s.level}</span><div class="w-1.5 h-1.5 rounded-full bg-jade/40 group-hover:animate-ping"></div></div>
+                        <span class="text-xs font-bold text-gray-200 uppercase tracking-tighter">${s.name}</span>
+                    </div>
+                `).join('');
+            } catch(e) {}
+        }
+        window.onload = () => { connect(); setInterval(updateSwarmStatus, 10000); };
+    </script>
+</body>
+</html>

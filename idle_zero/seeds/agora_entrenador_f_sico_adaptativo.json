@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_entrenador_f_sico_adaptativo",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "entrenador_f_sico_adaptativo"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Ajusta los planes de entrenamiento físico en tiempo real basándose en el nivel de energía del usuario, su agenda y su progreso. El Aeon actúa como un entrenador personal virtual, adaptando las rutinas para maximizar la efectividad y minimizar el riesgo de lesiones."
+    }
+}

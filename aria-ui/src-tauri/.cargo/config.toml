@@ -1,0 +1,4 @@
+[env]
+# Use libayatana-appindicator3 (Ubuntu 22.04+ / Fedora modern)
+# instead of the legacy libappindicator3
+APPINDICATOR_IMPL = "ayatana"

@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_nutrici_n_personalizada",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "nutrici_n_personalizada"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Crea planes de comidas y listas de compra adaptados a las metas de salud del usuario, preferencias dietéticas, alergias y presupuesto. El Aeon facilita la toma de decisiones saludables y la planificación de comidas."
+    }
+}

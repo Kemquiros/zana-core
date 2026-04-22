@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_m_dulo__incubadora_de_negocios",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "m_dulo__incubadora_de_negocios"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Guía integral desde la idea hasta el lanzamiento, incluyendo validación de modelos y simulaciones financieras."
+    }
+}

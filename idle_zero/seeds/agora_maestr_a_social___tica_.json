@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_maestr_a_social___tica_",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "maestr_a_social___tica_"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Desarrollo de habilidades de comunicación genuina y ética, especialmente útil para personas con ansiedad social o dificultades para interactuar. El Aeon guía al usuario a través de ejercicios prácticos y escenarios para mejorar la confianza y la naturalidad en las interacciones sociales."
+    }
+}

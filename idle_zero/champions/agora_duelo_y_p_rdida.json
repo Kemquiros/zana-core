@@ -1,0 +1,403 @@
+{
+  "id": "5ffbbf28-0239-4680-8a2c-8eefad099b3c",
+  "generation": 1108,
+  "setup": [
+    {
+      "op": "Subtract",
+      "out_addr": 14,
+      "in1_addr": 9,
+      "in2_addr": 11,
+      "constant": -0.059667345624196955,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 6,
+      "in1_addr": 36,
+      "in2_addr": 23,
+      "constant": 0.3398597435620405,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 10,
+      "in1_addr": 31,
+      "in2_addr": 36,
+      "constant": 0.6379844334172036,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 61,
+      "in1_addr": 48,
+      "in2_addr": 28,
+      "constant": 0.7240579157379958,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 8,
+      "in1_addr": 57,
+      "in2_addr": 60,
+      "constant": 0.6071740383476087,
+      "model_id": null
+    }
+  ],
+  "predict": [
+    {
+      "op": "Subtract",
+      "out_addr": 40,
+      "in1_addr": 37,
+      "in2_addr": 19,
+      "constant": 0.25875682313634435,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 12,
+      "in1_addr": 41,
+      "in2_addr": 12,
+      "constant": 0.17284617342237832,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 49,
+      "in1_addr": 35,
+      "in2_addr": 61,
+      "constant": 0.6958813859952572,
+      "model_id": null
+    },
+    {
+      "op": "Divide",
+      "out_addr": 63,
+      "in1_addr": 43,
+      "in2_addr": 60,
+      "constant": 0.14120074370463317,
+      "model_id": null
+    },
+    {
+      "op": "Divide",
+      "out_addr": 53,
+      "in1_addr": 24,
+      "in2_addr": 58,
+      "constant": 0.7348628620755462,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 57,
+      "in1_addr": 49,
+      "in2_addr": 19,
+      "constant": 0.8085246459561523,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 11,
+      "in1_addr": 22,
+      "in2_addr": 4,
+      "constant": 0.7895942219808494,
+      "model_id": null
+    },
+    {
+      "op": "Divide",
+      "out_addr": 58,
+      "in1_addr": 44,
+      "in2_addr": 46,
+      "constant": -0.15233460781014566,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 31,
+      "in1_addr": 28,
+      "in2_addr": 49,
+      "constant": 0.17797744415582992,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 2,
+      "in1_addr": 14,
+      "in2_addr": 16,
+      "constant": -0.7494567635066495,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 30,
+      "in1_addr": 44,
+      "in2_addr": 40,
+      "constant": -0.31298057380350164,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 20,
+      "in1_addr": 63,
+      "in2_addr": 32,
+      "constant": 0.8067724319217622,
+      "model_id": null
+    },
+    {
+      "op": "Subtract",
+      "out_addr": 1,
+      "in1_addr": 3,
+      "in2_addr": 51,
+      "constant": -0.7564988701105544,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 46,
+      "in1_addr": 15,
+      "in2_addr": 37,
+      "constant": -0.6132568716816212,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 24,
+      "in1_addr": 34,
+      "in2_addr": 13,
+      "constant": 0.710246162034625,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 38,
+      "in1_addr": 43,
+      "in2_addr": 3,
+      "constant": -0.9359458062289485,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 28,
+      "in1_addr": 50,
+      "in2_addr": 56,
+      "constant": 0.03535210587932611,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 36,
+      "in1_addr": 45,
+      "in2_addr": 44,
+      "constant": -0.41922784276019937,
+      "model_id": null
+    },
+    {
+      "op": "Subtract",
+      "out_addr": 45,
+      "in1_addr": 18,
+      "in2_addr": 47,
+      "constant": -0.7149423499417169,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 15,
+      "in1_addr": 50,
+      "in2_addr": 63,
+      "constant": -0.6313465000092444,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 4,
+      "in1_addr": 19,
+      "in2_addr": 4,
+      "constant": -0.5551565158163947,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 22,
+      "in1_addr": 1,
+      "in2_addr": 46,
+      "constant": 0.1265455574642287,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 0,
+      "in1_addr": 27,
+      "in2_addr": 11,
+      "constant": -0.6471054117794488,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 0,
+      "in1_addr": 28,
+      "in2_addr": 17,
+      "constant": 0.393251617591341,
+      "model_id": null
+    },
+    {
+      "op": "Log",
+      "out_addr": 39,
+      "in1_addr": 0,
+      "in2_addr": 38,
+      "constant": 0.29357436415050486,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 7,
+      "in1_addr": 51,
+      "in2_addr": 55,
+      "constant": -0.10620508051896041,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 53,
+      "in1_addr": 10,
+      "in2_addr": 16,
+      "constant": -0.2523529947471599,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 14,
+      "in1_addr": 27,
+      "in2_addr": 45,
+      "constant": -0.32271030362088027,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 16,
+      "in1_addr": 20,
+      "in2_addr": 57,
+      "constant": 0.6530638979545658,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 21,
+      "in1_addr": 32,
+      "in2_addr": 16,
+      "constant": -0.8731910185512057,
+      "model_id": null
+    },
+    {
+      "op": "Subtract",
+      "out_addr": 8,
+      "in1_addr": 13,
+      "in2_addr": 57,
+      "constant": -0.7671584428486384,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 53,
+      "in1_addr": 54,
+      "in2_addr": 55,
+      "constant": -0.5802074612844383,
+      "model_id": null
+    },
+    {
+      "op": "Exp",
+      "out_addr": 12,
+      "in1_addr": 9,
+      "in2_addr": 8,
+      "constant": -0.395911634684186,
+      "model_id": null
+    },
+    {
+      "op": "Add",
+      "out_addr": 63,
+      "in1_addr": 62,
+      "in2_addr": 46,
+      "constant": -0.2723034409237757,
+      "model_id": null
+    },
+    {
+      "op": "Cos",
+      "out_addr": 21,
+      "in1_addr": 22,
+      "in2_addr": 6,
+      "constant": 0.8681078461179537,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 45,
+      "in1_addr": 43,
+      "in2_addr": 17,
+      "constant": -0.30895987836282757,
+      "model_id": null
+    },
+    {
+      "op": "Sin",
+      "out_addr": 49,
+      "in1_addr": 16,
+      "in2_addr": 11,
+      "constant": 0.516657068423604,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 34,
+      "in1_addr": 59,
+      "in2_addr": 18,
+      "constant": 0.8704218153691179,
+      "model_id": null
+    },
+    {
+      "op": "GaussianSample",
+      "out_addr": 15,
+      "in1_addr": 54,
+      "in2_addr": 63,
+      "constant": -0.920918459060529,
+      "model_id": null
+    },
+    {
+      "op": "Divide",
+      "out_addr": 33,
+      "in1_addr": 51,
+      "in2_addr": 39,
+      "constant": 0.1957007029266764,
+      "model_id": null
+    },
+    {
+      "op": "Divide",
+      "out_addr": 32,
+      "in1_addr": 48,
+      "in2_addr": 63,
+      "constant": -0.007404203168438261,
+      "model_id": null
+    }
+  ],
+  "learn": [
+    {
+      "op": "Add",
+      "out_addr": 17,
+      "in1_addr": 1,
+      "in2_addr": 39,
+      "constant": 0.8909994516795239,
+      "model_id": null
+    },
+    {
+      "op": "Subtract",
+      "out_addr": 3,
+      "in1_addr": 14,
+      "in2_addr": 11,
+      "constant": 0.8010930345824636,
+      "model_id": null
+    },
+    {
+      "op": "Multiply",
+      "out_addr": 46,
+      "in1_addr": 17,
+      "in2_addr": 62,
+      "constant": -0.995305534286504,
+      "model_id": null
+    }
+  ],
+  "fitness": 1.3731191741618924e+122
+}

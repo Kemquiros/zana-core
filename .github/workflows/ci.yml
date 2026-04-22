@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint and Test (Python & Rust)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install dependencies
+        run: |
+          uv pip install --system ruff mypy pytest
+          cd sensory
+          uv sync
+
+      - name: Python Lint (Ruff)
+        run: ruff check .
+
+      - name: Python Type Check (MyPy)
+        run: mypy --ignore-missing-imports .
+        continue-on-error: true
+
+      - name: Check for secrets in code
+        run: |
+          ! grep -r "sk-[a-zA-Z0-9]\{48\}" --include="*.py" --include="*.rs" --include="*.toml" .
+          ! grep -r "AIza[a-zA-Z0-9_-]\{35\}" --include="*.py" .
+
+      - name: Rust build check
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Rust Format Check
+        run: |
+          cd rust_core
+          cargo fmt -- --check
+          cd ../armor
+          cargo fmt -- --check
+
+      - name: Rust Clippy
+        run: |
+          cd rust_core
+          cargo clippy --features python -- -D warnings
+          cd ../armor
+          cargo clippy --features python -- -D warnings
+
+      - name: Build Rust core
+        run: |
+          cd rust_core
+          cargo build --release --features python
+          cp target/release/libzana_steel_core.so ../zana_steel_core.so
+
+      - name: Run benchmark (cold mode — no Docker)
+        run: |
+          cd sensory
+          PYTHONPATH=".." uv run python ../tests/benchmark_zana.py
+        continue-on-error: true
+
+  docker-build:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: zana-gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  release:
+    name: Publish Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [lint-and-test]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh && echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install build dependencies
+        run: uv pip install --system build hatchling
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Update CLI version to match tag
+        run: |
+          sed -i "s/^version = .*/version = \"${{ steps.version.outputs.VERSION }}\"/" cli/pyproject.toml
+
+      - name: Build CLI wheel + sdist
+        run: |
+          cd cli
+          python -m build --wheel --sdist --outdir dist/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "ZANA ${{ github.ref_name }}"
+          body_path: CHANGELOG.md
+          files: |
+            cli/dist/*.whl
+            cli/dist/*.tar.gz
+            install.sh
+            zana_steel_core.so
+            zana_armor.so
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}

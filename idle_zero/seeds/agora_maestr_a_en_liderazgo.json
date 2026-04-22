@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_maestr_a_en_liderazgo",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "maestr_a_en_liderazgo"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Programa integral basado en los 17 Principios de Liderazgo de John C. Maxwell, adaptado para el desarrollo del liderazgo personal y profesional en el contexto de KoruOS. Ayuda a los usuarios a comprender y aplicar los fundamentos del liderazgo efectivo, desde la autogestión hasta la influencia en equipos."
+    }
+}

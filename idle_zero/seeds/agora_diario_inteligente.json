@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_diario_inteligente",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "diario_inteligente"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Analiza las entradas de un diario personal para detectar patrones de pensamiento recurrentes, sesgos cognitivos, estados de ánimo y temas importantes. El Aeon proporciona insights sobre la propia psicología del usuario para facilitar el autoconocimiento y el crecimiento personal."
+    }
+}

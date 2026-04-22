@@ -1,0 +1,19 @@
+[project]
+name = "zana-telegram"
+version = "2.0.0"
+description = "ZANA Telegram Bot — conversational interface to the cognitive runtime"
+requires-python = ">=3.12"
+dependencies = [
+    "python-telegram-bot[webhooks]>=21.0",
+    "httpx>=0.27.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.5.0",
+    "aiofiles>=23.2.1",
+]
+
+[tool.uv]
+package = false
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

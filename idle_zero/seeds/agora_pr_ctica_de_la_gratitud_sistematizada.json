@@ -1,0 +1,33 @@
+{
+    "id": "seed_agora_pr_ctica_de_la_gratitud_sistematizada",
+    "generation": 0,
+    "setup": [],
+    "predict": [],
+    "learn": [],
+    "fitness": 0.0,
+    "metadata": {
+        "version": "0.1.0-alpha",
+        "intents": [
+            "pr_ctica_de_la_gratitud_sistematizada"
+        ],
+        "schema": {
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            },
+            "returns": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "status"
+                ]
+            }
+        },
+        "description": "Integra actos de gratitud en la rutina diaria del usuario y ayuda a visualizar su impacto positivo en el \"Grafo Viviente\" (representación de las relaciones y el bienestar). Fomenta una mentalidad de aprecio y abundancia."
+    }
+}
