@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#0d0d1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000008;stop-opacity:1" />
+    </radialGradient>
+    <radialGradient id="glowCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:0.9" />
+      <stop offset="40%" style="stop-color:#7c3aed;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#4c1d95;stop-opacity:0" />
+    </radialGradient>
+    <radialGradient id="eyeGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#e879f9;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="strongGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="circleClip">
+      <circle cx="200" cy="200" r="175"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <circle cx="200" cy="200" r="200" fill="url(#bgGrad)"/>
+
+  <!-- Outer ring glow -->
+  <circle cx="200" cy="200" r="175" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.3" filter="url(#glow)"/>
+  <circle cx="200" cy="200" r="172" fill="none" stroke="#a855f7" stroke-width="0.5" opacity="0.5"/>
+
+  <!-- Grid lines (subtle) -->
+  <g clip-path="url(#circleClip)" opacity="0.07">
+    <line x1="25" y1="200" x2="375" y2="200" stroke="#a855f7" stroke-width="0.5"/>
+    <line x1="200" y1="25" x2="200" y2="375" stroke="#a855f7" stroke-width="0.5"/>
+    <line x1="76" y1="76" x2="324" y2="324" stroke="#a855f7" stroke-width="0.5"/>
+    <line x1="324" y1="76" x2="76" y2="324" stroke="#a855f7" stroke-width="0.5"/>
+    <circle cx="200" cy="200" r="80" fill="none" stroke="#a855f7" stroke-width="0.5"/>
+    <circle cx="200" cy="200" r="130" fill="none" stroke="#a855f7" stroke-width="0.5"/>
+  </g>
+
+  <!-- Core glow aura -->
+  <circle cx="200" cy="200" r="90" fill="url(#glowCore)" opacity="0.4"/>
+
+  <!-- === ZANA EYE SYMBOL === -->
+
+  <!-- Outer eye shape -->
+  <path d="M 80 200 Q 140 110 200 105 Q 260 110 320 200 Q 260 290 200 295 Q 140 290 80 200 Z"
+        fill="none" stroke="#7c3aed" stroke-width="1.5" opacity="0.5" filter="url(#glow)"/>
+
+  <!-- Inner eye shape (main) -->
+  <path d="M 100 200 Q 155 125 200 120 Q 245 125 300 200 Q 245 275 200 280 Q 155 275 100 200 Z"
+        fill="#0d0017" stroke="#a855f7" stroke-width="2" filter="url(#glow)"/>
+
+  <!-- Eye iris -->
+  <ellipse cx="200" cy="200" rx="52" ry="52" fill="url(#eyeGrad)" filter="url(#strongGlow)" opacity="0.9"/>
+
+  <!-- Pupil -->
+  <ellipse cx="200" cy="200" rx="28" ry="28" fill="#1a0030"/>
+
+  <!-- Pupil inner glow -->
+  <ellipse cx="200" cy="200" rx="18" ry="18" fill="#e879f9" opacity="0.15"/>
+
+  <!-- === ZANA CROSS / X MARK in pupil === -->
+  <!-- The X symbol - signature of ZANA -->
+  <g filter="url(#glow)" stroke="#e879f9" stroke-width="3" stroke-linecap="round">
+    <line x1="186" y1="186" x2="214" y2="214"/>
+    <line x1="214" y1="186" x2="186" y2="214"/>
+  </g>
+
+  <!-- Iris detail lines -->
+  <g stroke="#c084fc" stroke-width="0.8" opacity="0.6">
+    <line x1="200" y1="148" x2="200" y2="155"/>
+    <line x1="200" y1="245" x2="200" y2="252"/>
+    <line x1="148" y1="200" x2="155" y2="200"/>
+    <line x1="245" y1="200" x2="252" y2="200"/>
+  </g>
+
+  <!-- Eye highlight -->
+  <ellipse cx="185" cy="185" rx="8" ry="5" fill="white" opacity="0.12" transform="rotate(-30 185 185)"/>
+
+  <!-- Corner tick marks on outer ring -->
+  <g stroke="#6d28d9" stroke-width="1.5" opacity="0.7">
+    <!-- Top -->
+    <line x1="200" y1="25" x2="200" y2="40"/>
+    <!-- Bottom -->
+    <line x1="200" y1="360" x2="200" y2="375"/>
+    <!-- Left -->
+    <line x1="25" y1="200" x2="40" y2="200"/>
+    <!-- Right -->
+    <line x1="360" y1="200" x2="375" y2="200"/>
+    <!-- Diagonals -->
+    <line x1="76" y1="76" x2="85" y2="85"/>
+    <line x1="315" y1="76" x2="324" y2="85"/>
+    <line x1="76" y1="324" x2="85" y2="315"/>
+    <line x1="315" y1="315" x2="324" y2="324"/>
+  </g>
+
+  <!-- ZANA text at bottom -->
+  <text x="200" y="345" text-anchor="middle" font-family="'Courier New', monospace" font-size="22"
+        font-weight="bold" letter-spacing="12" fill="#a855f7" filter="url(#softGlow)" opacity="0.9">ZANA</text>
+
+  <!-- Subtitle -->
+  <text x="200" y="362" text-anchor="middle" font-family="'Courier New', monospace" font-size="7"
+        letter-spacing="4" fill="#6d28d9" opacity="0.7">ZERO AUTONOMOUS NEURAL ARCHITECTURE</text>
+
+  <!-- Outer decorative ring segments -->
+  <g stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4">
+    <path d="M 200 28 A 172 172 0 0 1 340 115"/>
+    <path d="M 372 200 A 172 172 0 0 1 285 342"/>
+    <path d="M 115 372 A 172 172 0 0 1 28 200"/>
+    <path d="M 60 85 A 172 172 0 0 1 200 28"/>
+  </g>
+
+</svg>

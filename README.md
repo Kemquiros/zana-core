@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="../assets/zana_logo.svg" width="160" alt="ZANA Logo"/>
+<img src="assets/zana_logo.svg" width="160" alt="ZANA Logo"/>
 
 # ZANA Core
 
