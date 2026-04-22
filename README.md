@@ -20,149 +20,120 @@
 
 ---
 
-## The Problem
+## 🌀 The Vision: Beyond Chatbots
 
-The AI landscape changes every six weeks. GPT-4 → Claude 3.5 → Gemini 2.0 → whatever ships tomorrow. Each migration breaks your stack, erases your context, and resets your workflow.
+Current AI systems are **rented intelligence**. They are stateless, unverified, and extractive. ZANA inverts this paradigm. It is an **External Cognitive Cortex**—a sovereign layer that inhabits your hardware, masters your context, and evolves with your life.
 
-You're **renting intelligence** from corporations. Your conversation history lives on their servers. When they change the API, deprecate the model, or raise the price — you start over.
-
-There's no stable layer you control.
-
-## The Solution
-
-ZANA is a **sovereign cognitive runtime** you own completely. It sits between you and the entire AI ecosystem as a permanent, stable infrastructure layer.
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│         AI ECOSYSTEM  (changes constantly)                       │
-│   Claude · GPT-4o · Gemini · Llama · Mistral · [next model]     │
-└───────────────────────────┬──────────────────────────────────────┘
-                            │  one config line switches providers
-                            ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                        Z A N A                                   │
-│                                                                  │
-│  Permanent memory  ·  Symbolic reasoning  ·  Aeon fleet         │
-│  Rust armor        ·  Bayesian filtering  ·  Your hardware      │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-Switch from Claude to Gemini: **one env var**. Your memory, your Aeons, your reasoning — unchanged.
+When Anthropic releases a new model, you don't rebuild your stack. You change one environment variable. **Your memory, your reasoning, and your rules stay with you.**
 
 ---
 
-## Install
+## 🛡️ Core Pillars
 
+### 1. Neuro-Symbolic Integrity
+ZANA fuses the fluency of Large Language Models with the deterministic rigor of symbolic logic. Every LLM output is verified by a **Rust-based forward-chaining engine** (CLIPS pattern). If the AI cannot justify a deduction through your rules, it is rejected.
+
+### 2. The Steel Core (Rust Performance)
+Performance-critical components are written in native Rust and integrated via PyO3:
+*   **Cognitive Kalman Filter (1.4μs):** Tracks epistemic uncertainty and manages the context window mathematically.
+*   **Armor Security (2.1μs):** Structural PII detection and injection blocking at the binary level.
+*   **EML Operator:** A universal arithmetic primitive `eml(x,y) = eˣ − ln(y)` that ensures bit-level reproducibility across different hardware.
+
+### 3. 4-Store Memory System
+ZANA maintains four distinct memory systems to prevent the "false association" errors common in monolithic vector databases:
+*   **Semantic (ChromaDB):** Concepts, embeddings, and your knowledge vault.
+*   **Episodic (PostgreSQL):** A temporal stream of every conversation and event.
+*   **World Model (Neo4j):** Causal relationships and entity graphs.
+*   **Procedural (JSON):** Evolved skills and champion algorithms.
+
+---
+
+## ⚔️ The Apex Quintet: Orchestration
+
+ZANA coordinates a specialized squad of sub-agents communicating via the **AION Protocol** (Tensor-based resonance packets):
+
+1.  ⚔️ **Sentinel:** Security & Anomaly Guard. Validates every input/output.
+2.  📚 **Archivist:** Long-term Memory Retrieval. Compresses context.
+3.  📊 **Analyst:** Logic & Inference. Executes symbolic reasoning traces.
+4.  ⚙️ **Operator:** Action & Tool Execution. Interacts with the real world.
+5.  📣 **Herald:** Synthesis & Reporting. The human interface.
+
+---
+
+## ⚡ Installation
+
+ZANA requires **Docker** and **Python 3.12+**.
+
+### 🐧 Linux
 ```bash
 curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
 ```
 
-Or with `uv`:
-
+### 🍎 macOS
+Requires [Homebrew](https://brew.sh/).
 ```bash
-uv tool install zana
+# Install dependencies
+brew install docker docker-compose python@3.12 rustup
+# Install ZANA
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
+```
+
+### 🪟 Windows
+ZANA requires **WSL2** (Windows Subsystem for Linux).
+1.  Open PowerShell as Administrator: `wsl --install`
+2.  Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and enable the WSL2 engine.
+3.  Inside your WSL terminal (e.g., Ubuntu):
+```bash
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
 ```
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
-zana setup      # configure API keys (interactive wizard)
-zana start      # boot the full stack
-zana status     # verify all services + ZFI score
-zana chat       # talk to your ZANA
+# 1. Initialize your environment (API keys + Local LLM config)
+zana setup
+
+# 2. Boot the cognitive stack (starts Docker containers + Gateway)
+zana start
+
+# 3. Enter the REPL Cockpit
+zana chat
 ```
 
----
-
-## Your Aeon Fleet
-
-ZANA orchestrates a fleet of specialized cognitive agents. Each Aeon is optimized for a specific class of task. ZANA recommends the right one based on context — or you choose manually.
-
-| Aeon | Role | Best for |
-|---|---|---|
-| 📢 **Herald** | Synthesis & output | General conversation, summaries, writing |
-| 🔨 **Forge** | Software engineering | Code, architecture, refactoring, tests |
-| 🔬 **Analyst** | Logic & math | Reasoning, proofs, data analysis |
-| 📚 **Archivist** | Memory & retrieval | Search, recall, knowledge retrieval |
-| 🎓 **Scholar** | Deep research | Papers, literature, long synthesis |
-| ⚙️ **Operator** | World execution | Run commands, deploy, API calls |
-| 🛡 **Sentinel** | Security | PII detection, injection guard, compliance |
-| 👁 **Watcher** | Passive context | Background monitoring, alerts |
+> **Offline Mode:** Set `ZANA_PRIMARY_MODEL=ollama/llama3.1:8b` in your `.env` to run fully private and free.
 
 ---
 
-## Architecture
+## 🐝 Swarm Evolution & DNA Distribution
 
-### The Four Pillars
-
-**1. Bayesian Filtering — Kalman-Induced Memory**
-
-Standard RAG floods context with noise. ZANA treats context as a **Latent State Vector**. The `CognitiveKalmanFilter` (Rust, 1.4µs) compresses low-signal data and preserves the context window for high-uncertainty stimuli.
-
-**2. EML Symbolic Grounding — Zero Hallucination**
-
-Mathematical reasoning is grounded via the **Exp-Minus-Log operator**:
-`eml(x, y) = eˣ − ln(y)`
-
-Any continuous elementary function is representable as a binary tree of this single operation — exact symbolic regression, no approximation.
-
-**3. 4-Store Memory — Nothing Gets Lost**
-
-*   **Semantic** (ChromaDB): Concepts, embeddings, vault.
-*   **Episodic** (PostgreSQL + pgvector): Conversations, timelines.
-*   **World model** (Neo4j): Causal relationships, entities.
-*   **Procedural** (JSON registry): Skills, tools, workflows.
-
-**4. Armor Layer — Structural Security**
-
-Rust middleware at 2.1µs. PII interception and injection blocking happen at the hardware layer — before any Python code runs, before any LLM sees the input.
+ZANA is built for collective intelligence without central control.
+*   **Red Queen Tournament:** While idle, ZANA evolves its own cognitive modules through adversarial competition.
+*   **Digital DNA (SDA):** Champion modules are crystallized as *Self-Describing Architecture* packets.
+*   **LUMA Grid:** Export and share your evolved skills with other ZANA instances via the private mesh.
 
 ---
 
-## 7-Layer Cognitive Stack
+## 📄 Technical Paper
 
-1.  **SENSORY**: Whisper (audio) + LLaVA (vision) + text.
-2.  **ARMOR**: Rust PII + injection guard (2.1µs).
-3.  **SIGNAL**: Kalman Filter (1.4µs) + Fuzzy Heart.
-4.  **MEMORY**: 4-store: ChromaDB/Postgres/Neo4j/JSON.
-5.  **INFERENCE**: LiteLLM router → any LLM provider.
-6.  **REASONING**: CLIPS forward-chaining (Rust engine).
-7.  **ORCHESTRATION**: Apex Quintet (5 specialized sub-agents).
+For a deep dive into the mathematical foundations, EML completeness, and Kalman-based context management, read our preprint:
+
+[**ZANA: A Neuro-Symbolic Personal Cognitive AI Runtime (PDF)**](docs/paper/zana_paper.pdf)
 
 ---
 
-## ZFI Benchmark
+## 🤝 Acknowledgements
 
-**ZANA Fitness Index** — 7-pillar composite score across latency, memory, reasoning, security, autonomy, adaptability, and sovereignty.
+With gratitude to: `eglejsr`, `ferchus_nandus`, `domination`, `kamo`, `virtus_sapiens`, `oma_fren`, `xanderx_monkey`.
 
-*   Cold (no Docker): **89.8 / 100**
-*   Hot (full stack): **100.0 / 100**
-
----
-
-## Infrastructure Stack
-
-*   **Engine**: Python 3.12 (orchestration) + Rust Steel Core (Kalman, EML, Armor — PyO3).
-*   **Memory**: ChromaDB (Semantic), PostgreSQL (Episodic), Redis (Cache), Neo4j (World Model).
-*   **LLM Layer**: LiteLLM (Anthropic / OpenAI / Gemini / Groq).
-*   **Interfaces**: ZANA-UI (Next.js 16), Desktop (Tauri v2), CLI (zana).
-
----
-
-## Acknowledgements
-
-To those who believed when there was nothing yet to see: `eglejsr`, `ferchus_nandus`, `domination`, `kamo`, `virtus_sapiens`, `oma_fren`, `xanderx_monkey`.
-
-> *The empire is built on the shoulders of those who said "I believe" before the architecture existed.*
+*JUNTOS HACEMOS TEMBLAR LOS CIELOS.*
 
 ---
 
 <div align="center">
 
-*WE MAKE THE HEAVENS TREMBLE.*
-
-**VECANOVA** · Built by [John Tapias](https://github.com/kemquiros)
+Built with honor in Medellín, Colombia. 🇨🇴  
+**[VECANOVA](https://vecanova.com)** · MIT License
 
 </div>
