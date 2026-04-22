@@ -69,7 +69,7 @@ ZANA requires **Docker** and **Python 3.12+**.
 
 ### 🐧 Linux
 ```bash
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
 ```
 
 ### 🍎 macOS
@@ -78,7 +78,7 @@ Requires [Homebrew](https://brew.sh/).
 # Install dependencies
 brew install docker docker-compose python@3.12 rustup
 # Install ZANA
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
 ```
 
 ### 🪟 Windows
@@ -87,7 +87,7 @@ ZANA requires **WSL2** (Windows Subsystem for Linux).
 2.  Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and enable the WSL2 engine.
 3.  Inside your WSL terminal (e.g., Ubuntu):
 ```bash
-curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh
+curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | bash
 ```
 
 ---
