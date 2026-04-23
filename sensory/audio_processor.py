@@ -19,7 +19,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .perception_event import AudioFeatures
+try:
+    from perception_event import AudioFeatures
+except ImportError:
+    from sensory.perception_event import AudioFeatures
 
 logger = logging.getLogger("zana.audio")
 

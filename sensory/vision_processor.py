@@ -16,7 +16,10 @@ import io
 import logging
 import os
 
-from .perception_event import VisionFeatures
+try:
+    from perception_event import VisionFeatures
+except ImportError:
+    from sensory.perception_event import VisionFeatures
 
 logger = logging.getLogger("zana.vision")
 
@@ -71,7 +74,10 @@ class VisionProcessor:
         context_hint: str = "",
     ) -> tuple[str, VisionFeatures]:
         # 1. Try local Ollama vision model
-        from .local_llm import get_local_llm
+        try:
+            from local_llm import get_local_llm
+        except ImportError:
+            from sensory.local_llm import get_local_llm
 
         local = get_local_llm()
         raw = local.analyze_image_local(image_bytes, mime_type, context_hint)

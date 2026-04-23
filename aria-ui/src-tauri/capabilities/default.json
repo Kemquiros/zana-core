@@ -7,9 +7,6 @@
     "core:default",
     "shell:allow-execute",
     "shell:allow-spawn",
-    "notification:default",
-    "autostart:allow-enable",
-    "autostart:allow-disable",
-    "autostart:allow-is-enabled"
+    "notification:default"
   ]
 }
