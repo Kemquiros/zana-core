@@ -66,6 +66,11 @@ check_dependencies() {
         curl -LsSf https://astral.sh/uv/install.sh | bash
         export PATH="$HOME/.local/bin:$PATH"
     fi
+
+    if ! command -v git &>/dev/null; then
+        echo -e "${RED}✗ Falta 'git'. Vital para descargar el Córtex.${RESET}"
+        exit 1
+    fi
     
     if ! command -v docker &>/dev/null; then
         echo -e "${YELLOW}⚠ Docker no detectado. Vital para las memorias (Postgres, Chroma).${RESET}"
@@ -75,12 +80,24 @@ check_dependencies() {
 
 install_core() {
     echo -e "${CYAN}▶ Forjando herramientas CLI...${RESET}"
-    # Use local path if developing, or git repo otherwise. Since this script is in the repo, we assume a local install if the cli folder exists.
+    ZANA_REPO_DIR="$HOME/.zana/core-repo"
+    
+    # Use local path if developing, or clone repo otherwise.
     if [ -d "cli" ]; then
+        echo -e "${CYAN}▶ Instalando desde entorno local de desarrollo...${RESET}"
         uv tool install "./cli" --force --quiet
+        ZANA_REPO_DIR="$(pwd)"
     else
-        uv tool install "zana @ git+https://github.com/$REPO.git#subdirectory=cli" --force --quiet
+        echo -e "${CYAN}▶ Clonando repositorio maestro en $ZANA_REPO_DIR...${RESET}"
+        mkdir -p "$HOME/.zana"
+        if [ ! -d "$ZANA_REPO_DIR" ]; then
+            git clone "https://github.com/$REPO.git" "$ZANA_REPO_DIR" --quiet
+        else
+            (cd "$ZANA_REPO_DIR" && git pull --quiet)
+        fi
+        uv tool install "$ZANA_REPO_DIR/cli" --force --quiet
     fi
+    export ZANA_CORE_DIR="$ZANA_REPO_DIR"
 }
 
 configure_path() {
@@ -91,10 +108,17 @@ configure_path() {
         *)      shell_rc="$HOME/.bashrc" ;;
     esac
 
+    # Ensure binary is in PATH
     if ! echo "$PATH" | grep -q "$ZANA_INSTALL_DIR"; then
         echo "export PATH=\"$ZANA_INSTALL_DIR:\$PATH\"" >> "$shell_rc"
         export PATH="$ZANA_INSTALL_DIR:$PATH"
-        echo -e "${GREEN}✓ ZANA grabada en el PATH.${RESET}"
+        echo -e "${GREEN}✓ Binarios grabados en el PATH.${RESET}"
+    fi
+
+    # Inject ZANA_CORE_DIR for the CLI to find its stack
+    if ! grep -q "ZANA_CORE_DIR" "$shell_rc"; then
+        echo "export ZANA_CORE_DIR=\"$ZANA_CORE_DIR\"" >> "$shell_rc"
+        echo -e "${GREEN}✓ Variable de entorno ZANA_CORE_DIR configurada.${RESET}"
     fi
 }
 
