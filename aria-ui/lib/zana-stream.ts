@@ -51,6 +51,8 @@ export function useZanaStream(sessionId: string) {
     ]);
   }, []);
 
+  const connectRef = useRef<() => void>(undefined);
+
   const connect = useCallback(async () => {
     if (ws.current?.readyState === WebSocket.OPEN) return;
 
@@ -69,7 +71,9 @@ export function useZanaStream(sessionId: string) {
     socket.onclose = () => {
       setConnected(false);
       setAeonState("idle");
-      reconnectTimer.current = setTimeout(() => { connect(); }, 3000);
+      reconnectTimer.current = setTimeout(() => {
+        if (connectRef.current) connectRef.current();
+      }, 3000);
     };
 
     socket.onerror = () => {
@@ -93,6 +97,10 @@ export function useZanaStream(sessionId: string) {
       }
     };
   }, [addMessage]);
+
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   useEffect(() => {
     connect();

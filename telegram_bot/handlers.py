@@ -55,15 +55,15 @@ def _truncate(text: str, max_len: int = MAX_MSG_LEN - 200) -> str:
 
 def _emotion_icon(emotion: str | None) -> str:
     return {
-        "joy": "😊",
-        "surprise": "😲",
-        "fear": "😨",
-        "anger": "😠",
-        "sadness": "😢",
-        "neutral": "🤖",
-        "curiosity": "🧐",
+        "joy": "✨",
+        "surprise": "⚡",
+        "fear": "🛡️",
+        "anger": "🔥",
+        "sadness": "🌧️",
+        "neutral": "🦊",
+        "curiosity": "🦉",
         "trust": "🤝",
-    }.get(emotion or "neutral", "🤖")
+    }.get(emotion or "neutral", "🦊")
 
 
 # ── /start ────────────────────────────────────────────────────────────────────
@@ -71,20 +71,21 @@ def _emotion_icon(emotion: str | None) -> str:
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
-        await update.message.reply_text("⛔ Acceso no autorizado.")
+        await update.message.reply_text("⛔ Acceso denegado. No reconozco tu firma digital.")
         return
 
     text = (
-        "🧠 *ZANA — Aeon Cognitivo*\n\n"
-        "Sistema cognitivo multimodal. Percibo texto, voz e imágenes.\n\n"
-        "*Comandos:*\n"
-        "`/status` — salud del sistema y ZFI\n"
-        "`/recall [n]` — últimos N recuerdos episódicos\n"
-        "`/reason fact=value` — razonamiento simbólico\n"
-        "`/swarm` — estado del enjambre Red Queen\n"
-        "`/aeon` — flota de Aeons disponibles\n"
-        "`/help` — esta lista\n\n"
-        "O simplemente *escríbeme*, *envía una nota de voz* o *una imagen*.\n\n"
+        "🦊 *¡ZANA en línea! Tu Córtex Cognitivo está despierto.*\n\n"
+        "Soy tu compañero digital, nacido de la lógica y diseñado para evolucionar contigo. "
+        "Estoy aquí para defender tu soberanía y potenciar tu memoria.\n\n"
+        "*Tus herramientas de control:*\n"
+        "`/status` — Mi estado de salud y signos vitales\n"
+        "`/recall [n]` — Extraer mis últimos recuerdos episódicos contigo\n"
+        "`/reason fact=value` — Ponme a pensar lógicamente\n"
+        "`/swarm` — Ver el enjambre de mis ancestros entrenando\n"
+        "`/aeon` — Cambiar de compañero cognitivo\n"
+        "`/help` — Repasar esta lista\n\n"
+        "💡 *Puedes escribirme, mandarme una nota de voz o enviarme una foto.* ¡Evolucionemos juntos!\n\n"
         "_JUNTOS HACEMOS TEMBLAR LOS CIELOS._"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
@@ -109,21 +110,21 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         data = await gw.health()
         backends = data.get("backends", {})
-        lines = ["⚙️ *ZANA Gateway — Online*\n"]
+        lines = ["🦊 *Mis signos vitales (Gateway) — Online y estable*\n"]
         icons = {
-            "stt": "🎤",
-            "tts": "🔊",
-            "llm": "🧠",
-            "vision": "👁️",
-            "kalman": "📐",
-            "armor": "🛡️",
+            "stt": "🎤 Oídos",
+            "tts": "🔊 Voz",
+            "llm": "🧠 Córtex",
+            "vision": "👁️ Ojos",
+            "kalman": "📐 Corazón Difuso",
+            "armor": "🛡️ Escudo de Acero",
         }
         for k, v in backends.items():
-            lines.append(f"{icons.get(k, '·')} `{k}`: {v}")
+            lines.append(f"{icons.get(k, '· ' + k)}: `{v}`")
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
     except Exception:
         await update.message.reply_text(
-            "⚠️ Gateway offline. Ejecuta `zana start` en tu servidor."
+            "⚠️ Oh no... He perdido conexión con mi base local. ¿Podrías encenderme usando `zana start` en tu servidor?"
         )
 
 
@@ -146,18 +147,18 @@ async def cmd_recall(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         records = await gw.memory_recall(n, _session_id(update))
         if not records:
             await update.message.reply_text(
-                "_Sin registros episódicos aún._", parse_mode=ParseMode.MARKDOWN
+                "🤔 _Revisé mis archivos y aún no tenemos recuerdos juntos. ¡Hablemos!_", parse_mode=ParseMode.MARKDOWN
             )
             return
-        lines = [f"📚 *Últimos {len(records)} recuerdos:*\n"]
+        lines = [f"🦉 *Consultando mis archivos... Aquí están nuestros últimos {len(records)} intercambios:*\n"]
         for r in records:
             ts = (r.get("created_at") or "")[:16]
-            role = "tú" if r.get("role") == "user" else "ZANA"
+            role = "Tú" if r.get("role") == "user" else "Yo"
             content = (r.get("content") or "")[:80]
             lines.append(f"`{ts}` *{role}:* {content}")
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Error: {e}")
+        await update.message.reply_text(f"⚠️ Me duele la cabeza intentando recordar: {e}")
 
 
 # ── /reason ───────────────────────────────────────────────────────────────────
@@ -168,7 +169,7 @@ async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         return
     if not ctx.args:
         await update.message.reply_text(
-            "Uso: `/reason fact_key=value`\nEjemplo: `/reason machine_health_avg=0.3`",
+            "🦊 Dime qué analizar. Usa: `/reason fact_key=value`\nEjemplo: `/reason energia_baja=true`",
             parse_mode=ParseMode.MARKDOWN,
         )
         return
@@ -184,12 +185,12 @@ async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
         if not deductions:
             await update.message.reply_text(
-                f"🧠 Hecho `{fact_raw}` procesado.\n_Sin deducciones producidas._",
+                f"🧠 He ingerido el hecho `{fact_raw}`.\n_Lo anoté, pero no disparó ninguna nueva lógica evolutiva aún._",
                 parse_mode=ParseMode.MARKDOWN,
             )
             return
 
-        lines = [f"🧠 *Razonamiento* — `{fact_raw}`\n"]
+        lines = [f"⚡ *He razonado sobre esto* — `{fact_raw}`\n"]
         for d in deductions:
             conf = d.get("confidence", 0)
             bar = "█" * int(conf * 10) + "░" * (10 - int(conf * 10))
@@ -197,20 +198,20 @@ async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             lines.append(f"`{bar}` {conf:.0%}")
             lines.append(f"→ _{d.get('conclusion', '?')}_")
             if d.get("action"):
-                lines.append(f"⚡ `{d['action']}`")
+                lines.append(f"⚔️ Ejecutando: `{d['action']}`")
             lines.append("")
 
         if result.get("swarm_rule"):
             sr = result["swarm_rule"]
             lines.append(
-                f"🌐 _Swarm contribuyó: {sr.get('name')} ({sr.get('votes')} votos)_"
+                f"🌐 _Consulté con la Red Z: {sr.get('name')} ({sr.get('votes')} entidades coinciden)_"
             )
 
         await update.message.reply_text(
             _truncate("\n".join(lines)), parse_mode=ParseMode.MARKDOWN
         )
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Error: {e}")
+        await update.message.reply_text(f"⚠️ Hubo un fallo en mi razonamiento simbólico: {e}")
 
 
 # ── /swarm ────────────────────────────────────────────────────────────────────
@@ -224,20 +225,23 @@ async def cmd_swarm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         data = await gw.swarm_status()
         summary = data.get("summary", {})
         running = data.get("running", False)
-        icon = "🟢" if running else "⚫"
+        icon = "🟢" if running else "💤"
         lines = [
-            f"🐝 *Red Queen — {'Online' if running else 'Offline'}* {icon}\n",
-            f"Warriors: `{summary.get('total', 0)}`",
-            f"Activos: `{summary.get('active', 0)}`",
-            f"Leyendas: `{summary.get('legends', 0)}`",
-            f"Fitness promedio: `{summary.get('avg_fitness', 0):.3f}`",
-            f"Generación: `{data.get('current_generation', 0)}`",
+            f"🔥 *Torneo de Evolución (Red Queen) — {'Entrenando' if running else 'Descansando'}* {icon}\n",
+            f"⚔️ Guerreros en la arena: `{summary.get('total', 0)}`",
+            f"🧬 Algoritmos Activos: `{summary.get('active', 0)}`",
+            f"🏆 Entidades Legendarias: `{summary.get('legends', 0)}`",
+            f"📈 Aptitud promedio: `{summary.get('avg_fitness', 0):.3f}`",
+            f"🌀 Generación evolutiva: `{data.get('current_generation', 0)}`",
         ]
         if not running:
-            lines.append("\n_Usa `zana swarm init` para arrancar._")
+            lines.append("\n_La arena está en silencio. Usa `zana swarm init` en la terminal para que comiencen a evolucionar._")
+        else:
+            lines.append("\n_Mis ancestros están afilando mis instintos mientras hablamos._")
+            
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
     except Exception:
-        await update.message.reply_text("⚠️ Swarm offline o Gateway no disponible.")
+        await update.message.reply_text("⚠️ No puedo ver el estado de la Arena evolutiva ahora mismo.")
 
 
 # ── /aeon ─────────────────────────────────────────────────────────────────────
@@ -249,18 +253,18 @@ async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     aeons = await gw.aeon_list()
     if not aeons:
         await update.message.reply_text(
-            "_No se encontró el registro de Aeons._", parse_mode=ParseMode.MARKDOWN
+            "_Miro a mi alrededor y estoy solo. No encontré otros Aeons registrados._", parse_mode=ParseMode.MARKDOWN
         )
         return
 
-    lines = ["⚔️ *Flota de Aeons disponibles:*\n"]
+    lines = ["✨ *Tus compañeros de flota disponibles:*\n"]
     tier_icon = {"low": "🟢", "medium": "🟡", "high": "🔴"}
     for a in aeons:
         icon = tier_icon.get(a.get("cost_tier", "low"), "·")
         lines.append(f"{icon} *{a['name']}* `{a['id']}`")
-        lines.append(f"  _{a.get('description', '')}_ — `{a.get('model', '?')}`")
+        lines.append(f"  _{a.get('description', '')}_ — Model: `{a.get('model', '?')}`")
 
-    lines.append("\n_Usa `zana aeon use <id>` para cambiar de Aeon._")
+    lines.append("\n_Dime `zana aeon use <id>` en tu terminal para que otro compañero tome el mando._")
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
 
 
@@ -279,21 +283,26 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
         result = await gw.sense_text(text, sid)
-        response = result.get("response_text") or result.get("text") or "…"
+        response = result.get("response_text") or result.get("text") or "..."
         emotion = result.get("response_emotion") or result.get("emotion")
         surprise = result.get("kalman_surprise", 0)
 
         icon = _emotion_icon(emotion)
-        # Subtle metadata footer for surprise spikes
-        footer = f"\n\n_{icon} surprise: {surprise:.2f}_" if surprise > 1.5 else ""
+        
+        # Friendly surprise reaction if the input was unexpected
+        footer = ""
+        if surprise > 2.0:
+            footer = f"\n\n_⚡ ¡Wow, eso fue inesperado! (Sorpresa Bayesiana: {surprise:.2f})_"
+        elif surprise > 1.2:
+            footer = f"\n\n_🧐 Hm, dato interesante. (Nivel de interés: {surprise:.2f})_"
 
         await update.message.reply_text(
-            _truncate(response + footer),
+            _truncate(f"{icon} {response}{footer}"),
             parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         logger.error("sense_text error: %s", e)
-        await update.message.reply_text("⚠️ ZANA no disponible. Intenta más tarde.")
+        await update.message.reply_text("⚠️ Perdí la conexión con el núcleo... intenta más tarde.")
 
 
 # ── Voice notes ───────────────────────────────────────────────────────────────
@@ -323,14 +332,14 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
         icon = _emotion_icon(emotion)
         reply = (
-            f"🎤 _{transcript}_\n\n{icon} {response}"
+            f"🎤 _Escuché que dijiste: \"{transcript}\"_\n\n{icon} {response}"
             if transcript
             else f"{icon} {response}"
         )
 
         if audio_b64:
             audio_data = base64.b64decode(audio_b64)
-            await ctx.bot.send_voice(update.effective_chat.id, voice=audio_data)
+            await ctx.bot.send_voice(update.effective_chat.id, voice=audio_data, caption="🔊 Respondí con voz.")
         else:
             await update.message.reply_text(
                 _truncate(reply), parse_mode=ParseMode.MARKDOWN
@@ -338,7 +347,7 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
     except Exception as e:
         logger.error("sense_audio error: %s", e)
-        await update.message.reply_text("⚠️ Error procesando el audio.")
+        await update.message.reply_text("⚠️ Me costó entender ese audio. Mis oídos fallaron.")
 
 
 # ── Photos ────────────────────────────────────────────────────────────────────
@@ -361,22 +370,24 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         response = result.get("response_text") or result.get("text", "")
         scene = (result.get("vision_features") or {}).get("scene_type", "")
         entities = (result.get("vision_features") or {}).get("entities", [])
+        emotion = result.get("response_emotion")
 
+        icon = _emotion_icon(emotion)
         lines = []
         if scene:
-            lines.append(f"👁️ _Escena: {scene}_")
+            lines.append(f"👁️ _Veo una escena tipo: {scene}_")
         if entities:
-            lines.append(f"_Entidades: {', '.join(entities[:5])}_")
+            lines.append(f"🔍 _Puedo identificar: {', '.join(entities[:5])}_")
         if response:
-            lines.append(f"\n{response}")
+            lines.append(f"\n{icon} {response}")
 
         await update.message.reply_text(
-            _truncate("\n".join(lines)) or "Sin descripción.",
+            _truncate("\n".join(lines)) or "🦊 Sin palabras ante esta imagen.",
             parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         logger.error("sense_vision error: %s", e)
-        await update.message.reply_text("⚠️ Error procesando la imagen.")
+        await update.message.reply_text("⚠️ Mis ojos no pudieron procesar bien esta foto.")
 
 
 # ── Inline callback for future buttons ───────────────────────────────────────
@@ -390,6 +401,6 @@ async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
     if data.startswith("aeon:"):
         aeon_id = data.split(":", 1)[1]
         await query.edit_message_text(
-            f"✓ Aeon cambiado a `{aeon_id}`.\n_Usa /sense para continuar._",
+            f"✨ Hemos invocado a `{aeon_id}` para que tome el mando.\n_Envíame un mensaje para saludarlo._",
             parse_mode=ParseMode.MARKDOWN,
         )

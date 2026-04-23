@@ -201,6 +201,36 @@ def reason(
     cmd_reason(fact, remote=remote)
 
 
+project_app = typer.Typer(
+    name="project",
+    help="Manage isolated cognitive contexts for different projects.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(project_app, name="project")
+
+id_app = typer.Typer(
+    name="id",
+    help="Manage your cryptographically signed Sovereign ZANA Identity.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(id_app, name="id")
+
+@id_app.command("generate", help="Forge a new Sovereign ZANA Identity.")
+def id_generate(
+    force: Annotated[
+        bool, typer.Option("--force", help="Overwrite existing identity.")
+    ] = False,
+) -> None:
+    from cli.commands.identity import cmd_id_generate
+    cmd_id_generate(force=force)
+
+@id_app.command("show", help="Display your public ZANA ID.")
+def id_show() -> None:
+    from cli.commands.identity import cmd_id_show
+    cmd_id_show()
+
 # ── Aeon sub-commands ─────────────────────────────────────────────────────────
 
 

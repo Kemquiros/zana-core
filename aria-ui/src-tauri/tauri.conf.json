@@ -5,8 +5,8 @@
   "identifier": "com.vecanova.zana",
   "build": {
     "frontendDist": "../out",
-    "devUrl": "http://localhost:${ZANA_PWA_PORT:-54448}",
-    "beforeDevCommand": "npm run dev -- --port ${ZANA_PWA_PORT:-54448}",
+    "devUrl": "http://localhost:54448",
+    "beforeDevCommand": "npm run dev -- --port 54448",
     "beforeBuildCommand": "TAURI=1 npm run build"
   },
   "app": {
@@ -33,7 +33,7 @@
       "title": "ZANA"
     },
     "security": {
-      "csp": "default-src 'self'; connect-src 'self' ws://localhost:${ZANA_GATEWAY_PORT:-54446} http://localhost:${ZANA_GATEWAY_PORT:-54446}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; connect-src 'self' ws://localhost:54446 http://localhost:54446; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {
