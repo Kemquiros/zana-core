@@ -1,3 +1,4 @@
+import os
 import sys
 from importlib.metadata import version as pkg_version
 
@@ -56,7 +57,6 @@ def cmd_upgrade(check_only: bool = False) -> None:
     console.print("\n[primary]Updating Córtex...[/primary]")
     import subprocess
     import shutil
-    import os
 
     # Force uv to install from git for the latest master features if we are on dev,
     # or use the tagged version if we are on production.

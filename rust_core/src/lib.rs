@@ -1,3 +1,5 @@
+#![allow(non_local_definitions)]
+
 pub mod eml;
 pub mod kalman;
 pub mod brain;

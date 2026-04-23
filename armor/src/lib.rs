@@ -152,6 +152,13 @@ pub fn inspect_input(text: &str) -> ArmorVerdict {
             detail: "Email address detected".into(),
         });
     }
+    if p.pii_phone.is_match(text) {
+        violations.push(Violation {
+            violation_type: "PII_PHONE".into(),
+            severity: ThreatLevel::Suspicious,
+            detail: "Phone number detected".into(),
+        });
+    }
     if p.pii_cc.is_match(text) {
         violations.push(Violation {
             violation_type: "PII_CREDIT_CARD".into(),

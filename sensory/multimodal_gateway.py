@@ -11,11 +11,11 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 
 import httpx
 import numpy as np
-from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect, Body
+from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -34,9 +34,13 @@ from autonomy.resonance_engine import ResonanceEngine
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger("zana.gateway")
 
+# --- CONFIG ---
+GATEWAY_PORT = int(os.getenv("ZANA_GATEWAY_PORT", "54446"))
+SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
+
 app = FastAPI(
-    title="ZANA Gateway",
-    description="Multimodal sensory layer",
+    title="ZANA Multimodal Sensory Gateway",
+    description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
     version="2.5.0",
 )
 app.add_middleware(
@@ -66,15 +70,6 @@ async def get_profile():
     if resonance_engine.resonance_path.exists():
         return json.loads(resonance_engine.resonance_path.read_text())
     return {"status": "seed", "message": "No profile forged yet."}
-
-app = FastAPI(
-    title="ZANA Multimodal Sensory Gateway",
-    description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
-    version="2.0.0",
-)
-app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
-)
 
 # ─── Power-user routers (v2.1 / v2.2) ─────────────────────────────────────────
 try:
