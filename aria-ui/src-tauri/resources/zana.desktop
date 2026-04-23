@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ZANA
+Comment=Your Sovereign Cognitive Cortex
+Exec=zana-desktop %u
+Icon=zana-desktop
+Terminal=false
+Categories=Utility;AI;
+Keywords=AI;Agent;Cognitive;
+StartupWMClass=zana-desktop

@@ -43,6 +43,7 @@
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
+      "icons/icon.png",
       "icons/icon.ico"
     ],
     "resources": [
@@ -52,10 +53,15 @@
     ],
     "externalBin": ["sidecar/zana-gateway"],
     "linux": {
-      "appimage": { "bundleMediaFramework": true }
+      "appimage": { "bundleMediaFramework": true },
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libayatana-appindicator3-1"],
+        "desktopTemplate": "resources/zana.desktop",
+        "postInstallScript": "scripts/postinst.sh"
+      }
     }
   },
   "plugins": {
-    "autostart": { "args": true }
+    "autostart": {}
   }
 }
