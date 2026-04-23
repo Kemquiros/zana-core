@@ -4,45 +4,41 @@ import { useEffect, useRef, useCallback, useState } from "react";
 import { getGatewayStatus } from "./tauri-bridge";
 
 export type AeonState = "idle" | "listening" | "thinking" | "speaking";
-export type Emotion = "neutral" | "calm" | "excited" | "agitated" | "subdued";
-
-export interface PerceptionEvent {
-  modality: "text" | "audio" | "vision" | "multimodal";
-  text?: string;
-  response_text?: string;
-  response_audio_b64?: string;
-  response_emotion?: Emotion;
-  kalman_surprise?: number;
-  session_id?: string;
-}
+export type Modality = "text" | "audio" | "vision";
+export type Emotion = "joy" | "surprise" | "fear" | "anger" | "sadness" | "neutral" | "curiosity" | "trust";
 
 export interface Message {
   id: string;
   role: "user" | "aeon" | "system";
   text: string;
+  modality?: Modality;
   emotion?: Emotion;
   surprise?: number;
   audioB64?: string;
   timestamp: number;
-  modality?: string;
 }
 
-// NEXT_PUBLIC_GATEWAY_URL must be set in .env.local for dev
-// or injected by Docker/Caddy for production.
-const GATEWAY_URL =
-  process.env.NEXT_PUBLIC_GATEWAY_URL ?? "http://localhost:54446";
-
-function wsUrl(override?: string) {
-  const base = override ?? GATEWAY_URL;
-  return `${base.replace(/^http/, "ws")}/sense/stream`;
+interface PerceptionEvent {
+  text?: string;
+  response_text?: string;
+  response_emotion?: Emotion;
+  kalman_surprise?: number;
+  response_audio_b64?: string;
+  modality?: Modality;
 }
+
+const wsUrl = (httpUrl?: string) => {
+  if (!httpUrl) return "ws://localhost:54446/sense/stream";
+  return httpUrl.replace("http://", "ws://") + "/sense/stream";
+};
 
 export function useZanaStream(sessionId: string) {
-  const ws = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [aeonState, setAeonState] = useState<AeonState>("idle");
   const [messages, setMessages] = useState<Message[]>([]);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const ws = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
   const addMessage = useCallback((msg: Omit<Message, "id" | "timestamp">) => {
     setMessages((prev) => [
@@ -100,12 +96,9 @@ export function useZanaStream(sessionId: string) {
 
   useEffect(() => {
     connectRef.current = connect;
-  }, [connect]);
-
-  useEffect(() => {
     connect();
     return () => {
-      reconnectTimer.current && clearTimeout(reconnectTimer.current);
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
       ws.current?.close();
     };
   }, [connect]);

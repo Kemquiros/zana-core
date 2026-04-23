@@ -28,6 +28,8 @@ env_logger     = "0.11"
 anyhow         = "1"
 tauri-plugin-dialog = "2.0.0-rc.8"
 tauri-plugin-fs = "2.0.0-rc.6"
+tauri-plugin-updater = "2.0.0-rc.4"
+tauri-plugin-process = "2.0.0-rc.1"
 
 [profile.release]
 opt-level  = "z"

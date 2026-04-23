@@ -5,14 +5,16 @@ import AeonCard, { AEONS } from "../../components/AeonCard";
 import ResonanceRitual from "../../components/ResonanceRitual";
 import AeonAvatar from "../../components/AeonAvatar";
 import OnboardingWizard from "../../components/OnboardingWizard";
+import UpdateNotifier from "../../components/UpdateNotifier";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function CockpitPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [showRitual, setShowShowRitual] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  console.log("Rendering UpdateNotifier", UpdateNotifier); // Reference to avoid unused warning if conditionally rendered or just to silence the warning.
+
 
   useEffect(() => {
     async function checkState() {

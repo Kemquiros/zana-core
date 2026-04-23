@@ -6,11 +6,14 @@ import { Mic, FileImage, Zap } from "lucide-react";
 import type { Message, Emotion } from "../lib/zana-stream";
 
 const EMOTION_COLOR: Record<Emotion, string> = {
-  neutral:  "#94a3b8",
-  calm:     "#3B82F6",
-  excited:  "#FFD700",
-  agitated: "#ef4444",
-  subdued:  "#64748b",
+  neutral:   "#94a3b8",
+  joy:       "#3B82F6",
+  surprise:  "#FFD700",
+  fear:      "#64748b",
+  anger:     "#ef4444",
+  sadness:   "#3B82F6",
+  curiosity: "#A855F7",
+  trust:     "#4ADE80",
 };
 
 function ModalityIcon({ modality }: { modality?: string }) {
