@@ -61,12 +61,5 @@
       }
     }
   },
-  "plugins": {
-    "autostart": {},
-    "updater": {
-      "endpoints": [
-        "https://zana.vecanova.com/releases/update.json"
-      ]
-    }
-  }
+  "plugins": {}
 }

@@ -20,13 +20,20 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 UI="$ROOT/aria-ui"
 RESOURCES="$UI/src-tauri/resources"
 SIDECAR_DIR="$UI/src-tauri/sidecar"
-TARGET="${1:-}"
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --target)
+      TARGET="$2"
+      shift 2
+      ;;
+    *)
+      TARGET="$1"
+      shift
+      ;;
+  esac
+done
 
-echo -e "${BOLD}${MAGENTA}"
-echo "  [ Z A N A   D E S K T O P   B U I L D ]"
-echo -e "${RESET}"
-
-# Detect target triple
 if [ -z "$TARGET" ]; then
     ARCH="$(uname -m)"
     OS="$(uname -s)"
@@ -38,7 +45,7 @@ if [ -z "$TARGET" ]; then
         *)             warn "Unknown platform $OS-$ARCH, using default target" ;;
     esac
 fi
-info "Target: ${TARGET:-native}"
+info "Target: $TARGET"
 
 # ── Step 1: Copy Rust .so sidecars into bundle resources ─────────────────────
 info "Copying Rust binaries to resources..."
@@ -66,8 +73,9 @@ if command -v pyinstaller &>/dev/null; then
         --add-data "../zana_steel_core.so:." \
         --add-data "../zana_audio_dsp.so:."  \
         --add-data "../zana_armor.so:."       \
+        --collect-all litellm --collect-all tiktoken                 \
         --hidden-import faster_whisper        \
-        --hidden-import litellm               \
+        --paths "."                           \
         multimodal_gateway.py
 
     cp "dist/zana-gateway" "$SIDECAR_BIN"

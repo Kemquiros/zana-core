@@ -19,15 +19,23 @@ from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconn
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Add project root to sys.path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add project root and current dir to sys.path
+if getattr(sys, 'frozen', False):
+    # PyInstaller bundle path
+    root = Path(sys._MEIPASS)
+else:
+    # Development path
+    root = Path(__file__).parent.parent
 
-from .audio_processor import AudioProcessor
-from .local_llm import get_local_llm
-from .perception_event import PerceptionEvent, VisionFeatures
-from .tts_engine import TTSEngine
-from .vision_processor import VisionProcessor
-from .armor_middleware import inspect_input, inspect_output, backend as armor_backend
+sys.path.insert(0, str(root))
+sys.path.insert(0, str(root / "sensory"))
+
+from audio_processor import AudioProcessor
+from local_llm import get_local_llm
+from perception_event import PerceptionEvent, VisionFeatures
+from tts_engine import TTSEngine
+from vision_processor import VisionProcessor
+from armor_middleware import inspect_input, inspect_output, backend as armor_backend
 from swarm.apex.orchestrator import ApexOrchestrator
 from autonomy.resonance_engine import ResonanceEngine
 
