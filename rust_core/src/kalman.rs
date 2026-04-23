@@ -61,6 +61,7 @@ impl CognitiveKalmanFilter {
         acc / n as f64
     }
 
+    #[allow(dead_code)]
     pub fn get_uncertainty_score(&self) -> f64 {
         self.uncertainty.iter().sum::<f64>() / (self.dim as f64)
     }

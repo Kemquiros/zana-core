@@ -10,6 +10,7 @@ pub fn eml(x: f64, y: f64) -> f64 {
 }
 
 /// Reconstructs e^x using EML basis.
+#[allow(dead_code)]
 pub fn exp_eml(x: f64) -> f64 {
     eml(x, 1.0)
 }

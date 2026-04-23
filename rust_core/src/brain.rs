@@ -18,34 +18,8 @@ unsafe fn dot(a: *const f64, b: *const f64, n: usize) -> f64 {
     a.iter().zip(b.iter()).map(|(&x, &y)| x * y).sum()
 }
 
-/// matvec with ReLU, compiled for AVX2+FMA.
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx2,fma")]
-unsafe fn matvec_relu_avx2(
-    w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
-    rows: usize, cols: usize,
-) {
-    for j in 0..rows {
-        let d = dot(w.add(j * cols), x, cols);
-        *out.add(j) = (d + *b.add(j)).max(0.0);
-    }
-}
-
-/// matvec without activation, compiled for AVX2+FMA.
-#[cfg(target_arch = "x86_64")]
-#[target_feature(enable = "avx2,fma")]
-unsafe fn matvec_avx2(
-    w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
-    rows: usize, cols: usize,
-) {
-    for k in 0..rows {
-        let d = dot(w.add(k * cols), x, cols);
-        *out.add(k) = d + *b.add(k);
-    }
-}
-
 /// Scalar fallback (non-x86_64 or missing AVX2).
-#[inline(always)]
+#[allow(dead_code)]
 unsafe fn matvec_relu_scalar(
     w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
     rows: usize, cols: usize,
@@ -56,7 +30,7 @@ unsafe fn matvec_relu_scalar(
     }
 }
 
-#[inline(always)]
+#[allow(dead_code)]
 unsafe fn matvec_scalar(
     w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
     rows: usize, cols: usize,
@@ -190,6 +164,7 @@ impl PolicyBrain {
         probs
     }
 
+    #[allow(dead_code)]
     pub fn select_action(&mut self, state: &[f64]) -> usize {
         let probs = self.forward(state);
         let mut rng = thread_rng();
@@ -203,6 +178,7 @@ impl PolicyBrain {
     }
 
     /// REINFORCE gradient step.
+    #[allow(dead_code)]
     pub fn train_step(&mut self, state: &[f64], action: usize, reward: f64, lr: f64) {
         let probs = self.forward(state);
         let h = self.hidden_dim;
@@ -215,26 +191,26 @@ impl PolicyBrain {
         for v in d_z2.iter_mut() { *v *= -reward; }
 
         // dW2, db2
-        for k in 0..o {
+        for (k, d_z2_val) in d_z2.iter().enumerate().take(o) {
             for j in 0..h {
-                self.w2[k * h + j] -= lr * self.scratch_h[j] * d_z2[k];
+                self.w2[k * h + j] -= lr * self.scratch_h[j] * d_z2_val;
             }
-            self.b2[k] -= lr * d_z2[k];
+            self.b2[k] -= lr * d_z2_val;
         }
 
         // d_a1 = W2.T @ d_z2
         let mut d_a1 = vec![0.0; h];
-        for j in 0..h {
-            for k in 0..o {
-                d_a1[j] += self.w2[k * h + j] * d_z2[k];
+        for (j, d_a1_val) in d_a1.iter_mut().enumerate().take(h) {
+            for (k, d_z2_val) in d_z2.iter().enumerate().take(o) {
+                *d_a1_val += self.w2[k * h + j] * d_z2_val;
             }
         }
 
         // ReLU gate (scratch_h holds a1 from last forward)
         // dW1, db1
-        for j in 0..h {
+        for (j, &d_a1_val) in d_a1.iter().enumerate().take(h) {
             if self.scratch_h[j] > 0.0 {
-                let d = d_a1[j];
+                let d = d_a1_val;
                 let row = &mut self.w1[j * n..(j + 1) * n];
                 for (w, &s) in row.iter_mut().zip(state) {
                     *w -= lr * s * d;

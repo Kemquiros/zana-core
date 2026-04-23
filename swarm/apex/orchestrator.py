@@ -3,7 +3,6 @@ The Central Orchestrator (The Apex Quintet in Action).
 Manages communication between the 5 sub-agents using the AION Protocol.
 """
 
-from .aion import AionMessage
 from .agents import (
     archivist_agent,
     herald_agent,
