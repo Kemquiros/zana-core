@@ -73,6 +73,8 @@ pub fn run() {
             commands::gateway_status,
             commands::restart_gateway,
             commands::app_version,
+            commands::check_onboarding_status,
+            commands::save_env_config,
         ])
         .build(tauri::generate_context!())
         .expect("error building tauri app")

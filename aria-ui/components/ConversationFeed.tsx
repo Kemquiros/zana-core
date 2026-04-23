@@ -81,22 +81,18 @@ export default function ConversationFeed({ messages }: { messages: Message[] }) 
               <div className={`max-w-[82%] ${isUser ? "items-end" : "items-start"} flex flex-col gap-1.5`}>
                 {/* header */}
                 <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest ${isUser ? "flex-row-reverse" : ""}`}>
-                  <span className={isUser ? "text-slate-500" : "text-resonance"}>
-                    {isUser ? "TÚ" : "ZANA"}
+                  <span className={isUser ? "text-indigo-300" : "text-purple-400"}>
+                    {isUser ? "TÚ" : "AEON"}
                   </span>
                   {msg.modality && (
-                    <span className="text-slate-600 flex items-center gap-1">
+                    <span className="text-gray-500 flex items-center gap-1">
                       <ModalityIcon modality={msg.modality} />
                     </span>
                   )}
                   {msg.emotion && msg.emotion !== "neutral" && (
                     <span
-                      className="px-2 py-0.5 rounded-full text-[9px]"
-                      style={{
-                        color: EMOTION_COLOR[msg.emotion],
-                        backgroundColor: `${EMOTION_COLOR[msg.emotion]}22`,
-                        border: `1px solid ${EMOTION_COLOR[msg.emotion]}44`,
-                      }}
+                      className="px-2 py-0.5 rounded-full text-[9px] bg-white/5 border border-white/10"
+                      style={{ color: EMOTION_COLOR[msg.emotion] }}
                     >
                       {msg.emotion}
                     </span>
@@ -105,15 +101,15 @@ export default function ConversationFeed({ messages }: { messages: Message[] }) 
 
                 {/* bubble */}
                 <div
-                  className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                  className={`px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-lg ${
                     isUser
-                      ? "bg-resonance/20 border border-resonance/30 text-white rounded-br-sm"
-                      : "glass-card text-slate-200 rounded-bl-sm"
+                      ? "bg-indigo-600/20 border border-indigo-500/30 text-white rounded-br-sm"
+                      : "bg-white/5 border border-white/10 backdrop-blur-md text-gray-200 rounded-bl-sm"
                   }`}
                 >
                   {msg.text}
                   {msg.surprise !== undefined && msg.surprise > 0.35 && (
-                    <span className="ml-2 text-[10px] font-mono text-innovation opacity-70">
+                    <span className="ml-2 text-[10px] font-mono text-purple-400 opacity-80">
                       ⚡{msg.surprise.toFixed(2)}
                     </span>
                   )}

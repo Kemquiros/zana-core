@@ -1,34 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import AeonCard, { AEONS } from "../../components/AeonCard";
 import ResonanceRitual from "../../components/ResonanceRitual";
 import AeonAvatar from "../../components/AeonAvatar";
+import OnboardingWizard from "../../components/OnboardingWizard";
 
-const INSTALL_TABS = [
-  {
-    label: "Linux / macOS",
-    cmd: "curl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh",
-  },
-  {
-    label: "Windows (WSL2)",
-    cmd: 'wsl --install\ncurl -LsSf https://raw.githubusercontent.com/kemquiros/zana-core/main/install.sh | sh',
-  },
-  {
-    label: "Ollama (offline)",
-    cmd: "ollama pull llama3.1:8b\nZANA_PRIMARY_MODEL=ollama/llama3.1:8b zana start",
-  },
-];
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default function CockpitPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
   const [showRitual, setShowShowRitual] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkProfile() {
+    async function checkState() {
+      try {
+        // Check local Tauri onboarding state
+        const { invoke } = await import('@tauri-apps/api/core');
+        const isSet = await invoke('check_onboarding_status');
+        if (!isSet) {
+          setNeedsOnboarding(true);
+          setLoading(false);
+          return;
+        }
+      } catch (e) {
+        // Not in Tauri or API not found, proceed to normal backend checks
+        console.log("Tauri API not available or failed", e);
+      }
+
       try {
         const res = await fetch('http://localhost:54446/resonance/profile');
         const data = await res.json();
@@ -38,15 +39,22 @@ export default function CockpitPage() {
           setShowShowRitual(true);
         }
       } catch (e) {
+        console.log("Failed to fetch profile", e);
         setShowShowRitual(true);
       } finally {
         setLoading(false);
       }
     }
-    checkProfile();
+    checkState();
   }, []);
 
   if (loading) return <div className="min-h-screen bg-black" />;
+
+  if (needsOnboarding) {
+    return (
+      <OnboardingWizard onComplete={() => setNeedsOnboarding(false)} />
+    );
+  }
 
   if (showRitual && !profile) {
     return (
@@ -83,7 +91,7 @@ export default function CockpitPage() {
                             <div className="h-1 w-1 rounded-full bg-indigo-500" />
                         </div>
                         <h2 className="text-3xl font-bold italic uppercase">{profile.personality_archetype}</h2>
-                        <p className="text-sm text-gray-500 italic">"{profile.raw_reflection}"</p>
+                        <p className="text-sm text-gray-500 italic">&quot;{profile.raw_reflection}&quot;</p>
                     </div>
                 )}
             </div>
@@ -131,9 +139,10 @@ export default function CockpitPage() {
                 </p>
             </div>
             <div className="flex gap-4">
-                {profile?.recommended_agora_modules?.map((m: string) => (
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {profile?.recommended_agora_modules?.map((m: any) => (
                     <span key={m} className="px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[9px] font-bold text-indigo-400 uppercase tracking-widest">
-                        {m.replace('_', ' ')}
+                        {String(m).replace('_', ' ')}
                     </span>
                 ))}
             </div>

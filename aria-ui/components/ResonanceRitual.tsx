@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ChevronRight, Check, Zap, Heart, Shield, Cpu, Share2 } from 'lucide-react';
+import { Shield, Cpu } from 'lucide-react';
 
 interface RitualResponse {
   personality_archetype: string;
@@ -110,7 +110,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: Rit
             <div className="space-y-12">
               {currentFase.preguntas.map((q) => (
                 <div key={q.id} className="space-y-6">
-                  <p className="text-xl font-light text-gray-300 italic">"{q.texto}"</p>
+                  <p className="text-xl font-light text-gray-300 italic">&quot;{q.texto}&quot;</p>
                   
                   {q.tipo === 'opcion' ? (
                     <div className="grid grid-cols-1 gap-3">

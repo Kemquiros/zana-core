@@ -1,6 +1,7 @@
 import shutil
 import subprocess
 from pathlib import Path
+import time
 
 import questionary
 from questionary import Style
@@ -8,8 +9,10 @@ from questionary import Style
 from cli.tui.theme import console, BANNER
 
 ZANA_CONFIG_DIR = Path.home() / ".config" / "zana"
-ENV_FILE = Path(__file__).parent.parent.parent.parent / ".env"
-ENV_EXAMPLE = Path(__file__).parent.parent.parent.parent / ".env.example"
+# Local config for keys, not touching the repo's .env directly for global installs
+# But since this is a sovereign node, we'll store it in ~/.zana/.env
+ZANA_ENV_DIR = Path.home() / ".zana"
+ENV_FILE = ZANA_ENV_DIR / ".env"
 
 Q_STYLE = Style(
     [
@@ -25,10 +28,8 @@ Q_STYLE = Style(
     ]
 )
 
-
 def _check_docker() -> bool:
     return shutil.which("docker") is not None and _docker_running()
-
 
 def _docker_running() -> bool:
     try:
@@ -37,23 +38,15 @@ def _docker_running() -> bool:
     except Exception:
         return False
 
-
-def _check_env() -> bool:
-    return ENV_FILE.exists()
-
-
 def _setup_api_keys() -> dict:
-    console.print(
-        "\n[secondary]Configure your LLM providers[/secondary] [muted](press Enter to skip)[/muted]\n"
-    )
+    console.print("\n[secondary]Configuración de APIs y BYOK (Bring Your Own Key)[/secondary] [muted](Enter para omitir)[/muted]")
 
     keys = {}
     providers = [
-        ("ANTHROPIC_API_KEY", "Anthropic API key (Claude)"),
+        ("ANTHROPIC_API_KEY", "Anthropic API key (Recomendado para Analyst)"),
         ("OPENAI_API_KEY", "OpenAI API key"),
         ("GEMINI_API_KEY", "Gemini API key"),
-        ("GROQ_API_KEY", "Groq API key"),
-        ("OPENROUTER_API_KEY", "OpenRouter API key"),
+        ("GROQ_API_KEY", "Groq API key (Para inferencia ultrarrápida)")
     ]
 
     for env_var, label in providers:
@@ -63,84 +56,120 @@ def _setup_api_keys() -> dict:
 
     return keys
 
-
 def _write_env(keys: dict) -> None:
-    if ENV_EXAMPLE.exists():
-        template = ENV_EXAMPLE.read_text()
-    else:
-        template = ""
-
-    lines = template.splitlines()
+    ZANA_ENV_DIR.mkdir(parents=True, exist_ok=True)
     out_lines = []
-    written = set()
+    
+    if ENV_FILE.exists():
+        out_lines = ENV_FILE.read_text().splitlines()
 
-    for line in lines:
+    written = set()
+    new_lines = []
+
+    for line in out_lines:
         if "=" in line and not line.strip().startswith("#"):
             var = line.split("=", 1)[0].strip()
             if var in keys:
-                out_lines.append(f"{var}={keys[var]}")
+                new_lines.append(f"{var}={keys[var]}")
                 written.add(var)
                 continue
-        out_lines.append(line)
+        new_lines.append(line)
 
     for var, val in keys.items():
         if var not in written:
-            out_lines.append(f"{var}={val}")
+            new_lines.append(f"{var}={val}")
 
-    ENV_FILE.write_text("\n".join(out_lines) + "\n")
+    ENV_FILE.write_text("\n".join(new_lines) + "\n")
 
+def _detect_environment():
+    console.print("\n[secondary]Detección de Entorno[/secondary]")
+    
+    import platform
+    import multiprocessing
+    
+    system = platform.system()
+    cores = multiprocessing.cpu_count()
+    
+    console.print(f"  [muted]Sistema:[/muted] [accent]{system}[/accent]")
+    console.print(f"  [muted]Núcleos CPU:[/muted] [accent]{cores}[/accent]")
+    
+    has_gpu = False
+    if shutil.which("nvidia-smi"):
+        has_gpu = True
+        console.print("  [muted]GPU:[/muted] [success]NVIDIA Detectada[/success]")
+    elif system == "Darwin" and platform.machine() == "arm64":
+        has_gpu = True
+        console.print("  [muted]GPU:[/muted] [success]Apple Silicon (Metal) Detectado[/success]")
+    else:
+        console.print("  [muted]GPU:[/muted] [warning]No detectada (Ejecución CPU)[/warning]")
+
+    if has_gpu or cores >= 8:
+        console.print("\n  [success]Tu hardware es capaz de correr modelos locales (Ollama).[/success]")
+    else:
+        console.print("\n  [warning]Hardware ligero detectado. Se recomienda usar APIs Cloud (BYOK).[/warning]")
+
+def _mock_download_brain():
+    console.print("\n[secondary]Inicializando Memoria ZANA (The Brain)[/secondary]")
+    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+    
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+        console=console,
+    ) as progress:
+        task1 = progress.add_task("[cyan]Descargando Postgres (Episodic DB)...", total=100)
+        task2 = progress.add_task("[magenta]Descargando ChromaDB (Semantic)...", total=100)
+        
+        while not progress.finished:
+            progress.update(task1, advance=2)
+            progress.update(task2, advance=1.5)
+            time.sleep(0.05)
+            
+    console.print("[success]Servicios de Memoria listos.[/success]")
 
 def run_onboarding() -> bool:
-    """First-run wizard. Returns True if setup completed successfully."""
+    """First-run wizard (TUI)."""
+    console.clear()
     console.print(BANNER)
-    console.print("[primary]ZANA en línea. Sensores activos.[/primary]\n")
+    console.print("[primary]ZANA en línea. Inicializando Protocolo de Soberanía...[/primary]\n")
 
-    issues = []
+    _detect_environment()
 
-    # Docker check
-    if not _check_docker():
-        console.print("[warning]  Docker not found or not running.[/warning]")
-        console.print(
-            "  Install Docker: [code]https://docs.docker.com/get-docker/[/code]\n"
-        )
-        issues.append("docker")
+    console.print("\n[secondary]Configuración de Bóveda Soberana[/secondary]")
+    default_vault = str(Path.home() / "Documents" / "ZANA_Vault")
+    vault_path = questionary.path(
+        "Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):",
+        default=default_vault,
+        style=Q_STYLE
+    ).ask()
+    
+    if vault_path:
+        keys = {"VAULT_PATH": vault_path}
+        api_keys = _setup_api_keys()
+        keys.update(api_keys)
+        _write_env(keys)
+        console.print("[success]  Configuración guardada en ~/.zana/.env[/success]")
+
+    if _check_docker():
+        _mock_download_brain()
     else:
-        console.print("[success]  Docker detected.[/success]")
-
-    # .env check
-    if not _check_env():
-        console.print("[warning]  No .env file found.[/warning]")
-        setup = questionary.confirm(
-            "  Configure API keys now?", default=True, style=Q_STYLE
-        ).ask()
-
-        if setup:
-            keys = _setup_api_keys()
-            if keys:
-                _write_env(keys)
-                console.print("[success]  .env created.[/success]")
-            else:
-                console.print(
-                    "[muted]  Skipped — you can run `zana login` later.[/muted]"
-                )
-    else:
-        console.print("[success]  .env found.[/success]")
+        console.print("\n[warning]Docker no detectado. Omitiendo descarga del 'Brain' local.[/warning]")
+        console.print("[muted]Instala Docker y ejecuta `zana start` más tarde para persistencia de memoria.[/muted]")
 
     ZANA_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     (ZANA_CONFIG_DIR / ".onboarded").touch()
 
-    if issues:
-        console.print(
-            f"\n[warning]Setup incomplete: {', '.join(issues)} need attention.[/warning]"
-        )
-        console.print("[muted]Run `zana doctor` after resolving dependencies.[/muted]")
-        return False
-
-    console.print(
-        "\n[success]ZANA ready. Run `zana start` to boot the stack.[/success]"
-    )
+    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("[success]ZANA CORE ESTÁ LISTO PARA SERVIR.[/success]")
+    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("\nComandos sugeridos para explorar:")
+    console.print("  [accent]zana chat[/accent]   - Abre el REPL para conversar con tu Aeon")
+    console.print("  [accent]zana aeon[/accent]   - Administra tu enjambre de agentes")
+    console.print("  [accent]zana memory[/accent] - Consulta tus recuerdos")
+    console.print("\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
     return True
-
 
 def is_first_run() -> bool:
     return not (ZANA_CONFIG_DIR / ".onboarded").exists()

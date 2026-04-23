@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, MicOff, Send, ImagePlus } from "lucide-react";
+import { Mic, MicOff, Send, ImagePlus, ScanLine } from "lucide-react";
 import { useAudioCapture } from "../lib/audio-capture";
 
 interface Props {
@@ -51,18 +51,55 @@ export default function SensorBar({ onText, onAudio, onImage, disabled }: Props)
   );
 
   return (
-    <div className="relative px-2 pb-2">
-      <div className="glass-card rounded-2xl flex items-center gap-2 px-3 py-2 border border-white/10">
-        {/* mic button */}
+    <div className="relative">
+      {/* Scanning laser effect when recording */}
+      <AnimatePresence>
+        {recording && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "2px" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="absolute -top-4 left-0 right-0 overflow-hidden"
+          >
+            <motion.div 
+              className="w-full h-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className={`
+        relative overflow-hidden rounded-[24px] flex items-center gap-2 p-2 
+        border transition-all duration-300
+        ${recording 
+          ? 'bg-indigo-950/40 border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.2)]' 
+          : 'bg-white/5 border-white/10 hover:border-white/20 backdrop-blur-xl shadow-2xl'
+        }
+      `}>
+        
+        {/* Animated background pulse when recording */}
+        {recording && (
+          <motion.div
+            className="absolute inset-0 bg-indigo-500/10"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        )}
+
+        {/* Mic Button - The Primary Interaction */}
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={toggle}
           disabled={disabled}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-            recording
-              ? "bg-gold/20 border border-gold/50 text-gold"
-              : "hover:bg-white/5 text-slate-400 hover:text-white"
-          }`}
+          className={`
+            relative z-10 w-12 h-12 rounded-[18px] flex items-center justify-center transition-all shrink-0
+            ${recording
+              ? "bg-red-500/20 text-red-400 border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.5)]"
+              : "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 border border-indigo-500/20"
+            }
+          `}
         >
           <AnimatePresence mode="wait" initial={false}>
             {recording ? (
@@ -75,54 +112,73 @@ export default function SensorBar({ onText, onAudio, onImage, disabled }: Props)
               </motion.span>
             )}
           </AnimatePresence>
+
+          {/* Pulse rings */}
+          {recording && (
+            <>
+              <motion.div className="absolute inset-0 rounded-[18px] border border-red-500" animate={{ scale: [1, 1.5], opacity: [0.8, 0] }} transition={{ duration: 1.5, repeat: Infinity }} />
+              <motion.div className="absolute inset-0 rounded-[18px] border border-red-500" animate={{ scale: [1, 1.5], opacity: [0.8, 0] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.75 }} />
+            </>
+          )}
         </motion.button>
 
-        {/* recording indicator */}
-        {recording && (
-          <motion.div
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
-            className="shrink-0 flex items-center gap-1.5 text-gold text-xs font-bold"
-          >
-            <motion.div
-              animate={{ opacity: [1, 0, 1] }}
-              transition={{ duration: 1, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-gold"
+        {/* Text Input */}
+        <div className="relative z-10 flex-1 flex items-center">
+          {recording ? (
+             <div className="flex-1 flex items-center gap-3 pl-2">
+               <ScanLine className="w-4 h-4 text-indigo-400 animate-pulse" />
+               <span className="text-xs font-mono font-bold text-indigo-300 uppercase tracking-widest">
+                 Capturando Voz...
+               </span>
+             </div>
+          ) : (
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKey}
+              disabled={disabled || recording}
+              placeholder="Habla con tu Aeon..."
+              className="w-full bg-transparent text-sm text-white placeholder:text-gray-500 font-medium outline-none min-w-0 px-3 py-2"
             />
-            REC
-          </motion.div>
-        )}
+          )}
+        </div>
 
-        {/* text input */}
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKey}
-          disabled={disabled || recording}
-          placeholder={recording ? "Grabando audio…" : "Escribe un mensaje…"}
-          className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-600 outline-none min-w-0 py-1"
-        />
+        {/* Action Buttons */}
+        <div className="relative z-10 flex items-center gap-2 pr-1 shrink-0">
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+          
+          <AnimatePresence>
+            {!recording && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                animate={{ opacity: 1, scale: 1, width: "auto" }}
+                exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                onClick={() => fileRef.current?.click()}
+                disabled={disabled}
+                className="w-10 h-10 rounded-[14px] flex items-center justify-center text-gray-400 hover:text-indigo-400 hover:bg-indigo-500/10 transition-all"
+              >
+                <ImagePlus className="w-5 h-5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
 
-        {/* image upload */}
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={disabled}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/5 transition-all shrink-0"
-        >
-          <ImagePlus className="w-5 h-5" />
-        </button>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-
-        {/* send */}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={submit}
-          disabled={disabled || !input.trim()}
-          className="w-10 h-10 rounded-xl flex items-center justify-center bg-resonance/80 hover:bg-resonance text-white transition-all shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-        >
-          <Send className="w-4 h-4" />
-        </motion.button>
+          <AnimatePresence>
+            {(!recording && input.trim()) && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                animate={{ opacity: 1, scale: 1, width: "auto" }}
+                exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={submit}
+                disabled={disabled}
+                className="w-10 h-10 rounded-[14px] flex items-center justify-center bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)] hover:bg-indigo-400 transition-all"
+              >
+                <Send className="w-4 h-4 ml-0.5" />
+              </motion.button>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );

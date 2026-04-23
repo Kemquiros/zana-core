@@ -26,6 +26,8 @@ dirs           = "5"
 log            = "0.4"
 env_logger     = "0.11"
 anyhow         = "1"
+tauri-plugin-dialog = "2.0.0-rc.8"
+tauri-plugin-fs = "2.0.0-rc.6"
 
 [profile.release]
 opt-level  = "z"
