@@ -46,23 +46,31 @@ def cmd_upgrade(check_only: bool = False) -> None:
 
     console.print(f"[accent]New version available: {latest}[/accent]")
 
+    if os.getenv("TAURI_ENV") == "true":
+        console.print("[muted]Note: Desktop App updates are handled automatically via the UI.[/muted]")
+
     if check_only:
         console.print("[muted]Run `zana upgrade` to install.[/muted]")
         return
 
-    console.print("[primary]Upgrading...[/primary]")
+    console.print("\n[primary]Updating Córtex...[/primary]")
     import subprocess
     import shutil
+    import os
 
+    # Force uv to install from git for the latest master features if we are on dev,
+    # or use the tagged version if we are on production.
     if shutil.which("uv"):
-        cmd = ["uv", "tool", "install", f"zana=={latest}", "--force"]
+        # For sovereignty and latest master features
+        cmd = ["uv", "tool", "install", "zana @ git+https://github.com/kemquiros/zana-core.git#subdirectory=cli", "--force", "--quiet"]
     else:
-        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", f"zana=={latest}"]
+        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "zana", "--quiet"]
 
-    result = subprocess.run(cmd)
-    if result.returncode == 0:
-        console.print(f"[success]Upgraded to {latest}.[/success]")
-    else:
+    try:
+        subprocess.run(cmd, check=True)
+        console.print(f"[success]ZANA Córtex upgraded to {latest} successfully.[/success]")
+        console.print("[muted]Juntos hacemos temblar los cielos.[/muted]")
+    except subprocess.CalledProcessError:
         console.print(
             "[error]Upgrade failed. Try: uv tool install zana --force[/error]"
         )

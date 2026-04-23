@@ -17,11 +17,14 @@ const STATE_CONFIG: Record<AeonState, { color: string; glow: string; label: stri
 };
 
 const EMOTION_RING: Record<Emotion, string> = {
-  neutral:  "rgba(255,255,255,0.15)",
-  calm:     "rgba(59,130,246,0.4)",
-  excited:  "rgba(255,215,0,0.5)",
-  agitated: "rgba(239,68,68,0.5)",
-  subdued:  "rgba(100,116,139,0.4)",
+  neutral:   "rgba(255,255,255,0.15)",
+  joy:       "rgba(59,130,246,0.4)",
+  surprise:  "rgba(255,215,0,0.5)",
+  fear:      "rgba(100,116,139,0.4)",
+  anger:     "rgba(239,68,68,0.5)",
+  sadness:   "rgba(59,130,246,0.2)",
+  curiosity: "rgba(168,85,247,0.4)",
+  trust:     "rgba(74,222,128,0.4)",
 };
 
 export default function AeonFace({ state, emotion = "neutral", surprise }: Props) {
