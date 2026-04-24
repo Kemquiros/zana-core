@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 from PyInstaller.utils.hooks import collect_all
 
-datas = [('../zana_steel_core.so', '.'), ('../zana_audio_dsp.so', '.'), ('../zana_armor.so', '.')]
+datas = [('../zana_steel_core.so', '.'), ('../zana_audio_dsp.so', '.'), ('../zana_armor.so', '.'), ('tiktoken_cache', 'tiktoken_cache')]
 binaries = []
 hiddenimports = ['faster_whisper']
 tmp_ret = collect_all('litellm')

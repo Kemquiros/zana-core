@@ -23,6 +23,8 @@ from pydantic import BaseModel
 if getattr(sys, 'frozen', False):
     # PyInstaller bundle path
     root = Path(sys._MEIPASS)
+    # Set tiktoken cache dir to bundled folder
+    os.environ["TIKTOKEN_CACHE_DIR"] = str(root / "tiktoken_cache")
 else:
     # Development path
     root = Path(__file__).parent.parent
