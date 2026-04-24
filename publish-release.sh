@@ -12,7 +12,7 @@ info()    { echo -e "${CYAN}  ▶ $*${RESET}"; }
 success() { echo -e "${GREEN}  ✓ $*${RESET}"; }
 error()   { echo -e "${RED}  ✗ $*${RESET}" >&2; exit 1; }
 
-VERSION="2.5.2"
+VERSION="2.6.1"
 TAG="v$VERSION"
 DEB_PATH="aria-ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/ZANA_${VERSION}_amd64.deb"
 APPIMAGE_PATH="aria-ui/src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/ZANA_${VERSION}_amd64.AppImage"
