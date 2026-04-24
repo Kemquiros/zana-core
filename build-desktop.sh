@@ -73,7 +73,7 @@ if command -v pyinstaller &>/dev/null; then
         --add-data "../zana_steel_core.so:." \
         --add-data "../zana_audio_dsp.so:."  \
         --add-data "../zana_armor.so:."       \
-        --collect-all litellm --collect-all tiktoken                 \
+        --collect-all litellm --collect-all tiktoken --collect-all smolagents                 \
         --hidden-import faster_whisper        \
         --paths "."                           \
         multimodal_gateway.py

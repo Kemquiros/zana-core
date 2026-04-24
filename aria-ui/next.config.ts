@@ -8,7 +8,7 @@ const isTauri = process.env.TAURI === "1";
 const nextConfig: NextConfig = {
   output: isTauri ? "export" : "standalone",
   // static export needs trailing slashes for file-system routing
-  trailingSlash: true,
+  trailingSlash: false,
   // disable image optimization for static export
   images: isTauri ? { unoptimized: true } : {},
 };
