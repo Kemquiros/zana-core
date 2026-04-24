@@ -81,11 +81,11 @@ export default function CockpitPage() {
             <div className="space-y-8">
                 <div className="space-y-4">
                     <h1 className="text-6xl font-black tracking-tighter italic uppercase">
-                        Digital <br/>
+                        {profile?.aeon_name || 'ZANA'} <br/>
                         <span className="text-indigo-500">Sovereignty</span>
                     </h1>
                     <p className="text-xl text-gray-400 font-light max-w-md">
-                        Your personal cognitive cortex is active. Welcome home, Architect.
+                        Your master Aeon is active. Welcome home, Architect.
                     </p>
                 </div>
                 

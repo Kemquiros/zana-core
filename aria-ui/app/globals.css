@@ -28,6 +28,12 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
+.glass {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 .resonance-glow {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }

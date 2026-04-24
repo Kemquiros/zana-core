@@ -66,3 +66,4 @@ docs/paper/*.aux
 docs/paper/*.out
 docs/paper/*.toc
 docs/paper/*.log
+aria-ui/src-tauri/sidecar/zana-gateway*

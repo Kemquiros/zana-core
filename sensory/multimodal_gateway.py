@@ -82,7 +82,7 @@ SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
-    version="2.6.0",
+    version="2.6.1",
 )
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
@@ -91,7 +91,10 @@ app.add_middleware(
 resonance_engine = ResonanceEngine()
 
 class RitualRequest(BaseModel):
-    answers: Dict[str, str]
+    answers: Dict[str, Any]
+    name: Optional[str] = None
+    visual_genes: Optional[Dict[str, Any]] = None
+    is_master: Optional[bool] = False
 
 @app.post("/resonance/forge")
 async def forge_identity(request: RitualRequest):
@@ -99,8 +102,13 @@ async def forge_identity(request: RitualRequest):
     Forges the Aeon identity based on the Resonance Ritual.
     Returns the generated DNA and archetype.
     """
-    logger.info("Forging new Aeon identity...")
-    profile = resonance_engine.process_ritual(request.answers)
+    logger.info(f"Forging new Aeon identity for {request.name}...")
+    # Pass name and visual_genes to the engine
+    profile = resonance_engine.process_ritual(
+        request.answers, 
+        user_name=request.name, 
+        user_visual_genes=request.visual_genes
+    )
     return profile
 
 @app.get("/resonance/profile")
