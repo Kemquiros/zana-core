@@ -34,15 +34,27 @@ pub fn run() {
             }
 
             // 2. Resolver ruta del gateway (Sidecar)
-            // En producción (Debian), Tauri coloca los recursos en /usr/lib/ZANA/
-            let res_dir = app.path().resource_dir().unwrap_or_else(|_| PathBuf::from("."));
+            let mut gateway_bin = PathBuf::new();
             
-            // Nombre del binario según tauri.conf.json (externalBin)
-            // Tauri añade el triple automáticamente al empaquetar, pero aquí 
-            // intentamos una ruta genérica que funcione en dev y prod.
-            let gateway_bin = res_dir.join("zana-gateway");
+            // Caso A: Instalación global Debian (/usr/bin)
+            let global_bin = PathBuf::from("/usr/bin/zana-gateway");
+            if global_bin.exists() { 
+                gateway_bin = global_bin; 
+            } else {
+                // Caso B: Carpeta de recursos de la aplicación
+                if let Ok(res_dir) = app.path().resource_dir() {
+                    let res_bin = res_dir.join("zana-gateway");
+                    if res_bin.exists() { 
+                        gateway_bin = res_bin; 
+                    } else {
+                        // Caso C: Ruta de desarrollo (sidecar folder)
+                        let dev_bin = res_dir.join("_up_").join("sidecar").join("zana-gateway");
+                        if dev_bin.exists() { gateway_bin = dev_bin; }
+                    }
+                }
+            }
             
-            log::info!("Ruta base de recursos: {}", res_dir.display());
+            log::info!("Binario Gateway detectado: {}", gateway_bin.display());
 
             // 3. Inicializar base de datos local
             let db_path = data_dir().join("zana.db");
@@ -66,12 +78,16 @@ pub fn run() {
             // 6. Lanzar Gateway en segundo plano
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
+                if gateway_bin.as_os_str().is_empty() {
+                    log::warn!("Aviso: No se encontró el binario del gateway.");
+                    return;
+                }
+
                 log::info!("Iniciando Gateway Sensorial en puerto {}...", gateway_port);
-                // Intentar lanzar el gateway. Si falla, la app sigue funcionando (modo UI only)
                 if let Err(e) = gateway.start(gateway_bin).await {
-                    log::warn!("Aviso: No se pudo iniciar el gateway sidecar: {}", e);
+                    log::error!("Error crítico al lanzar gateway: {}", e);
                 } else {
-                    let ready = gateway.wait_ready(10).await;
+                    let ready = gateway.wait_ready(15).await;
                     log::info!("Estado del Gateway: {}", if ready { "EN LÍNEA" } else { "TIMEOUT" });
                     tray::update_status(&handle, ready);
                 }

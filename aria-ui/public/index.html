@@ -10,9 +10,9 @@
   <body>
     <div>DESPLEGANDO CÓRTEX...</div>
     <script>
-      // Redirección inmediata al idioma por defecto
-      // Usamos replace para que no quede en el historial de navegación
-      window.location.replace("./es/");
+      // Redirección inmediata al idioma por defecto en formato plano (.html)
+      // Esto evita problemas de resolución de directorios en el protocolo de Tauri.
+      window.location.replace("./es.html");
     </script>
   </body>
 </html>
