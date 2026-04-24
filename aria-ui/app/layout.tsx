@@ -1,4 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Geist_Mono, Space_Grotesk } from "next/font/google";
+import "./globals.css";
+import SwRegister from "../components/SwRegister";
+import TitleBar from "../components/TitleBar";
+import { ReactNode } from "react";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -7,13 +12,6 @@ export const viewport: Viewport = {
   userScalable: false,
   themeColor: "#000000",
 };
-import { Geist_Mono, Space_Grotesk } from "next/font/google";
-import "../globals.css";
-import SwRegister from "../../components/SwRegister";
-import { ReactNode } from "react";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
-import { notFound } from 'next/navigation';
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -32,35 +30,19 @@ export const metadata: Metadata = {
   other: { "mobile-web-app-capable": "yes" },
 };
 
-const locales = ['en', 'es', 'pt', 'fr', 'de', 'it'];
-
-export function generateStaticParams() {
-  return locales.map((locale) => ({ locale }));
-}
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
-  params
 }: Readonly<{
   children: ReactNode;
-  params: Promise<{ locale: string }>;
 }>) {
-  const { locale } = await params;
-  if (!locales.includes(locale)) {
-    notFound();
-  }
-
-  const messages = await getMessages({locale});
-
   return (
-    <html lang={locale} className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${spaceGrotesk.variable} ${geistMono.variable} antialiased bg-black text-slate-200 overflow-x-hidden`}
       >
-        <NextIntlClientProvider messages={messages} locale={locale}>
-          <SwRegister />
-          {children}
-        </NextIntlClientProvider>
+        <TitleBar />
+        <SwRegister />
+        {children}
       </body>
     </html>
   );

@@ -1,7 +1,4 @@
 import type { NextConfig } from "next";
-import createNextIntlPlugin from 'next-intl/plugin';
-
-const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const isTauri = process.env.TAURI === "1";
 
@@ -13,4 +10,4 @@ const nextConfig: NextConfig = {
   images: isTauri ? { unoptimized: true } : {},
 };
 
-export default withNextIntl(nextConfig);
+export default nextConfig;

@@ -25,6 +25,37 @@ if getattr(sys, 'frozen', False):
     root = Path(sys._MEIPASS)
     # Set tiktoken cache dir to bundled folder
     os.environ["TIKTOKEN_CACHE_DIR"] = str(root / "tiktoken_cache")
+    
+    # --- TIKTOKEN PYINSTALLER FIX ---
+    try:
+        import tiktoken
+        import tiktoken_ext.openai_public
+        # Force registration of encodings into tiktoken's registry
+        for name, constructor in tiktoken_ext.openai_public.ENCODING_CONSTRUCTORS.items():
+            if name not in tiktoken.registry.ENCODINGS:
+                tiktoken.registry.ENCODINGS[name] = constructor
+    except Exception as e:
+        logging.warning(f"Failed to monkey-patch tiktoken: {e}")
+
+    # --- SMOLAGENTS PYINSTALLER FIX ---
+    import inspect
+    _original_getsource = inspect.getsource
+    _original_getsourcelines = inspect.getsourcelines
+    
+    def _patched_getsource(obj):
+        try:
+            return _original_getsource(obj)
+        except OSError:
+            return "def forward(self, *args, **kwargs):\n    pass\n"
+            
+    def _patched_getsourcelines(obj):
+        try:
+            return _original_getsourcelines(obj)
+        except OSError:
+            return (["def forward(self, *args, **kwargs):\n", "    pass\n"], 1)
+
+    inspect.getsource = _patched_getsource
+    inspect.getsourcelines = _patched_getsourcelines
 else:
     # Development path
     root = Path(__file__).parent.parent
@@ -51,7 +82,7 @@ SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
-    version="2.5.0",
+    version="2.6.0",
 )
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
@@ -539,14 +570,14 @@ def health():
     tts_backend = _tts._backend or "not_loaded"
     llm_info = get_local_llm().backend_info()
     llm_backend = (
-        f"ollama:{llm_info['text_model']}"
-        if llm_info["ollama"]
-        else ("claude-haiku" if llm_info["claude"] else "template")
+        f"ollama:{llm_info.get('text_model')}"
+        if llm_info.get("ollama")
+        else ("claude-haiku" if llm_info.get("claude") else "template")
     )
     vision_backend = (
-        f"ollama:{llm_info['vision_model']}"
+        f"ollama:{llm_info.get('vision_model')}"
         if llm_info.get("vision_model")
-        else ("claude-vision" if _vision._client else "mock")
+        else ("claude-vision" if getattr(_vision, '_client', None) else "mock")
     )
     return {
         "status": "online",
@@ -595,7 +626,7 @@ if __name__ == "__main__":
     print(f"║   http://0.0.0.0:{GATEWAY_PORT}                         ║")
     print("╚══════════════════════════════════════════════════╝")
     uvicorn.run(
-        "sensory.multimodal_gateway:app",
+        app,
         host="0.0.0.0",
         port=GATEWAY_PORT,
         reload=False,

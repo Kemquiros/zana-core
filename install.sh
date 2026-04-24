@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 🧠 ZANA Installer v2.5.0 — Sovereign Cognitive Architecture
+# 🧠 ZANA Installer v2.6.0 — Sovereign Cognitive Architecture
 # "Juntos hacemos temblar los cielos"
 
 set -euo pipefail

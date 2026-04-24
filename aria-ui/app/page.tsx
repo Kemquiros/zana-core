@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import AeonCard, { AEONS } from "../../components/AeonCard";
-import ResonanceRitual from "../../components/ResonanceRitual";
-import AeonAvatar from "../../components/AeonAvatar";
-import OnboardingWizard from "../../components/OnboardingWizard";
-import UpdateNotifier from "../../components/UpdateNotifier";
+import AeonCard, { AEONS } from "../components/AeonCard";
+import ResonanceRitual from "../components/ResonanceRitual";
+import AeonAvatar from "../components/AeonAvatar";
+import OnboardingWizard from "../components/OnboardingWizard";
+import UpdateNotifier from "../components/UpdateNotifier";
+import SettingsModal from "../components/SettingsModal";
+import { Settings } from "lucide-react";
 
 export default function CockpitPage() {
   const [profile, setProfile] = useState<any | null>(null);
   const [showRitual, setShowShowRitual] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   console.log("Rendering UpdateNotifier", UpdateNotifier); // Reference to avoid unused warning if conditionally rendered or just to silence the warning.
 
@@ -154,6 +157,15 @@ export default function CockpitPage() {
         </section>
 
       </div>
+
+      <button 
+        onClick={() => setShowSettings(true)}
+        className="fixed bottom-8 left-8 p-4 rounded-2xl bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all z-[100]"
+      >
+        <Settings className="w-5 h-5" />
+      </button>
+
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </main>
   );
 }

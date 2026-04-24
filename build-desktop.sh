@@ -20,6 +20,8 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 UI="$ROOT/aria-ui"
 RESOURCES="$UI/src-tauri/resources"
 SIDECAR_DIR="$UI/src-tauri/sidecar"
+TARGET=""
+
 # Parse arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -75,7 +77,7 @@ if command -v pyinstaller &>/dev/null; then
         --add-data "../zana_armor.so:."       \
         --add-data "tiktoken_cache:tiktoken_cache" \
         --collect-all litellm --collect-all tiktoken --collect-all smolagents                 \
-        --hidden-import faster_whisper        \
+        --hidden-import faster_whisper --hidden-import tiktoken_ext.openai_public --hidden-import tiktoken_ext        \
         --paths "."                           \
         multimodal_gateway.py
 

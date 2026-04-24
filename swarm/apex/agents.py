@@ -6,7 +6,7 @@ Refined with advanced Agentic AI patterns (ToT, ReAct, Reflection, CoT).
 
 import os
 from smolagents import ToolCallingAgent, LiteLLMModel
-from .rust_tools import calculate_eml, kalman_filter_surprise, audit_security_payload
+from .rust_tools import CalculateEmlTool, KalmanFilterSurpriseTool, AuditSecurityPayloadTool
 
 MODEL_ID = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022")
 
@@ -14,6 +14,9 @@ MODEL_ID = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022"
 def get_llm():
     return LiteLLMModel(model_id=MODEL_ID)
 
+calculate_eml = CalculateEmlTool()
+kalman_filter_surprise = KalmanFilterSurpriseTool()
+audit_security_payload = AuditSecurityPayloadTool()
 
 # ==========================================
 # ARCHITECTURAL PROMPTS

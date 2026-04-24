@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
 import { ArrowUpCircle, RefreshCw, X, Sparkles } from 'lucide-react';
 
 interface UpdateInfo {
@@ -20,9 +18,10 @@ export default function UpdateNotifier() {
     async function checkForUpdates() {
       try {
         setStatus('checking');
+        const { check } = await import('@tauri-apps/plugin-updater');
         const update = await check();
         if (update) {
-          setUpdate(update);
+          setUpdate(update as UpdateInfo);
           setVisible(true);
           setStatus('idle');
         }
@@ -46,7 +45,12 @@ export default function UpdateNotifier() {
       setStatus('ready');
       // Show ready state for a moment before relaunching
       setTimeout(async () => {
-        await relaunch();
+        try {
+          const { relaunch } = await import('@tauri-apps/plugin-process');
+          await relaunch();
+        } catch (e) {
+          console.error('Failed to relaunch', e);
+        }
       }, 1500);
     } catch (e) {
       console.error('Update failed', e);

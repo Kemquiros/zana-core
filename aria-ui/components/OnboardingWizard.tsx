@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
 import { Shield, Key, FolderOpen, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
@@ -37,6 +35,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
 
   const handleSelectVault = async () => {
     try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
       const selected = await open({
         directory: true,
         multiple: false,
@@ -57,6 +56,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
         VAULT_PATH: vaultPath,
         ...Object.fromEntries(Object.entries(keys).filter(([k, v]) => k !== '' && v.trim() !== ''))
       };
+      const { invoke } = await import('@tauri-apps/api/core');
       await invoke('save_env_config', { config });
       onComplete();
     } catch (e) {

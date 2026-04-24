@@ -21,7 +21,7 @@ impl Gateway {
             return Ok(());
         }
 
-        let child = Command::new(&binary)
+        let mut child = Command::new(&binary)
             .env("ZANA_GATEWAY_PORT", self.port.to_string())
             .env("ZANA_DB_PATH", data_dir().join("zana.db").to_str().unwrap())
             .kill_on_drop(true)
@@ -29,6 +29,30 @@ impl Gateway {
 
         log::info!("gateway started pid={}", child.id().unwrap_or(0));
         *guard = Some(child);
+        
+        let child_arc = self.child.clone();
+        tokio::spawn(async move {
+            loop {
+                sleep(Duration::from_secs(5)).await;
+                let mut exited = false;
+                {
+                    let mut guard = child_arc.lock().await;
+                    if let Some(child) = guard.as_mut() {
+                        if let Ok(Some(status)) = child.try_wait() {
+                            log::info!("gateway exited with status: {}", status);
+                            exited = true;
+                        }
+                    }
+                    if exited {
+                        *guard = None; // Drop child to reap it properly
+                    }
+                }
+                if exited {
+                    break;
+                }
+            }
+        });
+
         Ok(())
     }
 

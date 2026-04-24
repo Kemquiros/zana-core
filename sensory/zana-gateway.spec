@@ -3,7 +3,7 @@ from PyInstaller.utils.hooks import collect_all
 
 datas = [('../zana_steel_core.so', '.'), ('../zana_audio_dsp.so', '.'), ('../zana_armor.so', '.'), ('tiktoken_cache', 'tiktoken_cache')]
 binaries = []
-hiddenimports = ['faster_whisper']
+hiddenimports = ['faster_whisper', 'tiktoken_ext.openai_public', 'tiktoken_ext']
 tmp_ret = collect_all('litellm')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('tiktoken')
