@@ -2,13 +2,17 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="refresh" content="0;url=./es/" />
-    <title>ZANA Loading...</title>
-    <script>
-      // Redirección por JavaScript como respaldo
-      window.location.href = "./es/";
-    </script>
+    <title>ZANA Boot</title>
+    <style>
+      body { background: #000; color: #444; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+    </style>
   </head>
-  <body style="background: #000;">
+  <body>
+    <div>DESPLEGANDO CÓRTEX...</div>
+    <script>
+      // Redirección inmediata al idioma por defecto
+      // Usamos replace para que no quede en el historial de navegación
+      window.location.replace("./es/");
+    </script>
   </body>
 </html>
