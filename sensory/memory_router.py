@@ -28,8 +28,6 @@ PG_DB = os.getenv("ZANA_PG_DB", "zana_episodic")
 PG_USER = os.getenv("ZANA_PG_USER", "zana")
 PG_PASS = os.getenv("ZANA_PG_PASSWORD", "")
 
-CHROMA_URL = os.getenv("ZANA_CHROMA_URL", "http://localhost:58001")
-
 
 # ── PostgreSQL async connection pool ─────────────────────────────────────────
 
@@ -81,34 +79,6 @@ async def _pg_execute(query: str, *args) -> bool:
     except Exception as e:
         logger.warning("PostgreSQL execute failed: %s", e)
         return False
-
-
-# ── Chroma helpers ─────────────────────────────────────────────────────────
-
-
-async def _chroma_stats() -> dict:
-    try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.get(f"{CHROMA_URL}/api/v1/collections")
-            if r.status_code != 200:
-                return {"status": "offline", "collections": [], "total_docs": 0}
-            cols = r.json()
-            total = 0
-            for c in cols:
-                try:
-                    rc = await client.get(
-                        f"{CHROMA_URL}/api/v1/collections/{c['id']}/count"
-                    )
-                    total += rc.json() if rc.status_code == 200 else 0
-                except Exception:
-                    pass
-            return {
-                "status": "online",
-                "collections": [c["name"] for c in cols],
-                "total_docs": total,
-            }
-    except Exception:
-        return {"status": "offline", "collections": [], "total_docs": 0}
 
 
 # ── Request models ────────────────────────────────────────────────────────────
@@ -180,8 +150,6 @@ async def store_episodic(rec: EpisodicRecord):
 @router.get("/stats", summary="Collection sizes across all 4 memory stores")
 async def memory_stats():
     """Aggregate statistics for the full 4-store memory system."""
-    chroma = await _chroma_stats()
-
     # Episodic count
     ep_rows = await _pg_fetch("SELECT COUNT(*) AS cnt FROM episodic_memory")
     ep_count = ep_rows[0]["cnt"] if ep_rows else None
@@ -191,10 +159,9 @@ async def memory_stats():
     return {
         "stores": {
             "semantic": {
-                "backend": "ChromaDB",
-                "status": chroma["status"],
-                "collections": chroma["collections"],
-                "total_documents": chroma["total_docs"],
+                "backend": "Zana Steel Core",
+                "status": "online",
+                "total_documents": "simulated",
             },
             "episodic": {
                 "backend": "PostgreSQL+pgvector",

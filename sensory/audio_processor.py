@@ -142,6 +142,25 @@ class AudioProcessor:
 
     # ── Feature extraction (Rust DSP → numpy fallback) ───────────────────────
 
+    def is_voice_active(self, audio_bytes: bytes, threshold: float = 0.1) -> bool:
+        """
+        Uses Rust DSP to detect if voice activity is present in the audio chunk.
+        Useful for 'Ambient Senses' to trigger transcription only when someone speaks.
+        """
+        try:
+            import zana_audio_dsp
+            features = zana_audio_dsp.extract_features(audio_bytes)
+            # rms_energy > threshold and zero_crossing_rate suggests active signal
+            return features.rms_energy > threshold
+        except Exception:
+            # Fallback to simple numpy RMS
+            try:
+                data = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                rms = np.sqrt(np.mean(data**2))
+                return rms > threshold
+            except Exception:
+                return False
+
     def _extract_features(self, audio_bytes: bytes) -> AudioFeatures:
         # Primary: Rust zana_audio_dsp (zero-copy, Cooley-Tukey FFT)
         try:

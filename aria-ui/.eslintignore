@@ -1,6 +1,0 @@
-target/
-src-tauri/target/
-node_modules/
-.next/
-out/
-dist/

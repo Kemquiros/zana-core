@@ -1,59 +1,62 @@
 import os
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 
-import chromadb
-from sentence_transformers import SentenceTransformer
+import zana_steel_core
 from mcp.server.fastmcp import FastMCP
 
 # Load environment variables (from zana-core/.env)
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
-CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
-CHROMA_PORT = int(os.getenv("CHROMA_PORT", "8001"))
-COLLECTION_NAME = "vault_knowledge"
-EMBED_MODEL = os.getenv("EMBED_MODEL", "all-MiniLM-L6-v2")
-
 # Initialize MCP Server
 mcp = FastMCP("zana-memory")
 
 # Global instances (lazy load)
-chroma_client = None
 collection = None
-model = None
 
 
-def get_chroma():
-    global chroma_client, collection
-    if chroma_client is None:
-        chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
-        collection = chroma_client.get_or_create_collection(
-            name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
-        )
+def get_collection():
+    global collection
+    if collection is None:
+        try:
+            base_dir = Path(__file__).parent.parent.parent
+            index_path = str(base_dir / "data" / "memory.index")
+            collection = zana_steel_core.PyVectorIndex.load(index_path)
+        except Exception:
+            collection = zana_steel_core.PyVectorIndex()
     return collection
 
 
-def get_model():
-    global model
-    if model is None:
-        model = SentenceTransformer(EMBED_MODEL, device="cpu")
-    return model
-
-
-def format_chunks(results: dict) -> str:
-    """Format ChromaDB results into a readable string."""
-    if not results or not results.get("documents") or not results["documents"][0]:
+def format_chunks(results: list) -> str:
+    """Format Zana Steel Core results into a readable string."""
+    if not results:
         return "No relevant information found."
 
     formatted = []
-    docs = results["documents"][0]
-    metas = results["metadatas"][0]
-    distances = results["distances"][0] if "distances" in results else [0] * len(docs)
+    
+    for item in results:
+        # Depending on how pyo3 exposes the result, we try to access distance and metadata
+        try:
+            if isinstance(item, dict):
+                dist = item.get("distance", 0.0)
+                meta_str = item.get("metadata", "{}")
+            else:
+                dist = getattr(item, "distance", 0.0)
+                meta_str = getattr(item, "metadata", "{}")
+        except AttributeError:
+            dist = item[1]
+            meta_str = item[2]
 
-    for doc, meta, dist in zip(docs, metas, distances):
+        try:
+            meta = json.loads(meta_str)
+        except json.JSONDecodeError:
+            meta = {}
+
         file_path = meta.get("file_path", "Unknown file")
         heading = meta.get("heading", "")
         heading_display = f" > {heading}" if heading else ""
+        doc = meta.get("text", "")
 
         entry = f"--- Source: {file_path}{heading_display} (Distance: {dist:.4f}) ---\n{doc}\n"
         formatted.append(entry)
@@ -74,20 +77,35 @@ def semantic_search(query: str, collection_filter: str = None, top_k: int = 5) -
     Returns:
         Formatted text containing the most relevant chunks from the vault.
     """
-    col = get_chroma()
-    mod = get_model()
+    col = get_collection()
+    query_embedding = zana_steel_core.embed_text(query, 384)
 
-    query_embedding = mod.encode(query).tolist()
+    fetch_k = top_k * 5 if collection_filter else top_k
+    results = col.search(query_embedding, fetch_k)
 
-    where_clause = None
-    if collection_filter:
-        where_clause = {"folder": collection_filter}
+    filtered_results = []
+    for item in results:
+        try:
+            if isinstance(item, dict):
+                meta_str = item.get("metadata", "{}")
+            else:
+                meta_str = getattr(item, "metadata", "{}")
+        except AttributeError:
+            meta_str = item[2]
+            
+        try:
+            meta = json.loads(meta_str)
+        except json.JSONDecodeError:
+            meta = {}
+            
+        if collection_filter and meta.get("folder") != collection_filter:
+            continue
+            
+        filtered_results.append(item)
+        if len(filtered_results) >= top_k:
+            break
 
-    results = col.query(
-        query_embeddings=[query_embedding], n_results=top_k, where=where_clause
-    )
-
-    return format_chunks(results)
+    return format_chunks(filtered_results)
 
 
 @mcp.tool()
@@ -102,21 +120,8 @@ def get_entity(name: str) -> str:
     Returns:
         The content of the entity file.
     """
-    col = get_chroma()
-
-    # Try exact match first
-    results = col.get(where={"file_name": name})
-
-    if results and results.get("documents"):
-        # Reconstruct file from chunks
-        docs = results["documents"]
-        # Sort chunks by doc_id to keep order (crude sorting by chunk index)
-        # Note: Doc IDs look like relative/path.md::chunk_N or relative/path.md::chunk_N_0
-        combined = "\n\n".join(docs)
-        return f"--- Entity: {name} ---\n{combined}"
-
-    # If not exact match, do a targeted semantic search
-    return semantic_search(f"Information about {name}", top_k=3)
+    # The Rust index may not have a `.get()` method. We can fall back to targeted semantic search.
+    return semantic_search(f"Information about {name}", top_k=5)
 
 
 @mcp.tool()

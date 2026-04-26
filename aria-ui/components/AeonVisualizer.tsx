@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Activity, ShieldCheck } from "lucide-react";
+import { Zap, ShieldCheck } from "lucide-react";
 import { generateResonancePulse, AionMessage } from "../lib/aion";
 
 export default function AeonVisualizer() {

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 🧠 ZANA Installer v2.6.0 — Sovereign Cognitive Architecture
+# 🧠 ZANA Installer v2.7.0 — Sovereign Cognitive Architecture
 # "Juntos hacemos temblar los cielos"
 
 set -euo pipefail
@@ -16,22 +16,6 @@ RED='\033[0;31m'
 ZANA_INSTALL_DIR="${ZANA_INSTALL_DIR:-$HOME/.local/bin}"
 REPO="kemquiros/zana-core"
 LANGUAGE="en"
-AUTO_MODE=0
-
-# Parse arguments
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --auto)
-      AUTO_MODE=1
-      shift
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
-
-# We default to auto mode for curl | bash to reduce friction
 AUTO_MODE=1
 
 banner() {
@@ -73,8 +57,9 @@ check_dependencies() {
     fi
     
     if ! command -v docker &>/dev/null; then
-        echo -e "${YELLOW}⚠ Docker no detectado. Vital para las memorias (Postgres, Chroma).${RESET}"
-        echo -e "${CYAN}ℹ ZANA correrá en 'Modo Ligero' (Sin persistencia de Memoria profunda).${RESET}"
+        echo -e "${YELLOW}⚠ Docker no detectado. Requerido para la Memoria Episódica y World Model.${RESET}"
+        echo -e "${CYAN}ℹ Instala Docker desde https://docs.docker.com/get-docker/${RESET}"
+        exit 1
     fi
 }
 
@@ -83,10 +68,10 @@ install_core() {
     ZANA_REPO_DIR="$HOME/.zana/core-repo"
     
     # Use local path if developing, or clone repo otherwise.
-    if [ -d "cli" ]; then
+    if [ -d "cli" ] && [ -d "sensory" ]; then
         echo -e "${CYAN}▶ Instalando desde entorno local de desarrollo...${RESET}"
-        uv tool install "./cli" --force --quiet
         ZANA_REPO_DIR="$(pwd)"
+        uv tool install "./cli" --force --quiet
     else
         echo -e "${CYAN}▶ Clonando repositorio maestro en $ZANA_REPO_DIR...${RESET}"
         mkdir -p "$HOME/.zana"
@@ -129,11 +114,11 @@ install_core
 configure_path
 
 echo -e "\n${BOLD}${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${BOLD}  ZANA INSTALADA CON ÉXITO.${RESET}"
+echo -e "${BOLD}  ZANA v2.7.0 — INSTALADA CON ÉXITO.${RESET}"
 echo -e "${MAGENTA}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "\n  ${MAGENTA}JUNTOS HACEMOS TEMBLAR LOS CIELOS.${RESET}\n"
+echo -e "\n  ${MAGENTA}TU SOBERANÍA COGNITIVA HA DESPERTADO.${RESET}\n"
 
-echo -e "${CYAN}▶ Iniciando protocolo de calibración (zana setup)...${RESET}"
+echo -e "${CYAN}▶ Iniciando protocolo de configuración automatizado (zana start)...${RESET}"
 sleep 1
-# Execute the newly installed binary
-"$ZANA_INSTALL_DIR/zana" setup
+# Execute the newly installed binary to start the stack
+"$ZANA_INSTALL_DIR/zana" start

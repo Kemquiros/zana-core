@@ -1,0 +1,1 @@
+{"documents":[{"id":"doc1","embedding":[0.1,0.2,0.3],"metadata":"{\"source\": \"test1\"}"},{"id":"doc2","embedding":[0.9,0.8,0.7],"metadata":"{\"source\": \"test2\"}"},{"id":"doc3","embedding":[0.1,0.3,0.2],"metadata":"{\"source\": \"test3\"}"}]}

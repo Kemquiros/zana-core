@@ -8,8 +8,8 @@ export default function TitleBar() {
 
   useEffect(() => {
     // Only render controls in Tauri environment
-    if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
-      setIsTauri(true);
+    if (typeof window !== 'undefined' && (window as Record<string, unknown>).__TAURI_INTERNALS__) {
+      requestAnimationFrame(() => setIsTauri(true));
     }
   }, []);
 

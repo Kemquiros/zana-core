@@ -4,18 +4,14 @@ import os
 import sys
 from pathlib import Path
 
-import chromadb
 import click
+import json
 from rich.console import Console
 from rich.progress import track
-from sentence_transformers import SentenceTransformer
+import zana_steel_core
 
 from chunker import chunk_file
 from config import (
-    CHROMA_HOST,
-    CHROMA_PORT,
-    COLLECTION_NAME,
-    EMBED_MODEL,
     MAX_CHUNK_CHARS,
     MIN_CHUNK_CHARS,
     SKIP_EXTENSIONS,
@@ -102,11 +98,10 @@ def split_long_chunk(text: str, max_chars: int) -> list[str]:
 @click.command()
 @click.option("--reset", is_flag=True, help="Reset the collection before embedding")
 def cli(reset: bool):
-    """Embed the entire Obsidian vault into ChromaDB."""
+    """Embed the entire Obsidian vault into Zana Steel Core."""
     console.print("[bold blue]ZANA Embedding Pipeline[/bold blue]")
     console.print(f"Vault: [green]{VAULT_PATH}[/green]")
-    console.print(f"Chroma: [green]{CHROMA_HOST}:{CHROMA_PORT}[/green]")
-    console.print(f"Model: [green]{EMBED_MODEL}[/green]")
+    console.print("[green]Model: zana_steel_core (dim=384)[/green]")
 
     if not VAULT_PATH.exists():
         console.print(
@@ -114,30 +109,14 @@ def cli(reset: bool):
         )
         sys.exit(1)
 
-    # Initialize ChromaDB client
-    try:
-        chroma_client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
-        # Check connection
-        chroma_client.heartbeat()
-    except Exception as e:
-        console.print(f"[bold red]Error connecting to ChromaDB:[/bold red] {e}")
-        console.print("Make sure the ChromaDB Docker container is running.")
-        sys.exit(1)
-
-    if reset:
+    # Initialize Zana Steel Core Index
+    index_path = "data/memory.index"
+    os.makedirs("data", exist_ok=True)
+    if reset and os.path.exists(index_path):
         console.print("[yellow]Resetting collection...[/yellow]")
-        try:
-            chroma_client.delete_collection(name=COLLECTION_NAME)
-        except Exception:
-            pass  # Collection does not exist
+        os.remove(index_path)
 
-    collection = chroma_client.get_or_create_collection(
-        name=COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
-    )
-
-    # Initialize Embedding Model
-    console.print("[yellow]Loading embedding model...[/yellow]")
-    model = SentenceTransformer(EMBED_MODEL, device="cpu")
+    collection = zana_steel_core.PyVectorIndex()
 
     # Scan Vault
     console.print("[yellow]Scanning vault for markdown files...[/yellow]")
@@ -193,40 +172,30 @@ def cli(reset: bool):
         embed_text = f"{chunk.heading}\n\n{chunk.text}" if chunk.heading else chunk.text
         documents.append(embed_text)
 
-        # Flatten metadata for ChromaDB
+        # Flatten metadata for Zana Steel Core
         meta = {
             "file_path": chunk.file_path,
             "file_name": chunk.file_name,
             "folder": chunk.folder,
             "subfolder": chunk.subfolder,
             "heading": chunk.heading,
+            "text": embed_text,
         }
         # Add frontmatter, ensuring string values
         for k, v in chunk.fm.items():
             meta[f"fm_{k}"] = str(v)
 
-        metadatas.append(meta)
+        metadatas.append(json.dumps(meta))
 
     console.print(
-        f"[yellow]Embedding and upserting {len(documents)} chunks to ChromaDB...[/yellow]"
+        f"[yellow]Embedding and upserting {len(documents)} chunks to Zana Steel Core...[/yellow]"
     )
 
-    # Process in batches to avoid memory issues and API limits
-    for i in track(range(0, len(documents), batch_size), description="Upserting..."):
-        batch_docs = documents[i : i + batch_size]
-        batch_ids = ids[i : i + batch_size]
-        batch_metas = metadatas[i : i + batch_size]
+    for i in track(range(len(documents)), description="Upserting..."):
+        emb = zana_steel_core.embed_text(documents[i], 384)
+        collection.add(ids[i], emb, metadatas[i])
 
-        # Generate embeddings
-        embeddings = model.encode(batch_docs).tolist()
-
-        # Upsert to ChromaDB
-        collection.upsert(
-            ids=batch_ids,
-            embeddings=embeddings,
-            documents=batch_docs,
-            metadatas=batch_metas,
-        )
+    collection.save(index_path)
 
     console.print(
         "[bold green]✅ Embedding pipeline completed successfully![/bold green]"

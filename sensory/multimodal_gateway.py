@@ -571,6 +571,65 @@ async def sense_stream(ws: WebSocket):
         await ws.close(code=1011)
 
 
+@app.websocket("/sense/ambient")
+async def sense_ambient(ws: WebSocket):
+    """
+    Ambient Senses Endpoint.
+    ZANA listens passively to the environment. 
+    Only triggers orchestration when Voice Activity is detected via Rust DSP.
+    """
+    await ws.accept()
+    logger.info("🎤 [AMBIENT] Passive listener connected")
+    audio_buffer = b""
+    voice_detected = False
+    
+    try:
+        while True:
+            # Receive binary audio data
+            data = await ws.receive_bytes()
+            
+            # Use Rust DSP to detect voice activity
+            if _audio.is_voice_active(data):
+                if not voice_detected:
+                    logger.info("🎤 [AMBIENT] Voice detected, starting capture...")
+                    voice_detected = True
+                audio_buffer += data
+            else:
+                if voice_detected and len(audio_buffer) > 16000: # Approx 1s of 16kHz audio
+                    logger.info("🎤 [AMBIENT] Silence detected, processing segment...")
+                    # Process buffered audio
+                    result = _audio.transcribe(audio_buffer)
+                    if result.transcript.strip() and result.transcript != "[silence]":
+                        logger.info(f"🎤 [AMBIENT] Heard: '{result.transcript}'")
+                        
+                        # Forward to Orchestrator
+                        response = apex_orchestrator.process_request(result.transcript)
+                        
+                        # Generate TTS
+                        audio_resp = await _tts.synthesize_async(response)
+                        
+                        # Send back PerceptionEvent
+                        event = PerceptionEvent(
+                            modality="audio",
+                            text=result.transcript,
+                            response_text=response,
+                            response_audio_b64=base64.b64encode(audio_resp).decode()
+                        )
+                        await ws.send_json(event.to_dict())
+                        
+                    # Reset buffer
+                    audio_buffer = b""
+                    voice_detected = False
+                else:
+                    # Keep a small rolling buffer of silence to avoid clipping start of next sentence
+                    audio_buffer = data # Basic rolling, could be improved
+                    
+    except WebSocketDisconnect:
+        logger.info("🎤 [AMBIENT] Passive listener disconnected")
+    except Exception as e:
+        logger.error("❌ [AMBIENT] Error: %s", e)
+        await ws.close(code=1011)
+
 @app.get("/health")
 def health():
     """Gateway status and availability of each backend."""

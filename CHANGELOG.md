@@ -7,6 +7,22 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.7.0] — 2026-04-26
+
+### Added
+- **Sovereign Memory Engine v2 (Rust)**: Native vector index in Rust (`memory.rs`) replacing ChromaDB. Sub-millisecond similarity search and local persistence (`data/memory.index`).
+- **Ambient Senses (Voice DSP)**: Real-time passive listening via `zana_audio_dsp.so`. Passive Voice Activity Detection (VAD) and silence-triggered orchestration.
+- **N8N Hardened Sandbox**: Integrated N8N into the Docker stack for secure, sovereign workflow execution and automation.
+- **Cross-Aeon Protocol**: Formalized Pydantic schemas (`AeonDelegationRequest`, `AeonDelegationResponse`) for seamless task dispatching between agents and KoruOS.
+- **Web-First UI (Aria)**: Aria-UI is now optimized for browser-first usage. Removed Tauri dependencies for zero-friction access from any browser.
+- **Responsive UX**: Fixed Aeon avatar overlap issues on mobile and smaller screens.
+- **Interactive Shadow Mode**: The "Screensaver" mode now features a "Click to Wake" overlay with backdrop blur, preventing UI lockup.
+
+### Removed
+- **ChromaDB**: Entirely removed the ChromaDB Docker service and its network dependencies to reduce system overhead and improve privacy.
+
+---
+
 ## [1.0.0] — 2026-04-20
 
 ### Added

@@ -4,6 +4,7 @@ pub mod eml;
 pub mod kalman;
 pub mod brain;
 pub mod wasm;
+pub mod memory;
 
 // ── Hash-based embedding (no external model, deterministic) ──────────────────
 
@@ -173,6 +174,44 @@ impl PyPolicyBrain {
 }
 
 #[cfg(feature = "python")]
+#[pyclass]
+struct PyVectorIndex {
+    inner: memory::VectorIndex,
+}
+
+#[cfg(feature = "python")]
+#[pymethods]
+impl PyVectorIndex {
+    #[new]
+    fn new() -> Self {
+        Self { inner: memory::VectorIndex::new() }
+    }
+
+    fn add(&mut self, id: String, embedding: Vec<f64>, metadata: String) {
+        self.inner.add(id, embedding, metadata)
+    }
+
+    fn delete(&mut self, id: &str) {
+        self.inner.delete(id)
+    }
+
+    fn search(&self, query: Vec<f64>, top_k: usize) -> Vec<(String, f64, String)> {
+        self.inner.search(&query, top_k)
+    }
+
+    fn save(&self, path: &str) -> PyResult<()> {
+        self.inner.save(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+    }
+
+    #[staticmethod]
+    fn load(path: &str) -> PyResult<Self> {
+        let inner = memory::VectorIndex::load(path)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
+        Ok(Self { inner })
+    }
+}
+
+#[cfg(feature = "python")]
 #[pymodule]
 fn zana_steel_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(eml_op, m)?)?;
@@ -181,5 +220,6 @@ fn zana_steel_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(embed_text, m)?)?;
     m.add_class::<PyKalmanFilter>()?;
     m.add_class::<PyPolicyBrain>()?;
+    m.add_class::<PyVectorIndex>()?;
     Ok(())
 }

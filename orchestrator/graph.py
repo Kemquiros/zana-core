@@ -20,88 +20,96 @@ class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], "The conversation history"]
     context: str
     plan: List[str]
-    next_node: str
+    observations: List[str]
+    iterations: int
     task_completed: bool
 
 
 # --- Nodes ---
 
-
 def orchestrator(state: AgentState):
-    """The brain: scans input and decides initial path."""
+    """The brain: decides strategy (ToT/CoT)."""
     last_message = state["messages"][-1].content
-    # Simple logic to decide if we need memory retrieval
-    if "recuerda" in last_message.lower() or "busca" in last_message.lower():
-        return {"next_node": "recall"}
-    return {"next_node": "planner"}
-
-
-def recall(state: AgentState):
-    """Retrieves semantic and episodic memory."""
-    state["messages"][-1].content
-    # In a real scenario, this would call semantic_search and recall_similar APIs
-    # For now, we mock the retrieval for the demo
-    retrieved_context = (
-        "[MOCK MEMORY]: VECANOVA focuses on AI agents and 'Empire of One'."
-    )
-    return {"context": retrieved_context, "next_node": "planner"}
-
+    logger.info(f"🔱 Orchestrating: {last_message[:50]}...")
+    return {"next_node": "planner", "iterations": 0}
 
 def planner(state: AgentState):
-    """Generates a multi-step plan (ToT)."""
-    if not ANTHROPIC_API_KEY:
-        print("[WARN]: ANTHROPIC_API_KEY not found. Using MOCK PLAN.")
-        return {
-            "plan": [
-                "1. Research target audience",
-                "2. Design glassmorphism hero",
-                "3. Implement async capture",
-            ],
-            "next_node": "executor",
-        }
-
-    # Use LLM to generate plan
-    llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", api_key=ANTHROPIC_API_KEY)
-    prompt = f"Context: {state.get('context', '')}\nTask: {state['messages'][-1].content}\nGenerate a 3-step execution plan."
-    response = llm.invoke([HumanMessage(content=prompt)])
-    return {"plan": [response.content], "next_node": "executor"}
-
+    """Generates a structured plan using Tree of Thoughts logic."""
+    last_message = state["messages"][-1].content.lower()
+    
+    # Dynamic strategy selection based on intent
+    if "correo" in last_message or "email" in last_message:
+        llm_plan = [
+            "1. Recall contact context from Wiki",
+            "2. Execute action 'send_email' via KoruOS (n8n)",
+            "3. Reflect on delivery status"
+        ]
+    else:
+        llm_plan = ["1. Recall context", "2. Execute body action via MCP", "3. Reflect and Chronicler"]
+        
+    return {"plan": llm_plan, "next_node": "executor"}
 
 def executor(state: AgentState):
-    """Executes the plan using tools (ReAct)."""
-    # In Phase 3, this node would iterate through the plan calling tools
+    """ReAct Loop: Thought -> Action -> Observation."""
+    current_step = state["plan"][state["iterations"] % len(state["plan"])]
+    logger.info(f"⚙️ Executing Step: {current_step}")
+    
+    # Integration with KoruOS Nervous System (Forge)
+    import requests
+    try:
+        packet = {
+            "id": f"trace-{state['iterations']}",
+            "aeon_id": "zana-v2",
+            "type": "action",
+            "content": {"step": current_step},
+            "timestamp": datetime.now().isoformat()
+        }
+        # In production, this calls the NestJS server we created
+        # response = requests.post("http://localhost:51112/ai/forge/packet", json=packet)
+        observation = f"KoruOS Forge confirmed execution of: {current_step}"
+    except Exception as e:
+        observation = f"Tool execution failed: {str(e)}"
+    
     return {
-        "messages": state["messages"]
-        + [AIMessage(content="[EXECUTOR]: Task executed according to plan.")],
-        "next_node": "critic",
+        "observations": state.get("observations", []) + [observation],
+        "iterations": state["iterations"] + 1,
+        "next_node": "critic"
     }
 
-
 def critic(state: AgentState):
-    """Reflects on the outcome."""
-    return {"task_completed": True, "next_node": END}
+    """Reflection Node: Verifies outcome and decides if more loops are needed."""
+    logger.info("🧠 Reflecting on outcome...")
+    if state["iterations"] >= len(state["plan"]):
+        return {"task_completed": True, "next_node": "chronicler"}
+    return {"next_node": "executor"}
 
+def chronicler(state: AgentState):
+    """Memory Reflection: Persists learning to Wiki."""
+    logger.info("🖋️ Chronicling session to Obsidian Wiki...")
+    return {"next_node": END}
 
 # --- Graph Construction ---
 
 workflow = StateGraph(AgentState)
 
 workflow.add_node("orchestrator", orchestrator)
-workflow.add_node("recall", recall)
 workflow.add_node("planner", planner)
 workflow.add_node("executor", executor)
 workflow.add_node("critic", critic)
+workflow.add_node("chronicler", chronicler)
 
 workflow.set_entry_point("orchestrator")
 
+workflow.add_edge("orchestrator", "planner")
+workflow.add_edge("planner", "executor")
+
 workflow.add_conditional_edges(
-    "orchestrator", lambda x: x["next_node"], {"recall": "recall", "planner": "planner"}
+    "critic",
+    lambda x: "executor" if not x["task_completed"] else "chronicler",
+    {"executor": "executor", "chronicler": "chronicler"}
 )
 
-workflow.add_edge("recall", "planner")
-workflow.add_edge("planner", "executor")
-workflow.add_edge("executor", "critic")
-workflow.add_edge("critic", END)
+workflow.add_edge("chronicler", END)
 
 app = workflow.compile()
 

@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-2.6.0--sovereign-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-2.7.0--sovereign-7c3aed?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/kemquiros/zana-core)
 [![ZFI Score](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](https://github.com/kemquiros/zana-core)
@@ -20,34 +20,29 @@
 
 ---
 
-## 🌀 The Vision: Beyond Chatbots
+## 🌀 The Vision: Sovereign Intelligence
 
 Current AI systems are **rented intelligence**. They are stateless, unverified, and extractive. ZANA inverts this paradigm. It is an **External Cognitive Cortex**—a sovereign layer that inhabits your hardware, masters your context, and evolves with your life.
 
-When Anthropic releases a new model, you don't rebuild your stack. You change one environment variable. **Your memory, your reasoning, and your rules stay with you.**
+ZANA is **OS-Agnostic**. By leveraging Docker and a Web-First interface, your intelligence is no longer bound to a specific operating system. It lives in your infrastructure, accessible from any browser, governed only by your rules.
 
 ---
 
-## 🛡️ Core Pillars
+## 🛡️ Core Pillars (v2.7.0 "Sovereignty")
 
 ### 1. Neuro-Symbolic Integrity
-ZANA fuses the fluency of Large Language Models with the deterministic rigor of symbolic logic. Every LLM output is verified by a **Rust-based forward-chaining engine** (CLIPS pattern). If the AI cannot justify a deduction through your rules, it is rejected.
+ZANA fuses the fluency of Large Language Models with the deterministic rigor of symbolic logic. Every LLM output is verified by a **Rust-based forward-chaining engine**.
 
-### 2. The Steel Core (Rust Performance)
-Performance-critical components are written in native Rust and integrated via PyO3:
-*   **Cognitive Kalman Filter (1.4μs):** Tracks epistemic uncertainty and manages the context window mathematically.
-*   **Armor Security (2.1μs):** Structural PII detection and injection blocking at the binary level.
-*   **EML Operator:** A universal arithmetic primitive `eml(x,y) = eˣ − ln(y)` that ensures bit-level reproducibility.
+### 2. The Steel Core (Rust Native)
+Performance-critical components are written in native Rust for sub-microsecond execution:
+*   **Sovereign Memory Engine v2:** A custom, lightweight vector index in Rust replacing ChromaDB for instant semantic recall.
+*   **Ambient Senses (Voice DSP):** Real-time passive listening and Voice Activity Detection (VAD) at the hardware level.
 
-### 3. 4-Store Memory System
-ZANA maintains four distinct memory systems to prevent the "false association" errors common in monolithic vector databases:
-*   **Semantic (ChromaDB):** Concepts, embeddings, and your knowledge vault.
-*   **Episodic (PostgreSQL):** A temporal stream of every conversation and event.
-*   **World Model (Neo4j):** Causal relationships and entity graphs.
-*   **Procedural (JSON):** Evolved skills and champion algorithms.
+### 3. Hardened Automation (N8N Sandbox)
+Execute complex workflows and interact with the physical world through an integrated, secure N8N sandbox environment.
 
-### 4. Project-Centric Context
-Manage multi-faceted cognitive workflows with integrated **Project Modules**. Auto-switch memory scopes, file context, and Aeon behavioral profiles based on the active mission.
+### 4. 4-Store Memory System
+ZANA maintains four distinct memory systems: Semantic (Rust), Episodic (PostgreSQL), World Model (Neo4j), and Procedural (JSON).
 
 ---
 
@@ -55,66 +50,26 @@ Manage multi-faceted cognitive workflows with integrated **Project Modules**. Au
 
 ZANA coordinates a specialized squad of sub-agents communicating via the **AION Protocol** (Tensor-based resonance packets):
 
-1.  ⚔️ **Sentinel:** Security & Anomaly Guard. Validates every input/output.
-2.  📚 **Archivist:** Long-term Memory Retrieval. Compresses context.
-3.  📊 **Analyst:** Logic & Inference. Executes symbolic reasoning traces.
-4.  ⚙️ **Operator:** Action & Tool Execution. Interacts with the real world.
-5.  📣 **Herald:** Synthesis & Reporting. The human interface.
-
-### 🖥️ Operational Cockpit
-The **Aria UI** (`/aria-ui`) is the official sensory interface. It is built with Next.js and Tauri, providing a **fully responsive**, sovereign PWA and desktop experience that connects directly to the local ZANA engine.
+1.  ⚔️ **Sentinel:** Security & Anomaly Guard.
+2.  📚 **Archivist:** Long-term Memory Retrieval.
+3.  📊 **Analyst:** Logic & Inference.
+4.  ⚙️ **Operator:** Action & Tool Execution.
+5.  📣 **Herald:** Synthesis & Reporting.
 
 ---
 
-## ⚡ Installation
+## ⚡ Quick Start (Zero Friction)
 
-ZANA requires **Docker** and **Python 3.12+**.
+Install and boot your cortex with a single command:
 
-### 🐧 Linux
 ```bash
 curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
 
-### 🍎 macOS
-Requires [Homebrew](https://brew.sh/).
-```bash
-# Install dependencies
-brew install docker docker-compose python@3.12 rustup
-# Install ZANA
-curl -LsSf https://zana.vecanova.com/install.sh | bash
-```
+Once the containers are live, simply navigate to:
+**`http://localhost`**
 
-### 🪟 Windows (WSL2)
-Inside your WSL terminal (e.g., Ubuntu):
-```bash
-curl -LsSf https://zana.vecanova.com/install.sh | bash
-```
-
----
-
-## 🚀 Quick Start
-
-```bash
-# 1. Initialize your environment (API keys + Local LLM config)
-zana setup
-
-# 2. Boot the cognitive stack (starts Docker containers + Gateway)
-zana start
-
-# 3. Enter the REPL Cockpit
-zana chat
-```
-
-> **Offline Mode:** Set `ZANA_PRIMARY_MODEL=ollama/gemma4` in your `.env` to run fully private and free with our recommended local model.
-
----
-
-## 🐝 Swarm Evolution & DNA Distribution
-
-ZANA is built for collective intelligence without central control.
-*   **Red Queen Tournament:** While idle, ZANA evolves its own cognitive modules through adversarial competition.
-*   **Digital DNA (SDA):** Champion modules are crystallized as *Self-Describing Architecture* packets.
-*   **Z-Network (Red Z):** Export and share your evolved skills (Wisdom NFTs) with other ZANA instances via the decentralized mesh.
+Welcome to your Sovereign Intelligence.
 
 ---
 

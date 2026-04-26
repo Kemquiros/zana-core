@@ -142,7 +142,6 @@ export const AEONS: AeonDef[] = [
   },
 ];
 
-const COST_LABEL = { low: "🟢 Low cost", mid: "🟡 Mid cost", high: "🔴 Premium" };
 const LATENCY_LABEL = { fast: "⚡ Fast", medium: "◎ Balanced", slow: "◉ Deep" };
 
 interface AeonCardProps {
@@ -162,10 +161,6 @@ export default function AeonCard({ aeon, active = false, onClick }: AeonCardProp
   const springConfig = { damping: 20, stiffness: 200 };
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), springConfig);
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-10, 10]), springConfig);
-
-  // Sheen highlight position
-  const sheenX = useTransform(mouseX, [-0.5, 0.5], ["0%", "100%"]);
-  const sheenY = useTransform(mouseY, [-0.5, 0.5], ["0%", "100%"]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
