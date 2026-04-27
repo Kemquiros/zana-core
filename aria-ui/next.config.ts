@@ -8,6 +8,20 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   // disable image optimization for static export
   images: isTauri ? { unoptimized: true } : {},
+  ...(isTauri ? {} : {
+    async rewrites() {
+      return [
+        {
+          source: "/resonance/:path*",
+          destination: "http://localhost:54446/resonance/:path*"
+        },
+        {
+          source: "/sense/:path*",
+          destination: "http://localhost:54446/sense/:path*"
+        }
+      ];
+    }
+  })
 };
 
 export default nextConfig;

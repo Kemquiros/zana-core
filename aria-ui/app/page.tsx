@@ -11,7 +11,7 @@ import SettingsModal from "../components/SettingsModal";
 import { Settings, ExternalLink, Activity, Zap, Heart, Brain, Star } from "lucide-react";
 
 export default function CockpitPage() {
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [showRitual, setShowShowRitual] = useState(false);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ export default function CockpitPage() {
       }
 
       try {
-        const res = await fetch('http://localhost:51111/resonance/profile');
+        const res = await fetch('/resonance/profile');
         const data = await res.json();
         if (data.personality_archetype) {
           setProfile(data);

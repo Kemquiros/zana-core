@@ -8,6 +8,7 @@ import { KORU_GENOME_V4 } from '../app/lib/genome';
 import { AeonVisualDNA, VirtualSpace } from '../lib/koru-types';
 
 interface AeonDNA {
+  [key: string]: any;
   name: string;
   personality_archetype: string;
   visual_genes: {
@@ -34,7 +35,7 @@ const AEON_NAMES = [
 export default function ResonanceRitual({ onComplete }: { onComplete: (data: unknown) => void }) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentPhaseIdx, setCurrentPhaseIdx] = useState(-1); // -1: Intro, 0-4: Phases, 5: Visual Config, 6: Forge, 7: Interpretation
-  const [results, setResults] = useState<unknown>(null);
+  const [results, setResults] = useState<any>(null);
   
   const [dna, setDna] = useState<AeonDNA>({
     name: 'Aura',
@@ -103,10 +104,17 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
     };
 
     try {
-      // In production, this would be a real call to KoruOS resonance engine
-      // const res = await fetch('http://localhost:54446/resonance/forge', { ... });
-      // const finalProfile = await res.json();
-      setResults(payload);
+      const res = await fetch('/resonance/forge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const finalProfile = await res.json();
+        setResults(finalProfile);
+      } else {
+        setResults(payload);
+      }
       setTimeout(() => setCurrentPhaseIdx(7), 3000);
     } catch {
       setResults(payload);

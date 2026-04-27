@@ -4,6 +4,10 @@
     reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
   }
 
+  handle /resonance/* {
+    reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
+  }
+
   handle /health {
     reverse_proxy {$ZANA_GATEWAY_HOST:-gateway}:{$ZANA_GATEWAY_PORT:-54446}
   }

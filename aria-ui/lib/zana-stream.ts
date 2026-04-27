@@ -28,8 +28,18 @@ interface PerceptionEvent {
 }
 
 const wsUrl = (httpUrl?: string) => {
-  if (!httpUrl) return "ws://localhost:54446/sense/stream";
-  return httpUrl.replace("http://", "ws://") + "/sense/stream";
+  if (httpUrl) return httpUrl.replace("http://", "ws://").replace("https://", "wss://") + "/sense/stream";
+  
+  if (typeof window !== "undefined") {
+    const envUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
+    if (envUrl && envUrl.startsWith("http")) {
+      return envUrl.replace("http://", "ws://").replace("https://", "wss://") + "/sense/stream";
+    }
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}/sense/stream`;
+  }
+
+  return "ws://localhost:54446/sense/stream";
 };
 
 export function useZanaStream(sessionId: string) {
