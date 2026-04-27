@@ -71,7 +71,11 @@ def _wait_for_gateway(timeout: int = 60) -> None:
             r = httpx.get(gateway_url, timeout=2)
             if r.status_code == 200:
                 console.print()
-                console.print("[success]Gateway online.[/success]")
+                console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+                console.print("[success]  Córtex en línea. El Gateway está activo.[/success]")
+                console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+                console.print("\n[bold white]🌐 Abre tu navegador en:[/bold white] [bold cyan]http://localhost[/bold cyan] [muted](o la IP/dominio de tu VPS)[/muted]")
+                console.print("[muted]Inicia el Ritual de Resonancia e interactúa con tu Aeón.[/muted]\n")
                 return
         except Exception:
             pass
