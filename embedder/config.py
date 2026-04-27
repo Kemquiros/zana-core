@@ -12,9 +12,7 @@ if not vault_env:
 
 VAULT_PATH = Path(vault_env)
 
-CHROMA_HOST = os.getenv("CHROMA_HOST", "localhost")
-CHROMA_PORT = int(os.getenv("CHROMA_PORT", "8001"))
-CHROMA_URL = f"http://{CHROMA_HOST}:{CHROMA_PORT}"
+MEMORY_INDEX_PATH = Path(os.getenv("ZANA_CORE_DIR", ".")) / "data" / "memory.index"
 
 COLLECTION_NAME = "vault_knowledge"
 EMBED_MODEL = os.getenv("EMBED_MODEL", "all-MiniLM-L6-v2")
