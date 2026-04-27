@@ -46,9 +46,9 @@ export function useZanaStream(sessionId: string) {
   const [connected, setConnected] = useState(false);
   const [aeonState, setAeonState] = useState<AeonState>("idle");
   const [messages, setMessages] = useState<Message[]>([]);
-  
-  const ws = useRef<WebSocket | null>(null);
-  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+  const [audioLevel, setAudioLevel] = useState(0);
+
+  const ws = useRef<WebSocket | null>(null);  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
 
   const addMessage = useCallback((msg: Omit<Message, "id" | "timestamp">) => {
     setMessages((prev) => [
@@ -145,5 +145,14 @@ export function useZanaStream(sessionId: string) {
     [addMessage, sessionId],
   );
 
-  return { connected, aeonState, setAeonState, messages, sendText, sendAudio, sendImage };
+  useEffect(() => {
+    if (aeonState === "speaking" || aeonState === "listening") {
+      const interval = setInterval(() => setAudioLevel(Math.random()), 100);
+      return () => clearInterval(interval);
+    } else {
+      setAudioLevel(0);
+    }
+  }, [aeonState]);
+
+  return { connected, aeonState, setAeonState, messages, sendText, sendAudio, sendImage, audioLevel };
 }

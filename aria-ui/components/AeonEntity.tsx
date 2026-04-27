@@ -2,10 +2,49 @@
 
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
+import { extend, useFrame } from '@react-three/fiber';
+import { shaderMaterial } from '@react-three/drei';
 
-export default function AeonEntity({ dna }: { dna: any }) {
+const AeonShaderMaterial = shaderMaterial(
+  { uTime: 0, uAudioLevel: 0 },
+  // Vertex Shader
+  `
+  uniform float uTime;
+  uniform float uAudioLevel;
+  attribute vec3 color;
+  varying vec3 vColor;
+  void main() {
+    vColor = color;
+    vec3 pos = position;
+    // Audio reactive expansion
+    float noise = sin(pos.x * 5.0 + uTime) * cos(pos.y * 5.0 + uTime);
+    // Approximate normal by normalizing position since it's a sphere
+    vec3 norm = normalize(pos);
+    pos += norm * noise * uAudioLevel * 0.5; 
+    
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_PointSize = (10.0 + uAudioLevel * 20.0) * (1.0 / -mvPosition.z);
+    gl_Position = projectionMatrix * mvPosition;
+  }
+  `,
+  // Fragment Shader
+  `
+  varying vec3 vColor;
+  void main() {
+    // Soft circular particle
+    float dist = length(gl_PointCoord - vec2(0.5));
+    if (dist > 0.5) discard;
+    float alpha = smoothstep(0.5, 0.1, dist);
+    gl_FragColor = vec4(vColor, alpha * 0.8);
+  }
+  `
+);
+
+extend({ AeonShaderMaterial });
+
+export default function AeonEntity({ dna, audioLevel = 0 }: { dna: any, audioLevel?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
+  const materialRef = useRef<any>(null);
   const particleCount = 5000;
 
   const [positions, colors] = useMemo(() => {
@@ -42,6 +81,10 @@ export default function AeonEntity({ dna }: { dna: any }) {
     if (pointsRef.current) {
       pointsRef.current.rotation.y = state.clock.elapsedTime * 0.1;
     }
+    if (materialRef.current) {
+      materialRef.current.uTime = state.clock.elapsedTime;
+      materialRef.current.uAudioLevel = THREE.MathUtils.lerp(materialRef.current.uAudioLevel, audioLevel, 0.1);
+    }
   });
 
   return (
@@ -50,7 +93,8 @@ export default function AeonEntity({ dna }: { dna: any }) {
         <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
         <bufferAttribute attach="attributes-color" count={particleCount} array={colors} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.05} vertexColors transparent opacity={0.8} blending={THREE.AdditiveBlending} depthWrite={false} />
+      {/* @ts-expect-error - Custom element extended dynamically */}
+      <aeonShaderMaterial ref={materialRef} attach="material" transparent depthWrite={false} blending={THREE.AdditiveBlending} />
     </points>
   );
 }

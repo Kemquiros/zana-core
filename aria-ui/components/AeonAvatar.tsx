@@ -71,7 +71,7 @@ function GenerativeCore({ dna }: { dna: AeonVisualDNA | null }) {
   );
 }
 
-export default function AeonAvatar({ dna }: { dna: Record<string, unknown> | null }) {
+export default function AeonAvatar({ dna, audioLevel = 0 }: { dna: Record<string, unknown> | null, audioLevel?: number }) {
   // If dna is actually the full profile, extract visual_dna
   const visualDna: AeonVisualDNA | null = (dna?.visual_dna as AeonVisualDNA) || (dna?.visual_genes ? {
     base_model_index: 0,
@@ -91,7 +91,7 @@ export default function AeonAvatar({ dna }: { dna: Record<string, unknown> | nul
         <pointLight position={[10, 10, 10]} intensity={1.5} />
         <Stars radius={100} depth={50} count={visualDna?.particle_density ?? 5000} factor={4} saturation={0} fade speed={1} />
         
-        <AeonEntity dna={visualDna} />
+        <AeonEntity dna={visualDna} audioLevel={audioLevel} />
         
         {/* Dynamic Orbital rings based on base_model_index */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>

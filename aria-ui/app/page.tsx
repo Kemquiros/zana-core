@@ -9,6 +9,7 @@ import OnboardingWizard from "../components/OnboardingWizard";
 import ChatInterface from "../components/ChatInterface";
 import SettingsModal from "../components/SettingsModal";
 import { Settings, ExternalLink, Activity, Zap, Heart, Brain, Star } from "lucide-react";
+import { useZanaStream } from "../lib/zana-stream";
 
 export default function CockpitPage() {
   const [profile, setProfile] = useState<any | null>(null);
@@ -18,6 +19,9 @@ export default function CockpitPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [shadowMode, setShadowMode] = useState(false);
   const [koruStatus, setKoruStatus] = useState<'connected' | 'disconnected'>('disconnected');
+
+  // Lift stream connection state up to share audio level with the avatar
+  const stream = useZanaStream("cockpit-session");
 
   useEffect(() => {
     // Default shadow mode to false on first load to prevent "invisible UI" confusion
@@ -144,13 +148,13 @@ export default function CockpitPage() {
                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">Canal de Comunicación</span>
                     <div className="h-px flex-1 bg-white/5" />
                   </div>
-                  <ChatInterface />
+                  <ChatInterface stream={stream} />
                 </div>
             </div>
 
             <div className="space-y-8 lg:sticky lg:top-20 relative z-0">
               <div className="relative aspect-square glass rounded-[60px] overflow-hidden border border-white/5 shadow-2xl shadow-indigo-500/10">
-                  <AeonAvatar dna={profile} />
+                  <AeonAvatar dna={profile} audioLevel={stream.audioLevel} />
                   <div className="absolute bottom-8 left-8 right-8 flex justify-between items-end">
                       <div className="space-y-1">
                           <p className="text-[8px] font-mono text-indigo-400 uppercase tracking-widest">Resonancia Activa</p>
