@@ -91,7 +91,7 @@ export default function AeonAvatar({ dna }: { dna: Record<string, unknown> | nul
         <pointLight position={[10, 10, 10]} intensity={1.5} />
         <Stars radius={100} depth={50} count={visualDna?.particle_density ?? 5000} factor={4} saturation={0} fade speed={1} />
         
-        <GenerativeCore dna={visualDna} />
+        <AeonEntity dna={visualDna} />
         
         {/* Dynamic Orbital rings based on base_model_index */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
@@ -107,6 +107,11 @@ export default function AeonAvatar({ dna }: { dna: Record<string, unknown> | nul
         )}
 
         <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
+      </Canvas>
+    </div>
+  );
+}
+{4.5} />
       </Canvas>
     </div>
   );
