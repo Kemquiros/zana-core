@@ -7,6 +7,7 @@ import httpx
 import typer
 
 from cli.tui.theme import console
+from cli.tui.onboarding import ensure_env_configured
 
 # Smart STACK_ROOT resolution
 def _resolve_stack_root() -> Path:
@@ -28,15 +29,21 @@ def _resolve_stack_root() -> Path:
     return dev_root # Fallback to dev_root for error reporting
 
 STACK_ROOT = _resolve_stack_root()
-GATEWAY_URL = "http://localhost:54446/health"
-SERVICES = ["chromadb", "postgres", "redis", "neo4j", "zana-gateway", "aria-ui"]
+SERVICES = ["postgres", "redis", "neo4j", "zana-gateway", "aria-ui"]
 
+def _get_gateway_url() -> str:
+    # Use environment variable if set by dotenv, otherwise default to 54446
+    port = os.getenv("ZANA_GATEWAY_PORT", "54446")
+    return f"http://localhost:{port}/health"
 
 def cmd_start(detach: bool = True) -> None:
     compose = STACK_ROOT / "docker-compose.yml"
     if not compose.exists():
         console.print(f"[error]docker-compose.yml not found at {STACK_ROOT}[/error]")
         raise typer.Exit(1)
+
+    # 1. Ensure .env is securely configured with passwords before starting
+    ensure_env_configured(STACK_ROOT)
 
     console.print("[primary]Booting ZANA stack...[/primary]")
 
@@ -57,10 +64,11 @@ def cmd_start(detach: bool = True) -> None:
 def _wait_for_gateway(timeout: int = 60) -> None:
     console.print("[muted]Waiting for Gateway...[/muted]", end="")
     deadline = time.time() + timeout
+    gateway_url = _get_gateway_url()
 
     while time.time() < deadline:
         try:
-            r = httpx.get(GATEWAY_URL, timeout=2)
+            r = httpx.get(gateway_url, timeout=2)
             if r.status_code == 200:
                 console.print()
                 console.print("[success]Gateway online.[/success]")

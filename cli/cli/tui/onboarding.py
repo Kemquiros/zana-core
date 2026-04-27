@@ -2,6 +2,8 @@ import shutil
 import subprocess
 from pathlib import Path
 import time
+import secrets
+import string
 
 import questionary
 from questionary import Style
@@ -27,6 +29,78 @@ Q_STYLE = Style(
         ("text", "fg:#f3e8ff"),
     ]
 )
+
+def _generate_secret(length: int = 32) -> str:
+    alphabet = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+def ensure_env_configured(stack_root: Path) -> None:
+    """Ensure that the local .env file in stack_root has critical variables securely populated."""
+    env_path = stack_root / ".env"
+    env_example = stack_root / ".env.example"
+    
+    if not env_path.exists():
+        if env_example.exists():
+            shutil.copy(env_example, env_path)
+            console.print("[muted]Created .env from .env.example[/muted]")
+        else:
+            env_path.touch()
+
+    content = env_path.read_text()
+    lines = content.splitlines()
+    env_dict = {}
+    
+    for line in lines:
+        line = line.strip()
+        if line and not line.startswith('#') and '=' in line:
+            key, val = line.split('=', 1)
+            env_dict[key.strip()] = val.strip()
+            
+    updates_made = False
+    
+    # Define critical secrets that need strong auto-generated passwords if missing or default
+    critical_secrets = [
+        "POSTGRES_PASSWORD",
+        "NEO4J_PASSWORD",
+        "N8N_PASSWORD",
+        "TELEGRAM_WEBHOOK_SECRET"
+    ]
+    
+    for secret_key in critical_secrets:
+        # Generate if missing or if it matches the placeholder text in .env.example
+        current_val = env_dict.get(secret_key, "")
+        if not current_val or current_val in ["change_me_strong_password", "zana_pass", "zana_neo4j", "zana_n8n_secure"]:
+            new_secret = _generate_secret()
+            env_dict[secret_key] = new_secret
+            updates_made = True
+            
+    if "N8N_USER" not in env_dict or not env_dict["N8N_USER"]:
+        env_dict["N8N_USER"] = "zana_admin"
+        updates_made = True
+
+    if updates_made:
+        # Reconstruct the file preserving comments and structure as much as possible
+        new_lines = []
+        updated_keys = set()
+        
+        for line in lines:
+            if '=' in line and not line.strip().startswith('#'):
+                key = line.split('=', 1)[0].strip()
+                if key in env_dict:
+                    new_lines.append(f"{key}={env_dict[key]}")
+                    updated_keys.add(key)
+                else:
+                    new_lines.append(line)
+            else:
+                new_lines.append(line)
+                
+        # Add any keys that weren't in the original file
+        for key, val in env_dict.items():
+            if key not in updated_keys:
+                new_lines.append(f"{key}={val}")
+                
+        env_path.write_text("\n".join(new_lines) + "\n")
+        console.print("[success]Securely auto-configured missing secrets in .env[/success]")
 
 def _check_docker() -> bool:
     return shutil.which("docker") is not None and _docker_running()
@@ -120,11 +194,11 @@ def _mock_download_brain():
         console=console,
     ) as progress:
         task1 = progress.add_task("[cyan]Descargando Postgres (Episodic DB)...", total=100)
-        task2 = progress.add_task("[magenta]Descargando ChromaDB (Semantic)...", total=100)
+        
         
         while not progress.finished:
             progress.update(task1, advance=2)
-            progress.update(task2, advance=1.5)
+            # Removed undefined task2 update to fix potential crash
             time.sleep(0.05)
             
     console.print("[success]Servicios de Memoria listos.[/success]")
