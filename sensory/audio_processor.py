@@ -149,9 +149,8 @@ class AudioProcessor:
         """
         try:
             import zana_audio_dsp
-            features = zana_audio_dsp.extract_features(audio_bytes)
-            # rms_energy > threshold and zero_crossing_rate suggests active signal
-            return features.rms_energy > threshold
+            # Primary: use the new PCM-optimized function for raw buffers
+            return zana_audio_dsp.is_voice_active_pcm(audio_bytes, threshold)
         except Exception:
             # Fallback to simple numpy RMS
             try:

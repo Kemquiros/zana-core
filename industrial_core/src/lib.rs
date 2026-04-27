@@ -59,16 +59,28 @@ impl IndustrialCore {
             surprise_level: 0.0,
         });
 
-        let mut surprise = 0.0;
-        match data.sensor_type.as_str() {
-            "TEMPERATURE" => { if data.value > 85.0 { surprise = (data.value - 85.0) / 100.0; } },
-            "VIBRATION" => { if data.value > 5.0 { surprise = (data.value - 5.0) / 10.0; } },
-            "LOAD" => { if data.value > 95.0 { surprise = (data.value - 95.0) / 100.0; } },
-            _ => {}
-        }
+        // Refined Kalman-lite surprise detection
+        // State = expected value, Uncertainty = deviation
+        let q = 0.01; // Process noise
+        let r = 0.1;  // Measurement noise
+        
+        let p = entry.failure_probability + q;
+        let gain = p / (p + r);
+        
+        // Innovation based on deviation from "normal" (0.0 failure prob)
+        // Normalized by sensor type
+        let normalized_val = match data.sensor_type.as_str() {
+            "TEMPERATURE" => (data.value - 40.0) / 100.0,
+            "VIBRATION" => data.value / 10.0,
+            "LOAD" => data.value / 100.0,
+            _ => 0.0
+        }.max(0.0);
 
+        let innov = (normalized_val - entry.failure_probability).abs();
+        let surprise = (innov * innov) / (p + r);
+        
         entry.surprise_level = surprise.min(1.0);
-        entry.failure_probability = (entry.failure_probability * 0.8 + surprise * 0.2).min(1.0);
+        entry.failure_probability += gain * (normalized_val - entry.failure_probability);
         entry.overall_status = (1.0 - entry.failure_probability).max(0.0);
         entry.last_update = Utc::now();
 

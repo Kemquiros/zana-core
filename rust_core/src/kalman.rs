@@ -27,33 +27,24 @@ impl CognitiveKalmanFilter {
     #[inline]
     pub fn update(&mut self, observation: &[f64]) -> f64 {
         let n = self.dim;
-        let q = self.q;
         let r = self.r;
         let state       = &mut self.state[..n];
         let uncertainty = &mut self.uncertainty[..n];
 
         let mut acc = 0.0_f64;
 
-        // Explicit chunk loop: compiler sees 8-wide independent iterations
-        // and emits AVX2 (4×f64) or SSE2 (2×f64) FMA instructions.
-        let chunks = n / 8;
-        for c in 0..chunks {
-            let base = c * 8;
-            for k in base..base + 8 {
-                let p = uncertainty[k] + q;
-                let gain = p / (p + r);
-                let innov = observation[k] - state[k];
-                acc += innov * innov / (p + r);
-                state[k] += gain * innov;
-                uncertainty[k] = p * (1.0 - gain);
-            }
-        }
-        // Tail (if dim % 8 != 0)
-        for k in (chunks * 8)..n {
-            let p = uncertainty[k] + q;
+        for k in 0..n {
+            // Adaptive Q: process noise scales with current uncertainty
+            // to prevent the filter from getting "stuck" in an old state.
+            let q_adaptive = self.q * (1.0 + uncertainty[k]);
+            
+            let p = uncertainty[k] + q_adaptive;
             let gain = p / (p + r);
             let innov = observation[k] - state[k];
-            acc += innov * innov / (p + r);
+            
+            let innov_sq = innov * innov;
+            acc += innov_sq / (p + r);
+            
             state[k] += gain * innov;
             uncertainty[k] = p * (1.0 - gain);
         }

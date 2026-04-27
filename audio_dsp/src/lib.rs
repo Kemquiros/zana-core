@@ -238,10 +238,30 @@ pub fn infer_emotion(
     "neutral"
 }
 
+/// Detects voice activity in raw 16-bit LE PCM bytes.
+/// Returns true if RMS energy exceeds the threshold.
+#[pyfunction]
+pub fn is_voice_active_pcm(pcm_bytes: &[u8], threshold: f32) -> bool {
+    if pcm_bytes.len() < 2 { return false; }
+    let num_samples = pcm_bytes.len() / 2;
+    let mut sum_sq = 0.0f32;
+    let scale = 1.0 / i16::MAX as f32;
+
+    for i in 0..num_samples {
+        let s = i16::from_le_bytes([pcm_bytes[i*2], pcm_bytes[i*2 + 1]]);
+        let val = s as f32 * scale;
+        sum_sq += val * val;
+    }
+
+    let rms = (sum_sq / num_samples as f32).sqrt();
+    rms > threshold
+}
+
 #[pymodule]
 fn zana_audio_dsp(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(extract_features, m)?)?;
     m.add_function(wrap_pyfunction!(infer_emotion, m)?)?;
+    m.add_function(wrap_pyfunction!(is_voice_active_pcm, m)?)?;
     m.add_class::<PyAudioFeatures>()?;
     Ok(())
 }
