@@ -154,5 +154,5 @@ export function useZanaStream(sessionId: string) {
     }
   }, [aeonState]);
 
-  return { connected, aeonState, setAeonState, messages, sendText, sendAudio, sendImage, audioLevel };
+  return { connected, aeonState, setAeonState, messages, sendText, sendAudio, sendImage, audioLevel, connect };
 }

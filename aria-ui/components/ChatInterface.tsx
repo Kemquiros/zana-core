@@ -9,7 +9,7 @@ import { useZanaStream } from "../lib/zana-stream";
 export default function ChatInterface({ stream }: { stream?: ReturnType<typeof useZanaStream> }) {
   const localStream = useZanaStream("cockpit-session");
   const activeStream = stream || localStream;
-  const { connected, aeonState, messages: streamMessages, sendText, connect, disconnect } = activeStream;
+  const { connected, aeonState, messages: streamMessages, sendText, connect } = activeStream;
 
   const [input, setInput] = useState("");
 
