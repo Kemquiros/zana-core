@@ -82,6 +82,61 @@ class LocalLLM:
             )
             return self._template_response(user_input, context)
 
+    async def generate_async(self, user_input: str, context: str = "", session_id: str = "") -> str:
+        """
+        Generate Aeon response asynchronously.
+        """
+        messages = [{"role": "system", "content": _ZANA_SYSTEM}]
+        if context:
+            messages.append(
+                {"role": "system", "content": f"[MEMORY CONTEXT]\n{context}"}
+            )
+        messages.append({"role": "user", "content": user_input})
+
+        try:
+            response = await litellm.acompletion(
+                model=self.primary_model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=512,
+            )
+            text = response.choices[0].message.content.strip()
+            logger.info(f"☁️  [LLM ASYNC] {self.primary_model} → '{text[:60]}…'")
+            return text
+        except Exception as e:
+            logger.error(
+                f"❌ [LLM ASYNC] Error: {e}"
+            )
+            return self._template_response(user_input, context)
+
+    async def generate_stream_async(self, user_input: str, context: str = "", session_id: str = ""):
+        """
+        Generates Aeon response in an async streaming fashion.
+        Yields strings.
+        """
+        messages = [{"role": "system", "content": _ZANA_SYSTEM}]
+        if context:
+            messages.append(
+                {"role": "system", "content": f"[MEMORY CONTEXT]\n{context}"}
+            )
+        messages.append({"role": "user", "content": user_input})
+
+        try:
+            response = await litellm.acompletion(
+                model=self.primary_model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=512,
+                stream=True
+            )
+            async for chunk in response:
+                content = chunk.choices[0].delta.content
+                if content:
+                    yield content
+        except Exception as e:
+            logger.error(f"❌ [LLM STREAM ASYNC] Error: {e}")
+            yield f"[Inference Stream Error] {e}"
+
     def _template_response(self, user_input: str, context: str) -> str:
         if context:
             return f"[Inference Error] {user_input}\n\n[MEMORY CONTEXT]\n{context}"

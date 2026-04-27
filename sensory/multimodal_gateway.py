@@ -218,6 +218,25 @@ async def _query_cortex(event: PerceptionEvent) -> str:
     return ""
 
 
+async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str) -> str:
+    """
+    Generates the Aeon's real response via LocalLLM asynchronously.
+    """
+    user_input = event.cortex_input or event.text or ""
+    if not user_input.strip():
+        return ""
+
+    modality_prefix = {
+        "audio": f"[User said]: {event.text}",
+        "vision": f"[Observed scene]: {event.text}",
+        "multimodal": f"[Perceived audio+vision]: {event.text}",
+    }.get(event.modality, user_input)
+
+    llm = get_local_llm()
+    return await llm.generate_async(
+        modality_prefix, context=cortex_context, session_id=event.session_id or ""
+    )
+
 def _build_aeon_response(event: PerceptionEvent, cortex_context: str) -> str:
     """
     Generates the Aeon's real response via LocalLLM (Ollama → Claude → template).
@@ -511,26 +530,29 @@ async def sense_stream(ws: WebSocket):
                 verdict = inspect_input(data)
                 if not verdict["allowed"]:
                     await ws.send_json(
-                        {"error": "ARMOR_BLOCKED", "threat": verdict["threat_level"]}
+                        {"type": "error", "content": f"ARMOR_BLOCKED: {verdict['threat_level']}"}
                     )
                     continue
+                
                 data = verdict["sanitized"]
-                event = PerceptionEvent(
-                    modality="text", session_id=session_id, text=data
-                )
+                
+                # Mock PerceptionEvent for the start
+                event = PerceptionEvent(modality="text", session_id=session_id, text=data)
                 event.kalman_surprise = _kalman_surprise_text(data)
                 ctx = await _query_cortex(event)
-                event.response_text = _build_aeon_response(event, ctx)
-                # ── Armor: inspect output ─────────────────────────────
-                out_verdict = inspect_output(event.response_text or "")
-                if not out_verdict["allowed"]:
-                    event.response_text = "[ZANA: response blocked by security policy]"
-                else:
-                    event.response_text = out_verdict["sanitized"]
-
+                
+                # LLM Streaming (ASYNC)
+                llm = get_local_llm()
+                async for chunk in llm.generate_stream_async(data, context=ctx, session_id=session_id or ""):
+                    await ws.send_json({"type": "chunk", "content": chunk})
+                
+                # End of stream
+                await ws.send_json({"type": "end"})
+                
             elif msg_type == "audio":
                 audio_bytes = base64.b64decode(data)
-                result = _audio.transcribe(audio_bytes)
+                # Run sync audio processing in thread to avoid blocking loop
+                result = await asyncio.to_thread(_audio.transcribe, audio_bytes)
                 event = PerceptionEvent(
                     modality="audio",
                     session_id=session_id,
@@ -539,14 +561,15 @@ async def sense_stream(ws: WebSocket):
                 )
                 event.kalman_surprise = _kalman_surprise_text(result.transcript)
                 ctx = await _query_cortex(event)
-                event.response_text = _build_aeon_response(event, ctx)
+                event.response_text = await _build_aeon_response_async(event, ctx)
                 # TTS in stream
                 audio_resp = await _tts.synthesize_async(event.response_text or "")
                 event.response_audio_b64 = base64.b64encode(audio_resp).decode()
 
             elif msg_type == "vision":
                 img_bytes = base64.b64decode(data)
-                desc, features = _vision.analyze_image(img_bytes)
+                # Run sync vision processing in thread
+                desc, features = await asyncio.to_thread(_vision.analyze_image, img_bytes)
                 event = PerceptionEvent(
                     modality="vision",
                     session_id=session_id,
@@ -555,7 +578,7 @@ async def sense_stream(ws: WebSocket):
                 )
                 event.kalman_surprise = _kalman_surprise_text(desc)
                 ctx = await _query_cortex(event)
-                event.response_text = _build_aeon_response(event, ctx)
+                event.response_text = await _build_aeon_response_async(event, ctx)
 
             else:
                 event = PerceptionEvent(
@@ -602,8 +625,8 @@ async def sense_ambient(ws: WebSocket):
                     if result.transcript.strip() and result.transcript != "[silence]":
                         logger.info(f"🎤 [AMBIENT] Heard: '{result.transcript}'")
                         
-                        # Forward to Orchestrator
-                        response = apex_orchestrator.process_request(result.transcript)
+                        # Forward to Orchestrator in a separate thread to avoid blocking loop
+                        response = await asyncio.to_thread(apex_orchestrator.process_request, result.transcript)
                         
                         # Generate TTS
                         audio_resp = await _tts.synthesize_async(response)
