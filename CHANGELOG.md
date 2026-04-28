@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.0] — 2026-04-27
+
+### Added
+- **ZANA Aegis Sync**: Zero-Knowledge memory synchronization engine. Uses AES-256-GCM encryption with local key derivation from a 12-word seed phrase.
+- **S3 Storage Adapter**: Support for backing up the encrypted vault to any S3-compatible provider (AWS, MinIO, etc.).
+- **Ars Magna 2.0**: Recursive self-criticism cycle for deep reasoning. Triggered by high Kalman surprise or user request.
+- **Sync UI**: New "Memoria" tab in web settings to manage backup status and manual triggers.
+
+### Changed
+- **Orchestrator**: Refactored to be fully asynchronous, supporting parallel agent execution and non-blocking I/O.
+- **Visuals**: Optimized 3D particle engine with improved shader-based audio reactivity.
+
+---
+
 ## [2.7.0] — 2026-04-26
 
 ### Added
