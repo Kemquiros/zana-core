@@ -3,6 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float, Stars, MeshTransmissionMaterial, ContactShadows } from '@react-three/drei';
+import AeonEntity from './AeonEntity';
 import * as THREE from 'three';
 import { AeonVisualDNA } from '../lib/koru-types';
 
@@ -107,11 +108,6 @@ export default function AeonAvatar({ dna, audioLevel = 0 }: { dna: Record<string
         )}
 
         <ContactShadows position={[0, -2, 0]} opacity={0.4} scale={10} blur={2} far={4.5} />
-      </Canvas>
-    </div>
-  );
-}
-{4.5} />
       </Canvas>
     </div>
   );

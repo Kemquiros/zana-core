@@ -90,8 +90,8 @@ export default function AeonEntity({ dna, audioLevel = 0 }: { dna: any, audioLev
   return (
     <points ref={pointsRef}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={particleCount} array={positions} itemSize={3} />
-        <bufferAttribute attach="attributes-color" count={particleCount} array={colors} itemSize={3} />
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       {/* @ts-expect-error - Custom element extended dynamically */}
       <aeonShaderMaterial ref={materialRef} attach="material" transparent depthWrite={false} blending={THREE.AdditiveBlending} />
