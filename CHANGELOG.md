@@ -7,6 +7,15 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.1] — 2026-04-27
+
+### Fixed
+- **Docker Build**: Fixed path to `pyproject.toml` and `uv.lock` in Sensory Gateway Dockerfile.
+- **Dockerignore**: Allowed `.so` files to be included in the build context.
+- **Dependencies**: Added missing `cryptography` and `numpy` to CLI global tool.
+
+---
+
 ## [2.8.0] — 2026-04-27
 
 ### Added

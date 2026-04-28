@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml uv.lock ./
+COPY sensory/pyproject.toml sensory/uv.lock ./
 RUN uv sync --no-dev --frozen
 
 COPY zana_steel_core.so zana_audio_dsp.so ./

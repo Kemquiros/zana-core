@@ -7,7 +7,6 @@ data/redis
 data/chroma
 data/n8n
 __pycache__
-*.so
 target
 dist
 build
