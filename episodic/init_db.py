@@ -42,6 +42,39 @@ def init_db():
                 "CREATE INDEX IF NOT EXISTS episodes_embedding_idx ON episodes USING hnsw (embedding vector_cosine_ops);"
             )
 
+            # Create projects table
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS projects (
+                id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                name         TEXT NOT NULL UNIQUE,
+                description  TEXT,
+                created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+                updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+            """)
+
+            # Create project_tasks table
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS project_tasks (
+                id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                project_id   UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                title        TEXT NOT NULL,
+                status       TEXT NOT NULL DEFAULT 'todo',
+                created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+            """)
+
+            # Create project_files table
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS project_files (
+                id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                project_id   UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+                file_path    TEXT NOT NULL,
+                file_hash    TEXT NOT NULL,
+                created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+            """)
+
             conn.commit()
             print("✅ Database initialized successfully.")
 
