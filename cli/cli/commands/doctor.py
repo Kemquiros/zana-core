@@ -167,7 +167,7 @@ def cmd_doctor() -> None:
             "Sensory + Armor",
         ),
         (
-            "ChromaDB",
+            
             "http",
             f"http://localhost:{CHROMA_PORT}/api/v1/heartbeat",
             None,

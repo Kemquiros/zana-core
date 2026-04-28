@@ -92,7 +92,7 @@ def _build_table(statuses: list[ServiceStatus], zfi: int) -> Panel:
 def _compute_zfi(statuses: list[ServiceStatus]) -> int:
     weights = {
         "Gateway": 30,
-        "ChromaDB": 20,
+        
         "PostgreSQL": 15,
         "Redis": 10,
         "Neo4j": 15,

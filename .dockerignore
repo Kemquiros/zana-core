@@ -1,0 +1,17 @@
+.git
+.venv
+node_modules
+data/postgres
+data/neo4j
+data/redis
+data/chroma
+data/n8n
+__pycache__
+*.so
+target
+dist
+build
+.next
+out
+playwright-report
+test-results

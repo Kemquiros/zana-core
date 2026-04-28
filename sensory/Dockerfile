@@ -11,7 +11,7 @@ RUN pip install --no-cache-dir uv
 COPY pyproject.toml uv.lock ./
 RUN uv sync --no-dev --frozen
 
-COPY ../zana_steel_core.so ../zana_audio_dsp.so ./
+COPY zana_steel_core.so zana_audio_dsp.so ./
 
 COPY . .
 
