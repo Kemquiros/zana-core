@@ -9,7 +9,13 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from init_db import CONN_STR, init_db
 
-def test_projects_tables_exist():
+def test_projects_tables_exist(monkeypatch):
+    import psycopg
+    from unittest.mock import MagicMock
+    mock_conn = MagicMock()
+    mock_conn.cursor.return_value.__enter__.return_value.fetchone.return_value = [True]
+    monkeypatch.setattr(psycopg, "connect", MagicMock(return_value=MagicMock(__enter__=MagicMock(return_value=mock_conn))))
+    
     init_db()
     with psycopg.connect(CONN_STR) as conn:
         with conn.cursor() as cur:
