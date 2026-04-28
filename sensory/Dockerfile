@@ -11,7 +11,8 @@ RUN pip install --no-cache-dir uv
 COPY sensory/pyproject.toml sensory/uv.lock ./
 RUN uv sync --no-dev --frozen
 
-COPY zana_steel_core.so zana_audio_dsp.so ./
+# Copy pre-compiled Rust extensions (The Steel Core)
+COPY zana_steel_core.so zana_audio_dsp.so zana_armor.so ./
 
 COPY . .
 

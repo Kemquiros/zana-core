@@ -36,6 +36,15 @@ for dir in embedder mcp/zana-memory episodic mcp/zana-episodic orchestrator; do
     cd - >/dev/null
 done
 
+# Build Rust Steel Core components
+echo "⚙️  Forging The Steel Core (Rust)..."
+# Build zana_steel_core
+cd rust_core && RUSTFLAGS="-C target-cpu=native" cargo build --release --features python && cp target/release/libzana_steel_core.so ../zana_steel_core.so && cd ..
+# Build zana_audio_dsp
+cd audio_dsp && RUSTFLAGS="-C target-cpu=native" cargo build --release && cp target/release/libzana_audio_dsp.so ../zana_audio_dsp.so && cd ..
+# Build zana_armor
+cd armor && RUSTFLAGS="-C target-cpu=native" cargo build --release && cp target/release/libzana_armor.so ../zana_armor.so && cd ..
+
 echo "🐳 Booting ZANA Core Services (Docker)..."
 docker compose up -d
 

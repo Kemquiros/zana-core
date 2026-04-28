@@ -45,6 +45,9 @@ def cmd_start(detach: bool = True) -> None:
     # 1. Ensure .env is securely configured with passwords before starting
     ensure_env_configured(STACK_ROOT)
 
+    # 2. Ensure Rust Steel Core is built (needed for Docker build context)
+    _ensure_steel_core_built(STACK_ROOT)
+
     console.print("[primary]Booting ZANA stack...[/primary]")
 
     flags = ["-d"] if detach else []
@@ -86,3 +89,40 @@ def _wait_for_gateway(timeout: int = 60) -> None:
     console.print(
         "[warning]Gateway did not respond in time. Run `zana status` to check.[/warning]"
     )
+
+
+def _ensure_steel_core_built(root: Path) -> None:
+    """Ensures that the .so files (The Steel Core) exist in the root."""
+    needed = ["zana_steel_core.so", "zana_audio_dsp.so", "zana_armor.so"]
+    missing = [f for f in needed if not (root / f).exists()]
+
+    if not missing:
+        return
+
+    console.print(f"[muted]Missing Steel Core components: {', '.join(missing)}. Building...[/muted]")
+    
+    # 1. Build Steel Core (Rust)
+    if "zana_steel_core.so" in missing:
+        rust_dir = root / "rust_core"
+        if rust_dir.exists():
+            console.print("[muted]  -> Forging Steel Core...[/muted]")
+            subprocess.run(["cargo", "build", "--release", "--features", "python"], cwd=str(rust_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_steel_core.so", "../zana_steel_core.so"], cwd=str(rust_dir), check=True)
+
+    # 2. Build Audio DSP
+    if "zana_audio_dsp.so" in missing:
+        audio_dir = root / "audio_dsp"
+        if audio_dir.exists():
+            console.print("[muted]  -> Forging Audio DSP...[/muted]")
+            subprocess.run(["cargo", "build", "--release"], cwd=str(audio_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_audio_dsp.so", "../zana_audio_dsp.so"], cwd=str(audio_dir), check=True)
+
+    # 3. Build Armor
+    if "zana_armor.so" in missing:
+        armor_dir = root / "armor"
+        if armor_dir.exists():
+            console.print("[muted]  -> Forging Armor...[/muted]")
+            subprocess.run(["cargo", "build", "--release"], cwd=str(armor_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_armor.so", "../zana_armor.so"], cwd=str(armor_dir), check=True)
+
+    console.print("[success]The Steel Core has been forged successfully.[/success]")
