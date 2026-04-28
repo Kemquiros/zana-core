@@ -11,7 +11,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 import httpx
 import numpy as np
@@ -175,25 +175,36 @@ class _NumpyKalmanGate:
         return surprise
 
 
-_rust_kalman = _build_kalman(64)
-_numpy_kalman = _NumpyKalmanGate(64) if _rust_kalman is None else None
+_kalman_registry: Dict[str, Any] = {}
+
+def _get_kalman_filter(project_id: str):
+    """Retrieves or creates a Kalman filter specific to a project context."""
+    if project_id not in _kalman_registry:
+        rust_kf = _build_kalman(64)
+        if rust_kf is not None:
+            _kalman_registry[project_id] = rust_kf
+        else:
+            _kalman_registry[project_id] = _NumpyKalmanGate(64)
+    return _kalman_registry[project_id]
 
 
-def _kalman_surprise_text(text: str) -> float:
+def _kalman_surprise_text(text: str, project_id: str = "default") -> float:
     """Fused embed+Kalman in one Rust call — 599 ns, 54x faster than numpy path."""
-    if _rust_kalman is not None:
-        return _rust_kalman.update_text(text)
+    kf = _get_kalman_filter(project_id)
+    if hasattr(kf, "update_text"):
+        return kf.update_text(text)
     # Numpy fallback
     h = hash(text) % (2**32)
     emb = np.random.default_rng(h).standard_normal(64)
-    return _numpy_kalman.update(emb)  # type: ignore[union-attr]
+    return kf.update(emb)  # type: ignore[union-attr]
 
 
-def _kalman_surprise_buffer(embedding: np.ndarray) -> float:
+def _kalman_surprise_buffer(embedding: np.ndarray, project_id: str = "default") -> float:
     """Zero-copy Kalman update from numpy array — used for audio/vision embeddings."""
-    if _rust_kalman is not None:
-        return _rust_kalman.update_buffer(embedding)
-    return _numpy_kalman.update(embedding)  # type: ignore[union-attr]
+    kf = _get_kalman_filter(project_id)
+    if hasattr(kf, "update_buffer"):
+        return kf.update_buffer(embedding)
+    return kf.update(embedding)  # type: ignore[union-attr]
 
 
 # ─── Cortex bridge ────────────────────────────────────────────────────────────
@@ -344,7 +355,7 @@ async def sense_audio(
     )
 
     # 3. Kalman surprise
-    event.kalman_surprise = _kalman_surprise_text(result.transcript)
+    event.kalman_surprise = _kalman_surprise_text(result.transcript, session_id or "default")
 
     # 4. Cortex
     cortex_ctx = await _query_cortex(event)
@@ -414,7 +425,7 @@ async def sense_vision(
         response_emotion=features.emotional_context,
     )
 
-    event.kalman_surprise = _kalman_surprise_text(combined_desc)
+    event.kalman_surprise = _kalman_surprise_text(combined_desc, session_id or "default")
 
     cortex_ctx = await _query_cortex(event)
     event.response_text = _build_aeon_response(event, cortex_ctx)
@@ -441,7 +452,7 @@ async def sense_text(req: TextSenseRequest):
         text=req.text,
         source_mime="text/plain",
     )
-    event.kalman_surprise = _kalman_surprise_text(req.text)
+    event.kalman_surprise = _kalman_surprise_text(req.text, req.session_id or "default")
 
     cortex_ctx = await _query_cortex(event)
     event.response_text = _build_aeon_response(event, cortex_ctx)
@@ -484,7 +495,7 @@ async def sense_multimodal(
         # Combine transcript + visual description as Cortex input
         event.text = f"{event.text or ''} [+SEE: {desc}]".strip()
 
-    event.kalman_surprise = _kalman_surprise_text(event.text or "")
+    event.kalman_surprise = _kalman_surprise_text(event.text or "", session_id or "default")
 
     cortex_ctx = await _query_cortex(event)
     event.response_text = _build_aeon_response(event, cortex_ctx)
@@ -542,7 +553,7 @@ async def sense_stream(ws: WebSocket):
                 
                 # Mock PerceptionEvent for the start
                 event = PerceptionEvent(modality="text", session_id=session_id, text=data)
-                event.kalman_surprise = _kalman_surprise_text(data)
+                event.kalman_surprise = _kalman_surprise_text(data, session_id or "default")
                 ctx = await _query_cortex(event)
                 
                 # LLM Streaming (ASYNC)
@@ -563,7 +574,7 @@ async def sense_stream(ws: WebSocket):
                     text=result.transcript,
                     audio_features=result.features,
                 )
-                event.kalman_surprise = _kalman_surprise_text(result.transcript)
+                event.kalman_surprise = _kalman_surprise_text(result.transcript, session_id or "default")
                 ctx = await _query_cortex(event)
                 event.response_text = await _build_aeon_response_async(event, ctx)
                 # TTS in stream
@@ -580,7 +591,7 @@ async def sense_stream(ws: WebSocket):
                     text=desc,
                     vision_features=features,
                 )
-                event.kalman_surprise = _kalman_surprise_text(desc)
+                event.kalman_surprise = _kalman_surprise_text(desc, session_id or "default")
                 ctx = await _query_cortex(event)
                 event.response_text = await _build_aeon_response_async(event, ctx)
 
@@ -729,7 +740,7 @@ def health():
             "tts": tts_backend,
             "llm": llm_backend,
             "vision": vision_backend,
-            "kalman": "rust-steel-core" if _rust_kalman else "numpy",
+            "kalman": "rust-steel-core" if _kalman_registry.get("default") and hasattr(_kalman_registry["default"], "update_text") else "numpy (dynamic)",
             "armor": armor_backend(),
         },
         "endpoints": {
