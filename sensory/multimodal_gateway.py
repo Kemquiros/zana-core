@@ -127,11 +127,13 @@ try:
     from sensory.reasoning_router import router as _reason_router
     from sensory.memory_router import router as _memory_router
     from sensory.control_router import router as _control_router
+    from sensory.projects_router import router as _projects_router # NEW
 
     app.include_router(_reason_router)
     app.include_router(_memory_router)
     app.include_router(_control_router)
-    logger.info("✓  [GATEWAY] reason / memory / control routers loaded")
+    app.include_router(_projects_router) # NEW
+    logger.info("✓  [GATEWAY] reason / memory / control / projects routers loaded")
 except Exception as _e:
     logger.warning("Power-user routers not loaded: %s", _e)
 
