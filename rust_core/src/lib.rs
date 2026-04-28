@@ -5,6 +5,8 @@ pub mod kalman;
 pub mod brain;
 pub mod wasm;
 pub mod memory;
+#[cfg(feature = "python")]
+pub mod projects;
 
 // ── Hash-based embedding (no external model, deterministic) ──────────────────
 
@@ -221,5 +223,6 @@ fn zana_steel_core(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<PyKalmanFilter>()?;
     m.add_class::<PyPolicyBrain>()?;
     m.add_class::<PyVectorIndex>()?;
+    m.add_class::<projects::PyProjectProcessor>()?;
     Ok(())
 }
