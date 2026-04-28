@@ -15,7 +15,8 @@ from typing import Optional, Dict
 
 import httpx
 import numpy as np
-from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect
+from datetime import datetime
+from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -652,6 +653,55 @@ async def sense_ambient(ws: WebSocket):
     except Exception as e:
         logger.error("❌ [AMBIENT] Error: %s", e)
         await ws.close(code=1011)
+
+@app.get("/sync/status")
+async def get_sync_status():
+    """Check the status of the Aegis Sync engine."""
+    vault_path = Path(os.getenv("ZANA_CORE_DIR", ".")) / "data" / "zana.vault"
+    last_sync = None
+    if vault_path.exists():
+        last_sync = datetime.fromtimestamp(vault_path.stat().st_mtime).isoformat()
+    
+    return {
+        "enabled": os.getenv("ZANA_SYNC_SEED") is not None,
+        "last_sync": last_sync,
+        "provider": "S3" if os.getenv("ZANA_SYNC_S3_URL") else "Local Only"
+    }
+
+@app.post("/sync/trigger")
+async def trigger_sync(background_tasks: BackgroundTasks):
+    """Trigger a manual memory sync in the background."""
+    from autonomy.crypto import AegisCrypto
+    from autonomy.sync_engine import SyncEngine
+    from autonomy.storage_adapters import S3StorageAdapter
+    
+    seed = os.getenv("ZANA_SYNC_SEED")
+    if not seed:
+        return {"status": "error", "message": "Sync not configured (no seed)"}
+
+    async def _do_sync():
+        try:
+            core_dir = Path(os.getenv("ZANA_CORE_DIR", "."))
+            crypto = AegisCrypto(seed)
+            engine = SyncEngine(crypto, core_dir)
+            
+            # Create snapshot
+            vault_path = engine.create_snapshot()
+            
+            # Upload if S3 is configured
+            url = os.getenv("ZANA_SYNC_S3_URL")
+            if url:
+                key = os.getenv("ZANA_SYNC_S3_KEY")
+                secret = os.getenv("ZANA_SYNC_S3_SECRET")
+                bucket = os.getenv("ZANA_SYNC_S3_BUCKET", "zana-vault")
+                storage = S3StorageAdapter(url, key, secret, bucket)
+                storage.upload(vault_path)
+                logger.info("☁️ [SYNC] Cloud push complete.")
+        except Exception as e:
+            logger.error(f"❌ [SYNC] Failed: {e}")
+
+    background_tasks.add_task(_do_sync)
+    return {"status": "started", "message": "Sync initiated in background."}
 
 @app.get("/health")
 def health():

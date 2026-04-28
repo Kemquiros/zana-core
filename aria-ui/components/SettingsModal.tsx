@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Settings, ShieldAlert, Trash2, Link2, Database } from 'lucide-react';
+import { X, Settings, ShieldAlert, Trash2, Link2, Database, Cloud, RefreshCw } from 'lucide-react';
 
 interface Props {
   isOpen: boolean;
@@ -10,8 +10,25 @@ interface Props {
 }
 
 export default function SettingsModal({ isOpen, onClose }: Props) {
-  const [tab, setTab] = useState<'general' | 'apis' | 'danger'>('general');
+  const [tab, setTab] = useState<'general' | 'apis' | 'memory' | 'danger'>('general');
   const [copied, setCopied] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  useEffect(() => {
+    if (isOpen && tab === 'memory') {
+      fetch('/sync/status').then(r => r.json()).then(setSyncStatus);
+    }
+  }, [isOpen, tab]);
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    await fetch('/sync/trigger', { method: 'POST' });
+    setTimeout(() => {
+        fetch('/sync/status').then(r => r.json()).then(setSyncStatus);
+        setIsSyncing(false);
+    }, 5000);
+  };
   
   const [tokens, setTokens] = useState<Record<string, string>>({
     openai: (typeof window !== 'undefined' && localStorage.getItem('token_openai')) || '',
@@ -65,6 +82,12 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                 <Link2 size={14} /> Conexiones
               </button>
               <button 
+                onClick={() => setTab('memory')}
+                className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'memory' ? 'bg-indigo-500 text-white' : 'text-gray-500 hover:bg-white/5'}`}
+              >
+                <Cloud size={14} /> Memoria
+              </button>
+              <button 
                 onClick={() => setTab('danger')}
                 className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'danger' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-red-500/40 hover:text-red-400'}`}
               >
@@ -103,6 +126,59 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                         <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${localStorage.getItem('shadow_mode') === 'true' ? 'left-7' : 'left-1'}`} />
                       </button>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'memory' && (
+                <div className="space-y-8">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-indigo-400">Sincronización</h2>
+                    <p className="text-sm text-gray-500 font-light">Respaldo soberano con encriptación Aegis.</p>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-bold uppercase tracking-wider">Estado de Aegis</h4>
+                            <p className="text-[9px] font-mono text-indigo-500/80 uppercase">
+                                {syncStatus?.enabled ? '🔒 Zero-Knowledge Activo' : '🔓 No Configurado'}
+                            </p>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${syncStatus?.enabled ? 'bg-green-500/10 text-green-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                            {syncStatus?.enabled ? 'Sync ON' : 'Sync OFF'}
+                        </div>
+                      </div>
+
+                      <div className="pt-4 border-t border-white/5 space-y-3">
+                         <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                             <span>Proveedor</span>
+                             <span className="text-white">{syncStatus?.provider || '---'}</span>
+                         </div>
+                         <div className="flex justify-between text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                             <span>Última Sincro</span>
+                             <span className="text-white">{syncStatus?.last_sync ? new Date(syncStatus.last_sync).toLocaleString() : 'Nunca'}</span>
+                         </div>
+                      </div>
+                    </div>
+
+                    <button 
+                        onClick={handleSync}
+                        disabled={isSyncing || !syncStatus?.enabled}
+                        className="w-full py-4 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 disabled:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-500/20"
+                    >
+                        {isSyncing ? <RefreshCw className="animate-spin" size={14} /> : <Cloud size={14} />}
+                        {isSyncing ? 'Sincronizando...' : 'Sincronizar ahora'}
+                    </button>
+
+                    {!syncStatus?.enabled && (
+                        <div className="p-4 rounded-2xl bg-yellow-500/5 border border-yellow-500/10">
+                            <p className="text-[9px] text-yellow-500 font-mono uppercase tracking-[0.1em] leading-relaxed">
+                                Configura ZANA_SYNC_SEED en tu archivo .env para activar el respaldo encriptado.
+                            </p>
+                        </div>
+                    )}
                   </div>
                 </div>
               )}
