@@ -42,6 +42,21 @@ def init_db():
                 "CREATE INDEX IF NOT EXISTS episodes_embedding_idx ON episodes USING hnsw (embedding vector_cosine_ops);"
             )
 
+            # Create episodic_memory table for memory_router
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS episodic_memory (
+                id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                session_id      TEXT NOT NULL,
+                project_id      TEXT,
+                role            TEXT NOT NULL,
+                content         TEXT NOT NULL,
+                modality        TEXT DEFAULT 'text',
+                emotion         TEXT,
+                kalman_surprise FLOAT,
+                created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+            );
+            """)
+
             # Create projects table
             cur.execute("""
             CREATE TABLE IF NOT EXISTS projects (

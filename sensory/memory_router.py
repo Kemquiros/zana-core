@@ -86,6 +86,7 @@ async def _pg_execute(query: str, *args) -> bool:
 
 class EpisodicRecord(BaseModel):
     session_id: str
+    project_id: Optional[str] = None
     role: str  # "user" | "aeon"
     content: str
     modality: str = "text"
@@ -100,26 +101,23 @@ class EpisodicRecord(BaseModel):
 async def get_episodic(
     limit: int = Query(default=10, ge=1, le=200, description="Number of records"),
     session_id: Optional[str] = Query(default=None, description="Filter by session"),
+    project_id: Optional[str] = Query(default=None, description="Filter by project"),
 ):
     """Returns the most recent episodic memory records from PostgreSQL."""
+    query = "SELECT id, session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at FROM episodic_memory WHERE 1=1"
+    args = []
+    
     if session_id:
-        rows = await _pg_fetch(
-            """SELECT id, session_id, role, content, modality, emotion,
-                      kalman_surprise, created_at
-               FROM episodic_memory
-               WHERE session_id = $1
-               ORDER BY created_at DESC LIMIT $2""",
-            session_id,
-            limit,
-        )
-    else:
-        rows = await _pg_fetch(
-            """SELECT id, session_id, role, content, modality, emotion,
-                      kalman_surprise, created_at
-               FROM episodic_memory
-               ORDER BY created_at DESC LIMIT $1""",
-            limit,
-        )
+        args.append(session_id)
+        query += f" AND session_id = ${len(args)}"
+    if project_id:
+        args.append(project_id)
+        query += f" AND project_id = ${len(args)}"
+        
+    args.append(limit)
+    query += f" ORDER BY created_at DESC LIMIT ${len(args)}"
+    
+    rows = await _pg_fetch(query, *args)
 
     # Normalize timestamps for JSON
     for r in rows:
@@ -134,9 +132,10 @@ async def store_episodic(rec: EpisodicRecord):
     """Persists one turn of conversation into episodic memory."""
     ok = await _pg_execute(
         """INSERT INTO episodic_memory
-               (session_id, role, content, modality, emotion, kalman_surprise, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+               (session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)""",
         rec.session_id,
+        rec.project_id,
         rec.role,
         rec.content,
         rec.modality,
