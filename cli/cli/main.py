@@ -381,5 +381,8 @@ def swarm_query(
     cmd_swarm_query(fact_key)
 
 
+from cli.commands.sync import app as sync_app
+app.add_typer(sync_app, name="sync")
+
 if __name__ == "__main__":
     app()
