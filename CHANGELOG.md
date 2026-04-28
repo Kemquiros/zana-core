@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.2] — 2026-04-28
+
+### Added
+- **Core Projects Module**: Integrated project management directly into the cognitive core. Supports CRUD operations for projects, tasks, and files.
+- **Context-per-Project**: High-performance cognitive isolation. Semantic and episodic memories are now partitioned by project ID.
+- **Project-Specific Kalman Filters**: The cognitive surprise engine now maintains unique latent states per project, enabling instant context switching.
+- **Rust Steel Core Extensions**: Optimized `VectorIndex` and `ProjectProcessor` modules in Rust (PyO3) for sub-millisecond validation and search.
+
+### Fixed
+- **Docker Build Flow**: Automated compilation of Rust shared objects (.so) during `zana start` and Docker image building.
+- **Schema Unification**: Resolved inconsistencies between `episodes` and `episodic_memory` tables in PostgreSQL.
+
+---
+
 ## [2.8.1] — 2026-04-27
 
 ### Fixed
