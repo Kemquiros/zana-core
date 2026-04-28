@@ -6,6 +6,8 @@ use std::path::Path;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Document {
     pub id: String,
+    #[serde(default)]
+    pub project_id: Option<String>,
     pub embedding: Vec<f64>,
     pub metadata: String,
 }
@@ -22,9 +24,10 @@ impl VectorIndex {
         }
     }
 
-    pub fn add(&mut self, id: String, embedding: Vec<f64>, metadata: String) {
+    pub fn add(&mut self, id: String, project_id: Option<String>, embedding: Vec<f64>, metadata: String) {
         self.documents.push(Document {
             id,
+            project_id,
             embedding,
             metadata,
         });
@@ -53,9 +56,16 @@ impl VectorIndex {
         }
     }
 
-    pub fn search(&self, query: &[f64], top_k: usize) -> Vec<(String, f64, String)> {
+    pub fn search(&self, query: &[f64], top_k: usize, project_id: Option<String>) -> Vec<(String, f64, String)> {
         let mut results: Vec<(String, f64, String)> = self.documents
             .iter()
+            .filter(|doc| {
+                if let Some(ref pid) = project_id {
+                    doc.project_id.as_ref() == Some(pid)
+                } else {
+                    true
+                }
+            })
             .map(|doc| {
                 let similarity = Self::cosine_similarity(query, &doc.embedding);
                 (doc.id.clone(), similarity, doc.metadata.clone())

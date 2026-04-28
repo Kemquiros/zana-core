@@ -189,16 +189,18 @@ impl PyVectorIndex {
         Self { inner: memory::VectorIndex::new() }
     }
 
-    fn add(&mut self, id: String, embedding: Vec<f64>, metadata: String) {
-        self.inner.add(id, embedding, metadata)
+    #[pyo3(signature = (id, project_id, embedding, metadata))]
+    fn add(&mut self, id: String, project_id: Option<String>, embedding: Vec<f64>, metadata: String) {
+        self.inner.add(id, project_id, embedding, metadata)
     }
 
     fn delete(&mut self, id: &str) {
         self.inner.delete(id)
     }
 
-    fn search(&self, query: Vec<f64>, top_k: usize) -> Vec<(String, f64, String)> {
-        self.inner.search(&query, top_k)
+    #[pyo3(signature = (query, top_k, project_id=None))]
+    fn search(&self, query: Vec<f64>, top_k: usize, project_id: Option<String>) -> Vec<(String, f64, String)> {
+        self.inner.search(&query, top_k, project_id)
     }
 
     fn save(&self, path: &str) -> PyResult<()> {
