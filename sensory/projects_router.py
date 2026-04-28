@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 try:
     # Add root to pythonpath for rust module
-    sys.path.append(str(Path(__file__).parent.parent))
+    sys.path.insert(0, str(Path(__file__).parent.parent))
     import zana_steel_core
 except ImportError:
     zana_steel_core = None
