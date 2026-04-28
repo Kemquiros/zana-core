@@ -1,6 +1,6 @@
 [project]
 name = "zana"
-version = "2.7.0"
+version = "2.8.0"
 description = "ZANA — Zero Autonomous Neural Architecture CLI"
 requires-python = ">=3.12"
 license = { text = "MIT" }
@@ -38,7 +38,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["cli"]
+packages = ["cli", "autonomy"]
 
 [tool.uv]
 dev-dependencies = [

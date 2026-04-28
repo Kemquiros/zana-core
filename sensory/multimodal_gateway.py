@@ -62,6 +62,7 @@ else:
     root = Path(__file__).parent.parent
 
 sys.path.insert(0, str(root))
+sys.path.insert(0, str(root / "cli"))
 sys.path.insert(0, str(root / "sensory"))
 
 from audio_processor import AudioProcessor
