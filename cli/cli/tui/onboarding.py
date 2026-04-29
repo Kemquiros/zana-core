@@ -1,14 +1,64 @@
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 import time
 import secrets
 import string
 
-import questionary
-from questionary import Style
-
 from cli.tui.theme import console, BANNER
+
+# questionary / prompt_toolkit send \e[6n (cursor position query) on import,
+# which leaks ";1R" to the shell when there is no TTY (curl | bash).
+# Import lazily — only when _is_interactive() is True.
+
+
+# ── Environment detection ──────────────────────────────────────────────────
+
+def _is_wsl() -> bool:
+    """Detect Windows Subsystem for Linux by checking /proc/version."""
+    try:
+        return "microsoft" in Path("/proc/version").read_text().lower()
+    except Exception:
+        return False
+
+
+def _is_interactive() -> bool:
+    """True only when stdin is a real terminal.
+
+    curl | bash destroys the TTY, making sys.stdin.isatty() return False.
+    questionary aborts in that scenario; we fall back to silent defaults instead.
+    """
+    return sys.stdin.isatty()
+
+
+def _get_windows_username() -> str:
+    """In WSL, infer the Windows username from /mnt/c/Users/."""
+    try:
+        skip = {"Public", "Default", "Default User", "All Users", "desktop.ini"}
+        candidates = [
+            p.name for p in Path("/mnt/c/Users").iterdir()
+            if p.is_dir() and p.name not in skip
+        ]
+        if candidates:
+            return candidates[0]
+    except Exception:
+        pass
+    return os.environ.get("USER", "user")
+
+
+def _default_vault_path() -> str:
+    """Return the most sensible vault default for this environment.
+
+    WSL: Obsidian runs on Windows and cannot see /home/... paths.
+    Use /mnt/c/Users/<windows_user>/Documents/ZANA_Vault so Windows-side
+    Obsidian can open the vault without extra WSL bridging.
+    """
+    if _is_wsl():
+        win_user = _get_windows_username()
+        return f"/mnt/c/Users/{win_user}/Documents/ZANA_Vault"
+    return str(Path.home() / "Documents" / "ZANA_Vault")
 
 ZANA_CONFIG_DIR = Path.home() / ".config" / "zana"
 # Local config for keys, not touching the repo's .env directly for global installs
@@ -16,19 +66,22 @@ ZANA_CONFIG_DIR = Path.home() / ".config" / "zana"
 ZANA_ENV_DIR = Path.home() / ".zana"
 ENV_FILE = ZANA_ENV_DIR / ".env"
 
-Q_STYLE = Style(
-    [
-        ("qmark", "fg:#e879f9 bold"),
-        ("question", "fg:#f0abfc bold"),
-        ("answer", "fg:#c084fc bold"),
-        ("pointer", "fg:#e879f9 bold"),
-        ("highlighted", "fg:#f0abfc bg:#3b0764 bold"),
-        ("selected", "fg:#c084fc"),
-        ("separator", "fg:#6b21a8"),
-        ("instruction", "fg:#a855f7 italic"),
-        ("text", "fg:#f3e8ff"),
-    ]
-)
+def _q_style():
+    """Lazy-load questionary.Style to avoid importing prompt_toolkit in non-TTY mode."""
+    from questionary import Style
+    return Style(
+        [
+            ("qmark", "fg:#e879f9 bold"),
+            ("question", "fg:#f0abfc bold"),
+            ("answer", "fg:#c084fc bold"),
+            ("pointer", "fg:#e879f9 bold"),
+            ("highlighted", "fg:#f0abfc bg:#3b0764 bold"),
+            ("selected", "fg:#c084fc"),
+            ("separator", "fg:#6b21a8"),
+            ("instruction", "fg:#a855f7 italic"),
+            ("text", "fg:#f3e8ff"),
+        ]
+    )
 
 def _generate_secret(length: int = 32) -> str:
     alphabet = string.ascii_letters + string.digits
@@ -113,6 +166,12 @@ def _docker_running() -> bool:
         return False
 
 def _setup_api_keys() -> dict:
+    if not _is_interactive():
+        console.print("\n[muted]Modo no-interactivo: omitiendo configuración de API keys.[/muted]")
+        console.print("[muted]Edita ~/.zana/.env o ejecuta [accent]zana setup[/accent] en una terminal para añadirlas.[/muted]")
+        return {}
+
+    import questionary
     console.print("\n[secondary]Configuración de APIs y BYOK (Bring Your Own Key)[/secondary] [muted](Enter para omitir)[/muted]")
 
     keys = {}
@@ -124,7 +183,7 @@ def _setup_api_keys() -> dict:
     ]
 
     for env_var, label in providers:
-        val = questionary.password(f"  {label}:", style=Q_STYLE).ask()
+        val = questionary.password(f"  {label}:", style=_q_style()).ask()
         if val and val.strip():
             keys[env_var] = val.strip()
 
@@ -204,7 +263,12 @@ def _mock_download_brain():
     console.print("[success]Servicios de Memoria listos.[/success]")
 
 def run_onboarding() -> bool:
-    """First-run wizard (TUI)."""
+    """First-run wizard (TUI).
+
+    Runs fully interactive when stdin is a terminal.
+    Falls back to silent defaults when invoked via curl|bash (no TTY),
+    so the install never aborts mid-pipe.
+    """
     console.clear()
     console.print(BANNER)
     console.print("[primary]ZANA en línea. Inicializando Protocolo de Soberanía...[/primary]\n")
@@ -212,13 +276,26 @@ def run_onboarding() -> bool:
     _detect_environment()
 
     console.print("\n[secondary]Configuración de Bóveda Soberana[/secondary]")
-    default_vault = str(Path.home() / "Documents" / "ZANA_Vault")
-    vault_path = questionary.path(
-        "Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):",
-        default=default_vault,
-        style=Q_STYLE
-    ).ask()
-    
+    default_vault = _default_vault_path()
+
+    if _is_interactive():
+        import questionary
+        vault_path = questionary.path(
+            "Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):",
+            default=default_vault,
+            style=_q_style(),
+        ).ask()
+    else:
+        vault_path = default_vault
+        console.print(f"  [muted]Modo no-interactivo — usando ruta por defecto:[/muted]")
+        console.print(f"  [accent]{vault_path}[/accent]")
+        console.print(f"  [muted]Cambia esto después con:[/muted] [accent]zana setup[/accent]")
+        if _is_wsl():
+            console.print(
+                "  [warning]WSL detectado:[/warning] la ruta apunta a "
+                "[accent]/mnt/c/...[/accent] para que Obsidian (Windows) pueda abrirla."
+            )
+
     if vault_path:
         keys = {"VAULT_PATH": vault_path}
         api_keys = _setup_api_keys()
