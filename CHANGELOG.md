@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.1] — 2026-04-28
+
+### Fixed
+- **Docker Build Context**: Implemented a "Permission Doctor" in the CLI to automatically fix read issues in the `data/` directory, preventing Docker build failures.
+- **Service Orchestration**: Optimized `docker-compose.yml` to use configurable data roots via `ZANA_DATA_DIR`.
+
+---
+
 ## [2.9.0] — 2026-04-28
 
 ### Fixed

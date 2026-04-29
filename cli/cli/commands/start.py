@@ -45,7 +45,10 @@ def cmd_start(detach: bool = True) -> None:
     # 1. Ensure .env is securely configured with passwords before starting
     ensure_env_configured(STACK_ROOT)
 
-    # 2. Ensure Rust Steel Core is built (needed for Docker build context)
+    # 2. Fix data directory permissions (Docker context scan fix)
+    _fix_data_permissions(STACK_ROOT)
+
+    # 3. Ensure Rust Steel Core is built (needed for Docker build context)
     _ensure_steel_core_built(STACK_ROOT)
 
     console.print("[primary]Booting ZANA stack...[/primary]")
@@ -89,6 +92,30 @@ def _wait_for_gateway(timeout: int = 60) -> None:
     console.print(
         "[warning]Gateway did not respond in time. Run `zana status` to check.[/warning]"
     )
+
+
+def _fix_data_permissions(root: Path) -> None:
+    """Fixes permissions in the data directory to allow Docker context scanning."""
+    data_dir = root / "data"
+    if not data_dir.exists():
+        return
+
+    # Check if any subdirectory is unreadable
+    try:
+        # This will fail if we can't read/enter subfolders (like data/caddy/caddy)
+        subprocess.run(["find", str(data_dir), "-maxdepth", "2"], capture_output=True, check=True)
+    except subprocess.CalledProcessError:
+        console.print("\n[bold yellow]🔐 CORRIGIENDO PERMISOS DE DATOS...[/bold yellow]")
+        console.print("[muted]Docker requiere acceso de lectura para ignorar carpetas protegidas.[/muted]")
+        try:
+            # Try to add read and directory-search permissions
+            # Using sudo might be needed if files are root-owned by Docker
+            cmd = ["sudo", "chmod", "-R", "a+rX", str(data_dir)]
+            subprocess.run(cmd, check=True)
+            console.print("[success]✅ Permisos restaurados.[/success]")
+        except Exception:
+            console.print("[error]No se pudieron corregir los permisos automáticamente.[/error]")
+            console.print(f"[yellow]Ejecuta manualmente: sudo chmod -R a+rX {data_dir}[/yellow]")
 
 
 def _ensure_steel_core_built(root: Path) -> None:
