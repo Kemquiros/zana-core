@@ -7,6 +7,15 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.0] — 2026-04-28
+
+### Fixed
+- **Docker Engine**: Robust `.dockerignore` implementation to prevent `permission denied` errors on restricted data directories.
+- **CLI Ecosystem**: Version unified across all tools. Forced tool re-deployment in the installer.
+- **Networking**: Final resolution of 502 Bad Gateway and Caddy-to-Aria-UI routing.
+
+---
+
 ## [2.8.9] — 2026-04-28
 
 ### Fixed

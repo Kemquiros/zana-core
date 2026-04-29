@@ -1,14 +1,21 @@
-.git
-.venv
-node_modules
+# Data and Cache (Critical: Ignore these first to avoid permission errors)
 data/
+**/data/*
+.venv/
+**/node_modules/
+__pycache__/
+
+# Git
+.git
+
+# Allow pre-compiled Rust extensions (Must stay in context)
 !*.so
 
-__pycache__
-target
-dist
-build
-.next
-out
-playwright-report
-test-results
+# Build artifacts
+target/
+dist/
+build/
+.next/
+out/
+playwright-report/
+test-results/

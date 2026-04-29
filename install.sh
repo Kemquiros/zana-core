@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 🧠 ZANA Installer v2.8.8 — Sovereign Cognitive Architecture
+# 🧠 ZANA Installer v2.9.0 — Sovereign Cognitive Architecture
 # "Juntos hacemos temblar los cielos"
 
 set -euo pipefail
@@ -27,7 +27,7 @@ MSG_DOCKER_MISSING[en]="Docker not found. Needed for Sovereign Memory and local 
 MSG_PYTHON_MISSING[en]="Python 3.12+ missing. It is the nervous system of logic."
 MSG_GIT_MISSING[en]="Git not found. Needed to clone the Cortex."
 MSG_UV_INSTALLING[en]="Installing 'uv' (Neural-speed Python manager)..."
-MSG_SUCCESS[en]="ZANA v2.8.8 — INSTALLED SUCCESSFULLY."
+MSG_SUCCESS[en]="ZANA v2.9.0 — INSTALLED SUCCESSFULLY."
 MSG_FORGING[en]="Forging CLI tools..."
 MSG_STARTING[en]="Starting automated configuration (zana start)..."
 
@@ -38,7 +38,7 @@ MSG_DOCKER_MISSING[es]="Docker no detectado. Vital para la Memoria Soberana y al
 MSG_PYTHON_MISSING[es]="Falta Python 3.12+. Es el sistema nervioso de la lógica."
 MSG_GIT_MISSING[es]="Falta 'git'. Vital para clonar el Córtex."
 MSG_UV_INSTALLING[es]="Instalando 'uv' (Gestor de Python de alta velocidad)..."
-MSG_SUCCESS[es]="ZANA v2.8.8 — INSTALADA CON ÉXITO."
+MSG_SUCCESS[es]="ZANA v2.9.0 — INSTALADA CON ÉXITO."
 MSG_FORGING[es]="Forjando herramientas CLI..."
 MSG_STARTING[es]="Iniciando protocolo de configuración automatizado (zana start)..."
 
@@ -106,7 +106,8 @@ install_core() {
     fi
     
     # Ensure fresh installation of the CLI tool
-    echo -e "${CYAN}▶ Deploying ZANA CLI v2.8.8...${RESET}"
+    echo -e "${CYAN}▶ Deploying ZANA CLI v2.9.0...${RESET}"
+    uv tool uninstall zana || true
     uv tool install "$ZANA_REPO_DIR/cli" --force
     
     export ZANA_CORE_DIR="$ZANA_REPO_DIR"
