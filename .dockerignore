@@ -5,7 +5,12 @@ data/postgres
 data/neo4j
 data/redis
 data/chroma
+# Data directories (not versioned)
 data/n8n
+
+# Allow pre-compiled Rust extensions
+!*.so
+
 __pycache__
 target
 dist

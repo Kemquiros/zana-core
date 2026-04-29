@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.5] — 2026-04-28
+
+### Fixed
+- **CLI Sync**: Explicitly bump CLI version and force uninstallation during setup to ensure the latest logic is applied.
+- **Docker Visibility**: Updated `.dockerignore` to allow `.so` files, resolving the "not found" error during the COPY phase of the build.
+
+---
+
 ## [2.8.4] — 2026-04-28
 
 ### Added
