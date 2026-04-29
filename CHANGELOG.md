@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.5] — 2026-04-29
+
+### Added
+- **Context Compression** — `ContextCompressor` node injected into the LangGraph orchestrator. Automatically summarizes conversation history when total message size exceeds ~10K tokens (40K chars). Features: language-aware summaries (Spanish/English), anti-thrashing guard, graceful LLM-failure fallback. New `compressor` node routes via 3-way conditional from `critic`: task done → chronicler, context large → compressor → executor, else → executor.
+- **`compression_count`** field added to `AgentState` for monitoring how many compression cycles a session has used.
+
+---
+
 ## [2.9.4] — 2026-04-29
 
 ### Added

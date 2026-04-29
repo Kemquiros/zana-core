@@ -60,7 +60,7 @@ Ubiquity, Identity, and Autonomous Lifecycle.
 - **ZANA ID** — OIDC/OAuth2 authentication with multi-tenant data isolation
 - **Remote Access** — Automated Cloudflare/Tailscale secure tunnels
 - **Curator Pattern** ✅ — Autonomous skill lifecycle (active → stale → archived). Heartbeat reviews degraded procedural memory every 30 min via Claude Haiku; curation logs persist to the Obsidian vault.
-- **Context Compression** — Smart auto-summarization in the Orchestrator LangGraph when approaching context limits (anti-thrashing, language-aware). *next*
+- **Context Compression** ✅ — Smart auto-summarization in the Orchestrator LangGraph (language-aware, anti-thrashing, graceful fallback). New `compressor` node with 3-way routing from `critic`.
 
 ---
 

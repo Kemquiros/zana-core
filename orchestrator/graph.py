@@ -9,7 +9,11 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 
+from orchestrator.compressor import ContextCompressor
+
 logger = logging.getLogger(__name__)
+
+_compressor = ContextCompressor()
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
@@ -27,6 +31,7 @@ class AgentState(TypedDict):
     observations: List[str]
     iterations: int
     task_completed: bool
+    compression_count: int
 
 
 # --- Nodes ---
@@ -84,8 +89,20 @@ def critic(state: AgentState):
     """Reflection Node: Verifies outcome and decides if more loops are needed."""
     logger.info("🧠 Reflecting on outcome...")
     if state["iterations"] >= len(state["plan"]):
-        return {"task_completed": True, "next_node": "chronicler"}
-    return {"next_node": "executor"}
+        return {"task_completed": True}
+    return {}
+
+def compressor(state: AgentState):
+    """Context Compression Node: summarizes history when approaching token limits."""
+    logger.info("🗜️ Compressing context...")
+    new_messages, new_observations = _compressor.compress(
+        state["messages"], state.get("observations", [])
+    )
+    return {
+        "messages": new_messages,
+        "observations": new_observations,
+        "compression_count": state.get("compression_count", 0) + 1,
+    }
 
 def chronicler(state: AgentState):
     """Memory Reflection: Persists learning to Wiki."""
@@ -94,23 +111,34 @@ def chronicler(state: AgentState):
 
 # --- Graph Construction ---
 
+def _route_critic(state: AgentState) -> str:
+    if state.get("task_completed"):
+        return "chronicler"
+    if _compressor.should_compress(state["messages"]):
+        return "compressor"
+    return "executor"
+
+
 workflow = StateGraph(AgentState)
 
 workflow.add_node("orchestrator", orchestrator)
 workflow.add_node("planner", planner)
 workflow.add_node("executor", executor)
 workflow.add_node("critic", critic)
+workflow.add_node("compressor", compressor)
 workflow.add_node("chronicler", chronicler)
 
 workflow.set_entry_point("orchestrator")
 
 workflow.add_edge("orchestrator", "planner")
 workflow.add_edge("planner", "executor")
+workflow.add_edge("executor", "critic")
+workflow.add_edge("compressor", "executor")
 
 workflow.add_conditional_edges(
     "critic",
-    lambda x: "executor" if not x["task_completed"] else "chronicler",
-    {"executor": "executor", "chronicler": "chronicler"}
+    _route_critic,
+    {"executor": "executor", "compressor": "compressor", "chronicler": "chronicler"},
 )
 
 workflow.add_edge("chronicler", END)
@@ -124,8 +152,10 @@ def run_task(task: str):
         "messages": [HumanMessage(content=task)],
         "context": "",
         "plan": [],
-        "next_node": "",
+        "observations": [],
+        "iterations": 0,
         "task_completed": False,
+        "compression_count": 0,
     }
     for output in app.stream(initial_state):
         for node, data in output.items():
