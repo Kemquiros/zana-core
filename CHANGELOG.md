@@ -7,6 +7,15 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.3] — 2026-04-28
+
+### Fixed
+- **Build System**: Improved `zana start` diagnostics to accurately resolve `STACK_ROOT` and verify Steel Core binaires.
+- **Dependency Isolation**: Binary shared objects (`.so`) are no longer tracked by Git, forcing native compilation on the host for maximum compatibility.
+- **Docker Context**: Fixed a critical bug where `zana_audio_dsp.so` and `zana_armor.so` were missing from the Docker build context.
+
+---
+
 ## [2.8.2] — 2026-04-28
 
 ### Added
