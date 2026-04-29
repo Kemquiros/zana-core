@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.3] — 2026-04-28
+
+### Added
+- **Diverse Aeon Visuals**: Unique 3D geometric distributions for Aeons based on forged DNA (Humanoid clusters, Cubes, Toroids, and Crystals).
+- **Conversational Soul**: Dynamic LLM system prompt injection. Aeons now remember their name, archetype, and traits during conversations.
+- **Interactive Sanctuaries**: Persistable Virtual Space theme switching directly from the Dashboard.
+
+### Fixed
+- **UI Depth**: Fixed z-index layering to prevent the 3D avatar from overlapping the communication channel.
+- **KoruBridge Telemetry**: More graceful handling and reporting of KoruOS connection status.
+
+---
+
 ## [2.9.2] — 2026-04-28
 
 ### Fixed

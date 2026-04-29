@@ -56,17 +56,64 @@ export default function AeonEntity({ dna, audioLevel = 0 }: { dna: any, audioLev
     const palette = dna?.chroma_spectrum || ['#4f46e5', '#8b5cf6'];
     const baseColor = new THREE.Color(palette[0]);
     const altColor = new THREE.Color(palette[1 % palette.length]);
+    const geomType = dna?.geometry_type || 'fluid';
 
     for (let i = 0; i < particleCount; i++) {
-      // Golden ratio spiral distribution on a sphere
-      const phi = Math.acos(1 - 2 * (i + 0.5) / particleCount);
-      const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+      let x, y, z;
+
+      if (geomType === 'geometric') {
+        // Cube distribution
+        x = (Math.random() - 0.5) * 2.5;
+        y = (Math.random() - 0.5) * 2.5;
+        z = (Math.random() - 0.5) * 2.5;
+      } else if (geomType === 'crystal') {
+        // Diamond/Octahedron distribution
+        const u = Math.random() * 2 - 1;
+        const v = Math.random() * 2 - 1;
+        const w = Math.random() * 2 - 1;
+        const sum = Math.abs(u) + Math.abs(v) + Math.abs(w);
+        x = u / sum * 1.8;
+        y = v / sum * 1.8;
+        z = w / sum * 1.8;
+      } else if (geomType === 'ethereal') {
+        // Torus distribution (Ring/Angel-like)
+        const R = 1.3;
+        const r_torus = 0.4;
+        const u = Math.random() * Math.PI * 2;
+        const v = Math.random() * Math.PI * 2;
+        x = (R + r_torus * Math.cos(v)) * Math.cos(u);
+        y = (R + r_torus * Math.cos(v)) * Math.sin(u);
+        z = r_torus * Math.sin(v);
+      } else if (geomType === 'organic') {
+        // Humanoid/Beast-like (Two-lobe distribution)
+        if (i < particleCount * 0.7) {
+          // Body
+          const phi = Math.acos(1 - 2 * (i + 0.5) / (particleCount * 0.7));
+          const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+          x = 0.8 * Math.cos(theta) * Math.sin(phi);
+          y = 1.2 * Math.sin(theta) * Math.sin(phi) - 0.4;
+          z = 0.8 * Math.cos(phi);
+        } else {
+          // Head
+          const headIdx = i - particleCount * 0.7;
+          const phi = Math.acos(1 - 2 * (headIdx + 0.5) / (particleCount * 0.3));
+          const theta = Math.PI * (1 + Math.sqrt(5)) * (headIdx + 0.5);
+          x = 0.5 * Math.cos(theta) * Math.sin(phi);
+          y = 0.5 * Math.sin(theta) * Math.sin(phi) + 0.7;
+          z = 0.5 * Math.cos(phi);
+        }
+      } else {
+        // Default Fluid Sphere (Golden Spiral)
+        const phi = Math.acos(1 - 2 * (i + 0.5) / particleCount);
+        const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
+        x = 1.5 * Math.cos(theta) * Math.sin(phi);
+        y = 1.5 * Math.sin(theta) * Math.sin(phi);
+        z = 1.5 * Math.cos(phi);
+      }
       
-      const r = 1.5; // Radius
-      
-      pos[i * 3] = r * Math.cos(theta) * Math.sin(phi);
-      pos[i * 3 + 1] = r * Math.sin(theta) * Math.sin(phi);
-      pos[i * 3 + 2] = r * Math.cos(phi);
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
+      pos[i * 3 + 2] = z;
 
       // Mix colors based on position
       color.lerpColors(baseColor, altColor, Math.random());

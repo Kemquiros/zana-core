@@ -95,6 +95,24 @@ export default function CockpitPage() {
     checkState();
   }, []);
 
+  const updateTheme = async (newTheme: string) => {
+    try {
+      // Optimistic update
+      setProfile((prev: any) => ({
+        ...prev,
+        virtual_space: { ...(prev?.virtual_space || {}), theme: newTheme }
+      }));
+
+      await fetch('/resonance/update_space', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ theme: newTheme })
+      });
+    } catch (e) {
+      console.error("Failed to update theme", e);
+    }
+  };
+
   const openKoruDashboard = () => {
     window.open('http://localhost:51111', '_blank');
   };
@@ -108,7 +126,7 @@ export default function CockpitPage() {
     <main className={`min-h-screen text-white selection:bg-indigo-500/30 transition-all duration-700 ${shadowMode ? 'bg-transparent' : 'bg-black'}`}>
       
       {!shadowMode && (
-          <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
               <div className={`absolute inset-0 bg-gradient-to-br ${themeColors[currentTheme]} via-black to-black transition-all duration-1000`} />
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50" />
               
@@ -118,10 +136,10 @@ export default function CockpitPage() {
           </div>
       )}
 
-      <div className={`max-w-7xl mx-auto px-8 py-20 space-y-24 transition-opacity duration-700 relative z-10 ${shadowMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+      <div className={`max-w-7xl mx-auto px-8 py-20 space-y-24 transition-opacity duration-700 relative z-20 ${shadowMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
-            <div className="space-y-12">
+            <div className="space-y-12 relative z-30">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
                       <button 
@@ -253,6 +271,7 @@ export default function CockpitPage() {
                 {['zen', 'cyber', 'void', 'nebula', 'crystal', 'forest', 'forge', 'shrine', 'oasis', 'abyss'].map(theme => (
                     <button 
                         key={theme}
+                        onClick={() => updateTheme(theme)}
                         className={`p-6 rounded-3xl border transition-all uppercase text-[8px] font-black tracking-[0.2em] ${profile?.virtual_space?.theme === theme ? 'bg-indigo-500 border-white text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/20'}`}
                     >
                         {theme}
