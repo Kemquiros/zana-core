@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.2] — 2026-04-28
+
+### Fixed
+- **Networking**: Corrected `ZANA_PWA_HOST` fallback in `.env.example` and current environment, resolving the 502 Bad Gateway error when accessing through port 80.
+
+---
+
 ## [2.9.1] — 2026-04-28
 
 ### Fixed
