@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.6] — 2026-04-28
+
+### Fixed
+- **Aria-UI Build**: Fixed Docker build error where Tailwind PostCSS module was missing due to premature dev-dependency omission.
+- **Frontend Persistence**: Ensured all build-time dependencies are available during the Next.js compilation phase.
+
+---
+
 ## [2.8.5] — 2026-04-28
 
 ### Fixed
