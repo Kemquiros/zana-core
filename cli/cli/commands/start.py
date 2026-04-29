@@ -118,19 +118,48 @@ def _fix_data_permissions(root: Path) -> None:
             console.print(f"[yellow]Ejecuta manualmente: sudo chmod -R a+rX {data_dir}[/yellow]")
 
 
+def _ensure_rust_installed() -> str:
+    """Return path to cargo, installing Rust via rustup if needed."""
+    import shutil
+
+    cargo = shutil.which("cargo")
+    if cargo:
+        return cargo
+
+    # cargo might exist in ~/.cargo/bin even if not on PATH yet
+    cargo_home = Path.home() / ".cargo" / "bin" / "cargo"
+    if cargo_home.exists():
+        os.environ["PATH"] = f"{cargo_home.parent}:{os.environ.get('PATH', '')}"
+        return str(cargo_home)
+
+    console.print("\n[bold yellow]⚙️  Rust no detectado — instalando via rustup...[/bold yellow]")
+    console.print("[muted]Esto toma 1-2 minutos y solo ocurre una vez.[/muted]")
+
+    result = subprocess.run(
+        "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
+        shell=True,
+    )
+    if result.returncode != 0:
+        console.print("[error]No se pudo instalar Rust automáticamente.[/error]")
+        console.print("[yellow]Instálalo manualmente: https://rustup.rs  →  luego ejecuta `zana start` de nuevo.[/yellow]")
+        raise typer.Exit(1)
+
+    os.environ["PATH"] = f"{cargo_home.parent}:{os.environ.get('PATH', '')}"
+    console.print("[success]✅ Rust instalado correctamente.[/success]\n")
+    return str(cargo_home)
+
+
 def _ensure_steel_core_built(root: Path) -> None:
     """Ensures that the .so files (The Steel Core) exist in the root."""
     needed = ["zana_steel_core.so", "zana_audio_dsp.so", "zana_armor.so"]
-    
+
     console.print(f"\n[bold cyan]🔍 VERIFICANDO THE STEEL CORE...[/bold cyan]")
     console.print(f"[muted]Directorio base: {root}[/muted]")
-    
+
     missing = []
     for f in needed:
         f_path = root / f
-        if not f_path.exists():
-            missing.append(f)
-        elif not f_path.is_file() or f_path.stat().st_size == 0:
+        if not f_path.exists() or not f_path.is_file() or f_path.stat().st_size == 0:
             missing.append(f)
 
     if not missing:
@@ -139,25 +168,26 @@ def _ensure_steel_core_built(root: Path) -> None:
 
     console.print(f"[bold yellow]⚠️  Componentes faltantes o inválidos: {', '.join(missing)}[/bold yellow]")
     console.print("[bold magenta]⚙️  INICIANDO PROCESO DE FORJA (Rust + PyO3)...[/bold magenta]")
-    
+
+    cargo = _ensure_rust_installed()
+
     try:
         # 1. Build Steel Core (Rust)
         if "zana_steel_core.so" in missing:
             rust_dir = root / "rust_core"
-            if rust_dir.exists():
-                console.print("[cyan]  ▶ Forjando Steel Core (Cognición)...[/cyan]")
-                subprocess.run(["cargo", "build", "--release", "--features", "python"], cwd=str(rust_dir), check=True)
-                subprocess.run(["cp", "target/release/libzana_steel_core.so", str(root / "zana_steel_core.so")], cwd=str(rust_dir), check=True)
-            else:
+            if not rust_dir.exists():
                 console.print(f"[error]Error fatal: Directorio {rust_dir} no encontrado.[/error]")
                 raise typer.Exit(1)
+            console.print("[cyan]  ▶ Forjando Steel Core (Cognición)...[/cyan]")
+            subprocess.run([cargo, "build", "--release", "--features", "python"], cwd=str(rust_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_steel_core.so", str(root / "zana_steel_core.so")], cwd=str(rust_dir), check=True)
 
         # 2. Build Audio DSP
         if "zana_audio_dsp.so" in missing:
             audio_dir = root / "audio_dsp"
             if audio_dir.exists():
                 console.print("[cyan]  ▶ Forjando Audio DSP (Sexto Sentido)...[/cyan]")
-                subprocess.run(["cargo", "build", "--release"], cwd=str(audio_dir), check=True)
+                subprocess.run([cargo, "build", "--release"], cwd=str(audio_dir), check=True)
                 subprocess.run(["cp", "target/release/libzana_audio_dsp.so", str(root / "zana_audio_dsp.so")], cwd=str(audio_dir), check=True)
 
         # 3. Build Armor
@@ -165,10 +195,12 @@ def _ensure_steel_core_built(root: Path) -> None:
             armor_dir = root / "armor"
             if armor_dir.exists():
                 console.print("[cyan]  ▶ Forjando Armor Layer (Soberanía)...[/cyan]")
-                subprocess.run(["cargo", "build", "--release"], cwd=str(armor_dir), check=True)
+                subprocess.run([cargo, "build", "--release"], cwd=str(armor_dir), check=True)
                 subprocess.run(["cp", "target/release/libzana_armor.so", str(root / "zana_armor.so")], cwd=str(armor_dir), check=True)
 
         console.print("[bold green]✨ The Steel Core ha sido forjado con éxito para tu arquitectura.[/bold green]\n")
+    except typer.Exit:
+        raise
     except Exception as e:
         console.print(f"[bold red]❌ Error durante la forja:[/bold red] {e}")
         console.print("[yellow]Sugerencia: Ejecuta `cd rust_core && cargo build --release` manualmente.[/yellow]")

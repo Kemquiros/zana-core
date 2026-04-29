@@ -110,6 +110,8 @@ The installer:
 - Installs the `zana` CLI via `uv tool install`
 - Adds `zana` to your `PATH` in `~/.bashrc`
 
+> **Rust / Steel Core:** ZANA compiles native `.so` binaries on first boot. If Rust is not installed, `zana start` installs it automatically via `rustup` (one-time, ~2 minutes). No manual action required.
+
 ---
 
 ## Step 7 — Complete interactive setup
