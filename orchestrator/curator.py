@@ -8,10 +8,9 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import HumanMessage
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from orchestrator.transport import transport_from_env
 from procedural_memory.manager import SkillRegistry
 
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -41,16 +40,11 @@ class SkillCurator:
         registry: SkillRegistry,
         chronicler,
         stale_days: int = 7,
-        model: str = "claude-3-5-haiku-20241022",
     ):
         self.registry = registry
         self.chronicler = chronicler
         self.stale_days = stale_days
-        self.llm = ChatAnthropic(
-            model=model,
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-            max_tokens=512,
-        )
+        self.transport = transport_from_env("curator")
 
     async def review_cycle(self) -> dict:
         """Itera sobre skills stale y decide mejorar o archivar cada una."""
@@ -119,8 +113,8 @@ class SkillCurator:
         )
 
         try:
-            response = await self.llm.ainvoke([HumanMessage(content=prompt)])
-            data = json.loads(response.content)
+            text = await self.transport.ainvoke_prompt(prompt)
+            data = json.loads(text)
             return data.get("improved_steps")
         except Exception as e:
             logger.warning(f"LLM call failed ({e}). Manteniendo skill activa.")
@@ -145,6 +139,7 @@ if __name__ == "__main__":
         reg.save()
 
         curator = SkillCurator(registry=reg, chronicler=None, stale_days=7)
+        print(f"Transport: {curator.transport}")
         report = await curator.review_cycle()
         print(json.dumps(report, indent=2, ensure_ascii=False))
         print("\nSummary:", reg.get_skills_summary())

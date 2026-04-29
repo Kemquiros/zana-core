@@ -63,6 +63,7 @@ Ubiquity, Identity, and Autonomous Lifecycle.
 - **Context Compression** ✅ — Smart auto-summarization in the Orchestrator LangGraph (language-aware, anti-thrashing, graceful fallback). New `compressor` node with 3-way routing from `critic`.
 - **Trajectory Capture** ✅ — Every completed session saved to `data/trajectories/` in ZANA native + ShareGPT JSONL. Pipeline toward fine-tuning a sovereign ZANA model.
 - **Iteration Budget** ✅ — `BudgetConfig` frozen dataclass with tier limits (orchestrator / swarm), 80% warning, refundable ops, and `budget_exhausted` trajectory signal.
+- **Transport Abstraction** ✅ — `BaseTransport` interface + `AnthropicTransport`, `OllamaTransport`, `OpenAICompatTransport`. `transport_from_env(role)` factory — swap any cognitive module to any provider with one env var. Sovereign model endpoint ready.
 
 ---
 

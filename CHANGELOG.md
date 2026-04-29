@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.8] — 2026-04-29
+
+### Added
+- **Transport Abstraction Layer** — `orchestrator/transport.py`. Decouples every cognitive module from its LLM provider. `BaseTransport` interface with `invoke()` / `ainvoke()` / `invoke_prompt()` / `ainvoke_prompt()`. Concrete implementations: `AnthropicTransport` (langchain-anthropic), `OllamaTransport` (httpx, zero SDK), `OpenAICompatTransport` (OpenAI SDK, covers Groq, LiteLLM, vLLM, and future sovereign endpoints). `transport_from_env(role)` factory reads `ZANA_{ROLE}_PROVIDER` + `ZANA_{ROLE}_MODEL` with `ZANA_PRIMARY_*` fallback. Strips LiteLLM-style `provider/model` prefixes automatically.
+- **Per-role provider config** — `curator`, `compressor`, `orchestrator`, and `swarm` can each use a different provider via env vars. Documented in `.env.example` with sovereign model example.
+
+### Changed
+- **`curator.py`** — removed `ChatAnthropic` / `HumanMessage` direct imports; now uses `transport_from_env("curator")`.
+- **`compressor.py`** — same. `_summarize()` calls `self.transport.invoke_prompt()`.
+- **`graph.py`** — removed `langchain_anthropic` import. Transport is managed by sub-modules.
+
+---
+
 ## [2.9.7] — 2026-04-29
 
 ### Added

@@ -5,8 +5,9 @@ from pathlib import Path
 from typing import List, Tuple
 
 from dotenv import load_dotenv
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import BaseMessage, AIMessage, HumanMessage
+from langchain_core.messages import BaseMessage, AIMessage
+
+from orchestrator.transport import transport_from_env
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
@@ -21,12 +22,8 @@ _MIN_NEW_SINCE_LAST = 2
 
 
 class ContextCompressor:
-    def __init__(self, model: str = "claude-3-5-haiku-20241022"):
-        self.llm = ChatAnthropic(
-            model=model,
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-            max_tokens=1024,
-        )
+    def __init__(self):
+        self.transport = transport_from_env("compressor")
         self._last_compressed_at: int = 0  # message count at last compression
 
     # ------------------------------------------------------------------
@@ -97,8 +94,7 @@ class ContextCompressor:
             + "\n\nSummary:"
         )
         try:
-            response = self.llm.invoke([HumanMessage(content=prompt)])
-            return response.content
+            return self.transport.invoke_prompt(prompt)
         except Exception as e:
             logger.warning(f"Compressor LLM call failed: {e}")
             return None
