@@ -27,7 +27,7 @@ MSG_DOCKER_MISSING[en]="Docker not found. Needed for Sovereign Memory and local 
 MSG_PYTHON_MISSING[en]="Python 3.12+ missing. It is the nervous system of logic."
 MSG_GIT_MISSING[en]="Git not found. Needed to clone the Cortex."
 MSG_UV_INSTALLING[en]="Installing 'uv' (Neural-speed Python manager)..."
-MSG_SUCCESS[en]="ZANA v2.8.3 — INSTALLED SUCCESSFULLY."
+MSG_SUCCESS[en]="ZANA v2.8.4 — INSTALLED SUCCESSFULLY."
 MSG_FORGING[en]="Forging CLI tools..."
 MSG_STARTING[en]="Starting automated configuration (zana start)..."
 
@@ -38,7 +38,7 @@ MSG_DOCKER_MISSING[es]="Docker no detectado. Vital para la Memoria Soberana y al
 MSG_PYTHON_MISSING[es]="Falta Python 3.12+. Es el sistema nervioso de la lógica."
 MSG_GIT_MISSING[es]="Falta 'git'. Vital para clonar el Córtex."
 MSG_UV_INSTALLING[es]="Instalando 'uv' (Gestor de Python de alta velocidad)..."
-MSG_SUCCESS[es]="ZANA v2.8.3 — INSTALADA CON ÉXITO."
+MSG_SUCCESS[es]="ZANA v2.8.4 — INSTALADA CON ÉXITO."
 MSG_FORGING[es]="Forjando herramientas CLI..."
 MSG_STARTING[es]="Iniciando protocolo de configuración automatizado (zana start)..."
 
@@ -95,17 +95,20 @@ install_core() {
     if [ -d "cli" ] && [ -d "sensory" ]; then
         echo -e "${CYAN}▶ Installing from local development environment...${RESET}"
         ZANA_REPO_DIR="$(pwd)"
-        uv tool install "./cli" --force --quiet
     else
-        echo -e "${CYAN}▶ Cloning master repository to $ZANA_REPO_DIR...${RESET}"
+        echo -e "${CYAN}▶ Cloning/Updating repository: $REPO...${RESET}"
         mkdir -p "$HOME/.zana"
         if [ ! -d "$ZANA_REPO_DIR" ]; then
-            git clone "https://github.com/$REPO.git" "$ZANA_REPO_DIR" --quiet
+            git clone "https://github.com/$REPO.git" "$ZANA_REPO_DIR"
         else
-            (cd "$ZANA_REPO_DIR" && git pull --quiet)
+            (cd "$ZANA_REPO_DIR" && git fetch --all && git reset --hard origin/main)
         fi
-        uv tool install "$ZANA_REPO_DIR/cli" --force --quiet
     fi
+    
+    # Ensure fresh installation of the CLI tool
+    echo -e "${CYAN}▶ Deploying ZANA CLI v2.8.4...${RESET}"
+    uv tool install "$ZANA_REPO_DIR/cli" --force
+    
     export ZANA_CORE_DIR="$ZANA_REPO_DIR"
 }
 

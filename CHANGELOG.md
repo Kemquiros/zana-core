@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.4] — 2026-04-28
+
+### Added
+- **Diagnostic Forging**: The `zana start` command now includes a visual diagnostic layer that verifies binary integrity and repo paths before booting.
+
+### Changed
+- **Installer Security**: `install.sh` now performs a hard reset to `origin/main` to eliminate local corruption and force-reinstalls the CLI tool.
+
+### Fixed
+- **Binary Path Collision**: Resolved an issue where old/invalid shared objects were preventing Docker from seeing the newly forged Steel Core.
+
+---
+
 ## [2.8.3] — 2026-04-28
 
 ### Fixed

@@ -84,7 +84,7 @@ SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
-    version="2.8.3",
+    version="2.8.4",
 )
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
