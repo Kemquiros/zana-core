@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.7] — 2026-04-28
+
+### Fixed
+- **Docker Standalone**: Final fix for Aria-UI Docker build by ensuring devDependencies are present during the PostCSS/Tailwind compilation phase.
+- **Global Sync**: Synchronized core and landing versions to 2.8.7.
+
+---
+
 ## [2.8.6] — 2026-04-28
 
 ### Fixed
