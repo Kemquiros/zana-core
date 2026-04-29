@@ -94,35 +94,55 @@ def _wait_for_gateway(timeout: int = 60) -> None:
 def _ensure_steel_core_built(root: Path) -> None:
     """Ensures that the .so files (The Steel Core) exist in the root."""
     needed = ["zana_steel_core.so", "zana_audio_dsp.so", "zana_armor.so"]
-    missing = [f for f in needed if not (root / f).exists()]
+    
+    console.print(f"[muted]Checking Steel Core in: {root}[/muted]")
+    
+    missing = []
+    for f in needed:
+        if not (root / f).exists():
+            missing.append(f)
+        else:
+            # Check if it is a regular file and not empty
+            if not (root / f).is_file() or (root / f).stat().st_size == 0:
+                missing.append(f)
 
     if not missing:
+        console.print("[success]✓ Steel Core components found.[/success]")
         return
 
-    console.print(f"[muted]Missing Steel Core components: {', '.join(missing)}. Building...[/muted]")
+    console.print(f"[warning]Missing or invalid Steel Core components: {', '.join(missing)}.[/warning]")
+    console.print("[primary]Forging The Steel Core (Rust)...[/primary]")
     
-    # 1. Build Steel Core (Rust)
-    if "zana_steel_core.so" in missing:
+    try:
+        # 1. Build Steel Core (Rust)
         rust_dir = root / "rust_core"
         if rust_dir.exists():
-            console.print("[muted]  -> Forging Steel Core...[/muted]")
+            console.print("[muted]  -> Forging Steel Core (PyO3)...[/muted]")
             subprocess.run(["cargo", "build", "--release", "--features", "python"], cwd=str(rust_dir), check=True)
-            subprocess.run(["cp", "target/release/libzana_steel_core.so", "../zana_steel_core.so"], cwd=str(rust_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_steel_core.so", str(root / "zana_steel_core.so")], cwd=str(rust_dir), check=True)
+        else:
+            console.print(f"[error]Error: {rust_dir} not found. Cannot build zana_steel_core.so[/error]")
 
-    # 2. Build Audio DSP
-    if "zana_audio_dsp.so" in missing:
+        # 2. Build Audio DSP
         audio_dir = root / "audio_dsp"
         if audio_dir.exists():
-            console.print("[muted]  -> Forging Audio DSP...[/muted]")
+            console.print("[muted]  -> Forging Audio DSP (VAD)...[/muted]")
             subprocess.run(["cargo", "build", "--release"], cwd=str(audio_dir), check=True)
-            subprocess.run(["cp", "target/release/libzana_audio_dsp.so", "../zana_audio_dsp.so"], cwd=str(audio_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_audio_dsp.so", str(root / "zana_audio_dsp.so")], cwd=str(audio_dir), check=True)
+        else:
+             console.print(f"[error]Error: {audio_dir} not found. Cannot build zana_audio_dsp.so[/error]")
 
-    # 3. Build Armor
-    if "zana_armor.so" in missing:
+        # 3. Build Armor
         armor_dir = root / "armor"
         if armor_dir.exists():
-            console.print("[muted]  -> Forging Armor...[/muted]")
+            console.print("[muted]  -> Forging Armor (Security)...[/muted]")
             subprocess.run(["cargo", "build", "--release"], cwd=str(armor_dir), check=True)
-            subprocess.run(["cp", "target/release/libzana_armor.so", "../zana_armor.so"], cwd=str(armor_dir), check=True)
+            subprocess.run(["cp", "target/release/libzana_armor.so", str(root / "zana_armor.so")], cwd=str(armor_dir), check=True)
+        else:
+             console.print(f"[error]Error: {armor_dir} not found. Cannot build zana_armor.so[/error]")
 
-    console.print("[success]The Steel Core has been forged successfully.[/success]")
+        console.print("[success]The Steel Core has been forged successfully.[/success]")
+    except Exception as e:
+        console.print(f"[error]Failed to forge The Steel Core: {e}[/error]")
+        console.print("[muted]Try building manually: cd rust_core && cargo build --release[/muted]")
+        raise typer.Exit(1)
