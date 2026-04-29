@@ -48,26 +48,28 @@ Context management for builders.
 
 - **Módulo de Proyectos** — Integrate task and file management directly into `zana-core`
 - **Context-per-Project** — Auto-switch memory scopes based on the active project
-- **OpenClaw Comparison** — Competitive benchmarking against current agents (OpenClaw, etc.)
+- **OpenClaw Comparison** — Performance benchmarking against leading AI agents
 
 ---
 
-## v2.7 — Messaging Interfaces (next)
+## v2.9 — The Sovereign Bridge (next)
 
-ZANA everywhere — no app install required for end users.
+Ubiquity, Identity, and Autonomous Lifecycle.
 
-- **Telegram bot** — `zana telegram connect` wires your ZANA instance to a Telegram bot token
-- **WhatsApp** — Meta Cloud API integration (multimodal image/voice support)
-- Webhook manager: `zana-gateway` handles inbound hooks from both platforms
+- **The Update Pulse** — Background check every 4h; zero-downtime hot-swap deployment
+- **ZANA ID** — OIDC/OAuth2 authentication with multi-tenant data isolation
+- **Remote Access** — Automated Cloudflare/Tailscale secure tunnels
 
 ---
 
-## v3.0 — Sovereign Identity (future)
+## v3.0 — Planetary Intelligence (future)
 
-ZANA as a persistent, portable digital identity layer.
+ZANA as an indispensable tool for humanity.
 
-- **ZANA ID** — cryptographically signed cognitive profile; moves across devices
-- **Private cloud sync** — E2E-encrypted memory sync; no vendor lock-in
+- **Individual Pods** — OS-level process isolation for multi-tenant sovereignty
+- **Collaborative Swarms** — Encrypted P2P knowledge sharing between ZANA instances
+- **Sovereign identity** — Portable, signed digital soul across any infrastructure
+
 
 ---
 
