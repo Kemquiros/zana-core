@@ -155,6 +155,209 @@ def ensure_env_configured(stack_root: Path) -> None:
         env_path.write_text("\n".join(new_lines) + "\n")
         console.print("[success]Securely auto-configured missing secrets in .env[/success]")
 
+# ── Ollama sovereign setup ────────────────────────────────────────────────
+
+def _check_ollama_running(base_url: str = "http://localhost:11434") -> bool:
+    import httpx
+    try:
+        r = httpx.get(f"{base_url}/api/tags", timeout=3)
+        return r.status_code == 200
+    except Exception:
+        return False
+
+
+def _get_ollama_models(base_url: str = "http://localhost:11434") -> list:
+    import httpx
+    try:
+        r = httpx.get(f"{base_url}/api/tags", timeout=3)
+        r.raise_for_status()
+        return [m["name"] for m in r.json().get("models", [])]
+    except Exception:
+        return []
+
+
+def _test_ollama_inference(model: str, base_url: str = "http://localhost:11434") -> str | None:
+    import httpx
+    try:
+        r = httpx.post(
+            f"{base_url}/api/generate",
+            json={
+                "model": model,
+                "prompt": "Responde exactamente con una sola línea: 'ZANA en línea.'",
+                "stream": False,
+            },
+            timeout=90,
+        )
+        r.raise_for_status()
+        return r.json().get("response", "").strip()
+    except Exception:
+        return None
+
+
+_RECOMMENDED_MODELS = [
+    ("gemma3:4b",    "Gemma 3 4B  — equilibrio ideal CPU/GPU  (~2.5 GB)"),
+    ("llama3.2:3b",  "Llama 3.2 3B — ultraligero, CPU puro   (~2.0 GB)"),
+    ("llama3.1:8b",  "Llama 3.1 8B — más capaz, requiere GPU (~5.0 GB)"),
+    ("mistral:7b",   "Mistral 7B   — razonamiento técnico     (~4.1 GB)"),
+    ("phi4",         "Phi-4        — Microsoft, muy eficiente (~8.0 GB)"),
+    ("gemma4",       "Gemma 4      — modelo soberano ZANA     (~5.0 GB)"),
+]
+
+
+def _setup_ollama(cloud_keys: dict) -> dict:
+    """
+    Offer Ollama as the sovereign local engine when no cloud API keys are configured.
+    Guides the user step by step with real connection and inference tests.
+    Returns env vars to write (e.g. {"ZANA_PRIMARY_MODEL": "ollama/gemma3:4b"}).
+    """
+    if not _is_interactive():
+        return {}
+
+    has_any_cloud_key = any(v for v in cloud_keys.values())
+    if has_any_cloud_key:
+        return {}
+
+    import questionary
+
+    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("[bold white]  Modo Soberano Local — Inferencia sin API Keys[/bold white]")
+    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n  No configuraste APIs en la nube. ZANA puede funcionar\n"
+        "  [bold]100% offline[/bold] con [accent]Ollama[/accent] — sin costos, sin datos enviados, soberanía total.\n"
+    )
+
+    use_ollama = questionary.confirm(
+        "¿Configurar Ollama como motor de inferencia local?",
+        default=True,
+        style=_q_style(),
+    ).ask()
+
+    if not use_ollama:
+        console.print("\n  [muted]Sin problema. Configúralo cuando quieras con:[/muted] [accent]zana setup[/accent]\n")
+        return {}
+
+    base_url = os.getenv("OLLAMA_BASE_URL", os.getenv("OLLAMA_URL", "http://localhost:11434"))
+
+    # ── Paso 1: verificar conexión ─────────────────────────────────────────
+    console.print("\n  [bold cyan]Paso 1 / 3[/bold cyan] — Verificando conexión con Ollama...")
+
+    if not _check_ollama_running(base_url):
+        console.print(f"\n  [yellow]⚠  Ollama no responde en {base_url}[/yellow]")
+        console.print("\n  Necesitas tenerlo corriendo. Según tu sistema:\n")
+        console.print("  [bold]Linux / WSL:[/bold]")
+        console.print("    1. Instala:  [accent]curl -fsSL https://ollama.com/install.sh | sh[/accent]")
+        console.print("    2. Inicia:   [accent]ollama serve[/accent]  (en otra terminal)\n")
+        console.print("  [bold]macOS:[/bold]")
+        console.print("    1. Descarga la app desde [accent]https://ollama.com/download[/accent]")
+        console.print("    2. Ábrela — el ícono de llama aparece en la barra de menú\n")
+        console.print("  [bold]Windows (nativo):[/bold]")
+        console.print("    1. Descarga el instalador desde [accent]https://ollama.com/download[/accent]")
+        console.print("    2. Ejecútalo — Ollama queda disponible en localhost:11434\n")
+
+        retry = questionary.confirm(
+            "  ¿Ya iniciaste Ollama? (reintentamos la conexión)",
+            default=True,
+            style=_q_style(),
+        ).ask()
+
+        if not retry or not _check_ollama_running(base_url):
+            console.print(
+                "\n  [warning]Ollama no responde. Instálalo, ejecuta[/warning] [accent]ollama serve[/accent]"
+                " [warning]y luego corre[/warning] [accent]zana setup[/accent] [warning]de nuevo.[/warning]\n"
+            )
+            return {}
+
+    console.print(f"  [success]✅ Conexión establecida con {base_url}[/success]")
+
+    # ── Paso 2: seleccionar modelo ─────────────────────────────────────────
+    console.print("\n  [bold cyan]Paso 2 / 3[/bold cyan] — Seleccionando modelo...")
+
+    installed = _get_ollama_models(base_url)
+
+    if not installed:
+        console.print("\n  [yellow]⚠  No tienes modelos instalados todavía.[/yellow]")
+        console.print("  Recomendamos [bold]gemma3:4b[/bold] — funciona bien en CPU sin GPU:\n")
+        console.print("  Abre otra terminal y ejecuta:")
+        console.print("  [accent]  ollama pull gemma3:4b[/accent]")
+        console.print("  [muted]  (~2.5 GB de descarga, solo la primera vez)[/muted]\n")
+
+        retry = questionary.confirm(
+            "  ¿Ya terminó la descarga? (verificamos de nuevo)",
+            default=True,
+            style=_q_style(),
+        ).ask()
+
+        if retry:
+            installed = _get_ollama_models(base_url)
+
+        if not installed:
+            console.print(
+                "\n  [warning]Sin modelos disponibles. Descarga uno con[/warning] "
+                "[accent]ollama pull gemma3:4b[/accent] [warning]y luego ejecuta[/warning] [accent]zana setup[/accent].\n"
+            )
+            return {}
+
+    # Build choice list: installed recommended first, then rest, then others
+    rec_names = {name for name, _ in _RECOMMENDED_MODELS}
+    rec_installed = [
+        f"{name}  ← {desc}" if name in installed else None
+        for name, desc in _RECOMMENDED_MODELS
+        if name in installed
+    ]
+    # strip description for non-recommended installed
+    other_installed = [m for m in installed if m not in rec_names]
+    choices = [m for m in [
+        *[name for name, _ in _RECOMMENDED_MODELS if name in installed],
+        *other_installed,
+    ]]
+
+    if not choices:
+        choices = installed
+
+    if len(choices) == 1:
+        selected = choices[0]
+        console.print(f"\n  Único modelo disponible: [bold]{selected}[/bold]")
+    else:
+        selected = questionary.select(
+            "  Elige el modelo a usar:",
+            choices=choices,
+            style=_q_style(),
+        ).ask()
+
+    if not selected:
+        return {}
+
+    # ── Paso 3: inferencia real ────────────────────────────────────────────
+    console.print(f"\n  [bold cyan]Paso 3 / 3[/bold cyan] — Probando inferencia con [bold]{selected}[/bold]...")
+    console.print("  [muted]La primera vez puede tardar ~15 s mientras el modelo carga en memoria...[/muted]")
+
+    response = _test_ollama_inference(selected, base_url)
+
+    if response:
+        console.print(f"\n  [success]✅ Respuesta recibida:[/success]")
+        console.print(f"  [bold white]  \"{response}\"[/bold white]\n")
+        console.print(f"  [success]Ollama configurado correctamente.[/success]")
+        console.print(f"  [muted]  ZANA_PRIMARY_MODEL = ollama/{selected}[/muted]\n")
+        return {"ZANA_PRIMARY_MODEL": f"ollama/{selected}", "OLLAMA_BASE_URL": base_url}
+
+    # Inference failed — still offer to save
+    console.print("\n  [yellow]⚠  La inferencia no respondió a tiempo.[/yellow]")
+    console.print("  El modelo puede estar cargándose. No es un error fatal.\n")
+
+    save_anyway = questionary.confirm(
+        "  ¿Guardar la configuración de todas formas?",
+        default=True,
+        style=_q_style(),
+    ).ask()
+
+    if save_anyway:
+        console.print(f"  [muted]ZANA_PRIMARY_MODEL = ollama/{selected} — guardado.[/muted]\n")
+        return {"ZANA_PRIMARY_MODEL": f"ollama/{selected}", "OLLAMA_BASE_URL": base_url}
+
+    return {}
+
+
 def _check_docker() -> bool:
     return shutil.which("docker") is not None and _docker_running()
 
@@ -300,6 +503,8 @@ def run_onboarding() -> bool:
         keys = {"VAULT_PATH": vault_path}
         api_keys = _setup_api_keys()
         keys.update(api_keys)
+        ollama_keys = _setup_ollama(api_keys)
+        keys.update(ollama_keys)
         _write_env(keys)
         console.print("[success]  Configuración guardada en ~/.zana/.env[/success]")
 
