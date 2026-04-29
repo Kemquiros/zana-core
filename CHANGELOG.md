@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.9] — 2026-04-28
+
+### Fixed
+- **Docker Permissions**: Ignored the full `data/` directory in `.dockerignore` to prevent `permission denied` errors when Caddy or Postgres create restricted files.
+- **CLI Consistency**: Bumped internal CLI version to 2.8.9 to ensure update propagation.
+
+---
+
 ## [2.8.8] — 2026-04-28
 
 ### Fixed
