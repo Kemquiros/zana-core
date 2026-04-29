@@ -185,6 +185,33 @@ def doctor() -> None:
     cmd_doctor()
 
 
+@app.command(
+    name="hardware",
+    help=(
+        "Analyze your hardware and get LLM recommendations via llmfit. "
+        "llmfit scores ~106 models by quality, speed, and fit for your exact CPU/GPU/RAM — "
+        "so you know which model to pull before running out of memory."
+    ),
+)
+def hardware(
+    install: Annotated[
+        bool,
+        typer.Option("--install", help="Install llmfit automatically if not present."),
+    ] = False,
+    recommend: Annotated[
+        bool,
+        typer.Option("--recommend", "-r", help="Show model recommendations for your hardware."),
+    ] = False,
+    top: Annotated[
+        int,
+        typer.Option("--top", "-n", help="Number of models to show."),
+    ] = 5,
+) -> None:
+    from cli.commands.hardware import cmd_hardware
+
+    cmd_hardware(install=install, recommend=recommend, top=top)
+
+
 @app.command(help="Trigger manual forward-chaining in the Rust reasoning engine.")
 def reason(
     fact: Annotated[
