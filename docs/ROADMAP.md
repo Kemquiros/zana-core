@@ -61,6 +61,7 @@ Ubiquity, Identity, and Autonomous Lifecycle.
 - **Remote Access** — Automated Cloudflare/Tailscale secure tunnels
 - **Curator Pattern** ✅ — Autonomous skill lifecycle (active → stale → archived). Heartbeat reviews degraded procedural memory every 30 min via Claude Haiku; curation logs persist to the Obsidian vault.
 - **Context Compression** ✅ — Smart auto-summarization in the Orchestrator LangGraph (language-aware, anti-thrashing, graceful fallback). New `compressor` node with 3-way routing from `critic`.
+- **Trajectory Capture** ✅ — Every completed session saved to `data/trajectories/` in ZANA native + ShareGPT JSONL. Pipeline toward fine-tuning a sovereign ZANA model.
 
 ---
 

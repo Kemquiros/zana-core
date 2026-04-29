@@ -10,10 +10,12 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 
 from orchestrator.compressor import ContextCompressor
+from orchestrator.trajectory import TrajectoryCapture
 
 logger = logging.getLogger(__name__)
 
 _compressor = ContextCompressor()
+_trajectory = TrajectoryCapture()
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
@@ -27,6 +29,7 @@ EPISODIC_API_URL = os.getenv("EPISODIC_API_URL", "http://localhost:8002")
 class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], "The conversation history"]
     context: str
+    task: str
     plan: List[str]
     observations: List[str]
     iterations: int
@@ -39,8 +42,9 @@ class AgentState(TypedDict):
 def orchestrator(state: AgentState):
     """The brain: decides strategy (ToT/CoT)."""
     last_message = state["messages"][-1].content
-    logger.info(f"🔱 Orchestrating: {last_message[:50]}...")
-    return {"next_node": "planner", "iterations": 0}
+    task = state.get("task") or last_message
+    logger.info(f"🔱 Orchestrating: {task[:50]}...")
+    return {"iterations": 0, "task": task}
 
 def planner(state: AgentState):
     """Generates a structured plan using Tree of Thoughts logic."""
@@ -105,9 +109,10 @@ def compressor(state: AgentState):
     }
 
 def chronicler(state: AgentState):
-    """Memory Reflection: Persists learning to Wiki."""
+    """Memory Reflection: Persists learning to Wiki and captures trajectory."""
     logger.info("🖋️ Chronicling session to Obsidian Wiki...")
-    return {"next_node": END}
+    _trajectory.capture(state)
+    return {}
 
 # --- Graph Construction ---
 
@@ -151,6 +156,7 @@ def run_task(task: str):
     initial_state = {
         "messages": [HumanMessage(content=task)],
         "context": "",
+        "task": task,
         "plan": [],
         "observations": [],
         "iterations": 0,

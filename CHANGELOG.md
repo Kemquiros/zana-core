@@ -7,6 +7,14 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.6] — 2026-04-29
+
+### Added
+- **Trajectory Capture** — Every completed Orchestrator session is now saved to `data/trajectories/`. Two formats in parallel: ZANA native JSONL (full fidelity: task, plan, observations, compression_count, outcome) and ShareGPT JSONL (compatible with LLaMA Factory, Axolotl, and most fine-tuning frameworks). Foundation for training a sovereign ZANA model on real interaction data.
+- **`AgentState.task`** — New field preserves the original task string across compression cycles and LangGraph state updates.
+
+---
+
 ## [2.9.5] — 2026-04-29
 
 ### Added
