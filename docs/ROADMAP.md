@@ -42,17 +42,17 @@ The Hito 8 milestone: distributed trust and identity.
 
 ---
 
-## v2.6 — Modular Projects (in progress)
+## v2.6 — Modular Projects (shipped)
 
 Context management for builders.
 
-- **Módulo de Proyectos** — Integrate task and file management directly into `zana-core`
-- **Context-per-Project** — Auto-switch memory scopes based on the active project
-- **OpenClaw Comparison** — Performance benchmarking against leading AI agents
+- **Módulo de Proyectos** — Integrated task and file management directly into `zana-core`
+- **Context-per-Project** — Memory scopes isolated by active project
+- **Aeon Soul** — Forged conversational identity and unique 3D manifestations
 
 ---
 
-## v2.9 — The Sovereign Bridge (next)
+## v2.9 — The Sovereign Bridge (in progress)
 
 Ubiquity, Identity, and Autonomous Lifecycle.
 
