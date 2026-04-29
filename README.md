@@ -60,14 +60,25 @@ ZANA coordinates a specialized squad of sub-agents communicating via the **AION 
 
 ## ⚡ Quick Start (Zero Friction)
 
-Install and boot your cortex with a single command:
-
+**Linux / macOS**
 ```bash
-curl -LsSf https://zana.vecanova.com/install.sh | bash
+bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 ```
 
-Once the containers are live, simply navigate to:
-**`http://localhost`**
+**Windows (WSL 2)**
+```powershell
+# 1. In PowerShell (Admin) — installs Ubuntu via WSL 2, then restart
+wsl --install
+```
+```bash
+# 2. Inside Ubuntu
+bash <(curl -LsSf https://zana.vecanova.com/install.sh)
+```
+
+> Windows users: see the **[full WSL installation guide](docs/INSTALL_WSL.md)** for Docker setup, Obsidian vault path, and troubleshooting.
+
+Once the containers are live, navigate to:
+**`http://localhost:54448`**
 
 Welcome to your Sovereign Intelligence.
 
