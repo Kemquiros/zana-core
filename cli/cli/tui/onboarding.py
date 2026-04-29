@@ -155,6 +155,144 @@ def ensure_env_configured(stack_root: Path) -> None:
         env_path.write_text("\n".join(new_lines) + "\n")
         console.print("[success]Securely auto-configured missing secrets in .env[/success]")
 
+# ── llmfit — hardware-aware model recommender ─────────────────────────────
+
+def _find_llmfit() -> str | None:
+    """Return path to llmfit binary, or None if not installed."""
+    import shutil
+    found = shutil.which("llmfit")
+    if found:
+        return found
+    # Cargo install location (common when installed via cargo install llmfit)
+    cargo_bin = Path.home() / ".cargo" / "bin" / "llmfit"
+    if cargo_bin.exists():
+        return str(cargo_bin)
+    return None
+
+
+def _install_llmfit() -> bool:
+    """Attempt to install llmfit via the official curl installer. Returns True on success."""
+    console.print("  [muted]Instalando llmfit (binario Rust, ~5 MB)...[/muted]")
+    result = subprocess.run(
+        "curl -fsSL https://llmfit.org/install.sh | sh",
+        shell=True, capture_output=True
+    )
+    if result.returncode == 0:
+        # update PATH so the new binary is visible in this process
+        cargo_bin = Path.home() / ".cargo" / "bin"
+        os.environ["PATH"] = f"{cargo_bin}:{os.environ.get('PATH', '')}"
+        return True
+    # Fallback: brew (macOS)
+    if shutil.which("brew"):
+        result = subprocess.run(["brew", "install", "llmfit"], capture_output=True)
+        return result.returncode == 0
+    return False
+
+
+# Map common llmfit name fragments → Ollama tag format
+_LLMFIT_TO_OLLAMA: list[tuple[str, str]] = [
+    ("gemma 3 4",    "gemma3:4b"),
+    ("gemma3 4",     "gemma3:4b"),
+    ("gemma3:4",     "gemma3:4b"),
+    ("gemma 3 12",   "gemma3:12b"),
+    ("gemma3 12",    "gemma3:12b"),
+    ("gemma 3 27",   "gemma3:27b"),
+    ("gemma3 27",    "gemma3:27b"),
+    ("gemma4",       "gemma4"),
+    ("llama 3.2 3",  "llama3.2:3b"),
+    ("llama3.2 3",   "llama3.2:3b"),
+    ("llama 3.1 8",  "llama3.1:8b"),
+    ("llama3.1 8",   "llama3.1:8b"),
+    ("llama 3.1 70", "llama3.1:70b"),
+    ("llama 3.3 70", "llama3.3:70b"),
+    ("mistral 7",    "mistral:7b"),
+    ("mistral:7",    "mistral:7b"),
+    ("phi 4",        "phi4"),
+    ("phi4",         "phi4"),
+    ("phi 3",        "phi3"),
+    ("qwen2.5 7",    "qwen2.5:7b"),
+    ("qwen2.5 14",   "qwen2.5:14b"),
+    ("deepseek",     "deepseek-r1:7b"),
+]
+
+def _normalize_llmfit_name(raw: str) -> str:
+    """Best-effort conversion from llmfit display name to Ollama tag."""
+    normalized = raw.lower().strip()
+    for fragment, ollama_tag in _LLMFIT_TO_OLLAMA:
+        if fragment in normalized:
+            return ollama_tag
+    # Generic fallback: lowercase + colon before final number group
+    import re
+    cleaned = re.sub(r"\s+", "", normalized)
+    cleaned = re.sub(r"(\d+b)$", r":\1", cleaned)
+    return cleaned
+
+
+def _get_llmfit_data(llmfit_bin: str) -> dict:
+    """
+    Call llmfit and return structured data:
+    {
+      "hardware": str,          # one-line hardware summary
+      "recommended": [str],     # Ollama-compatible model names, best-first
+    }
+    Returns {"hardware": "", "recommended": []} on any failure.
+    """
+    import json, re
+
+    empty = {"hardware": "", "recommended": []}
+
+    # 1. Hardware summary
+    hw_summary = ""
+    try:
+        r = subprocess.run(
+            [llmfit_bin, "system", "--json"],
+            capture_output=True, text=True, timeout=10
+        )
+        if r.returncode == 0:
+            data = json.loads(r.stdout)
+            ram  = data.get("total_memory_gb") or data.get("ram_gb") or data.get("memory", "?")
+            gpu  = data.get("gpu_name") or data.get("gpu") or data.get("accelerator", "CPU only")
+            hw_summary = f"RAM {ram} GB · GPU {gpu}"
+    except Exception:
+        pass
+
+    # 2. Model recommendations
+    recommended = []
+    try:
+        r = subprocess.run(
+            [llmfit_bin, "recommend", "--json"],
+            capture_output=True, text=True, timeout=15
+        )
+        if r.returncode != 0:
+            # Try alternate subcommand
+            r = subprocess.run(
+                [llmfit_bin, "fit", "--json"],
+                capture_output=True, text=True, timeout=15
+            )
+        if r.returncode == 0:
+            raw = json.loads(r.stdout)
+            # Handle both list-of-strings and list-of-objects
+            if isinstance(raw, list):
+                for item in raw:
+                    if isinstance(item, str):
+                        recommended.append(_normalize_llmfit_name(item))
+                    elif isinstance(item, dict):
+                        name = (item.get("name") or item.get("model")
+                                or item.get("id") or "")
+                        if name:
+                            recommended.append(_normalize_llmfit_name(name))
+            elif isinstance(raw, dict):
+                models = raw.get("models") or raw.get("recommendations") or []
+                for item in models:
+                    name = item if isinstance(item, str) else item.get("name", "")
+                    if name:
+                        recommended.append(_normalize_llmfit_name(name))
+    except Exception:
+        pass
+
+    return {"hardware": hw_summary, "recommended": recommended or []}
+
+
 # ── Ollama sovereign setup ────────────────────────────────────────────────
 
 def _check_ollama_running(base_url: str = "http://localhost:11434") -> bool:
@@ -270,16 +408,54 @@ def _setup_ollama(cloud_keys: dict) -> dict:
 
     console.print(f"  [success]✅ Conexión establecida con {base_url}[/success]")
 
-    # ── Paso 2: seleccionar modelo ─────────────────────────────────────────
+    # ── Paso 2: seleccionar modelo (con llmfit si está disponible) ───────────
     console.print("\n  [bold cyan]Paso 2 / 3[/bold cyan] — Seleccionando modelo...")
 
+    # llmfit: hardware-aware recommendations (optional, silent on failure)
+    llmfit_bin = _find_llmfit()
+    llmfit_data: dict = {"hardware": "", "recommended": []}
+
+    if llmfit_bin:
+        console.print("  [muted]Analizando hardware con llmfit...[/muted]")
+        llmfit_data = _get_llmfit_data(llmfit_bin)
+        if llmfit_data["hardware"]:
+            console.print(f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]")
+    else:
+        # Offer to install llmfit (optional — user can skip)
+        console.print(
+            "  [muted]Tip:[/muted] [accent]llmfit[/accent] [muted]puede recomendar modelos según tu hardware exacto.[/muted]"
+        )
+        install_it = questionary.confirm(
+            "  ¿Instalar llmfit para recomendaciones personalizadas? (opcional)",
+            default=False,
+            style=_q_style(),
+        ).ask()
+        if install_it:
+            if _install_llmfit():
+                llmfit_bin = _find_llmfit()
+                if llmfit_bin:
+                    console.print("  [success]✅ llmfit instalado.[/success]")
+                    llmfit_data = _get_llmfit_data(llmfit_bin)
+                    if llmfit_data["hardware"]:
+                        console.print(f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]")
+            else:
+                console.print("  [yellow]No se pudo instalar llmfit. Continuando con lista estándar.[/yellow]")
+
     installed = _get_ollama_models(base_url)
+    llmfit_recommended = llmfit_data["recommended"]  # Ollama-compatible names, best-first
 
     if not installed:
-        console.print("\n  [yellow]⚠  No tienes modelos instalados todavía.[/yellow]")
-        console.print("  Recomendamos [bold]gemma3:4b[/bold] — funciona bien en CPU sin GPU:\n")
+        # Suggest the best model: llmfit #1 if available, else our static default
+        pull_suggestion = (
+            llmfit_recommended[0] if llmfit_recommended else "gemma3:4b"
+        )
+        console.print(f"\n  [yellow]⚠  No tienes modelos instalados todavía.[/yellow]")
+        if llmfit_recommended:
+            console.print(f"  llmfit recomienda [bold]{pull_suggestion}[/bold] para tu hardware:\n")
+        else:
+            console.print(f"  Recomendamos [bold]{pull_suggestion}[/bold] — funciona bien en CPU sin GPU:\n")
         console.print("  Abre otra terminal y ejecuta:")
-        console.print("  [accent]  ollama pull gemma3:4b[/accent]")
+        console.print(f"  [accent]  ollama pull {pull_suggestion}[/accent]")
         console.print("  [muted]  (~2.5 GB de descarga, solo la primera vez)[/muted]\n")
 
         retry = questionary.confirm(
@@ -293,37 +469,66 @@ def _setup_ollama(cloud_keys: dict) -> dict:
 
         if not installed:
             console.print(
-                "\n  [warning]Sin modelos disponibles. Descarga uno con[/warning] "
-                "[accent]ollama pull gemma3:4b[/accent] [warning]y luego ejecuta[/warning] [accent]zana setup[/accent].\n"
+                f"\n  [warning]Sin modelos disponibles. Descarga uno con[/warning] "
+                f"[accent]ollama pull {pull_suggestion}[/accent] "
+                "[warning]y luego ejecuta[/warning] [accent]zana setup[/accent].\n"
             )
             return {}
 
-    # Build choice list: installed recommended first, then rest, then others
-    rec_names = {name for name, _ in _RECOMMENDED_MODELS}
-    rec_installed = [
-        f"{name}  ← {desc}" if name in installed else None
-        for name, desc in _RECOMMENDED_MODELS
-        if name in installed
-    ]
-    # strip description for non-recommended installed
-    other_installed = [m for m in installed if m not in rec_names]
-    choices = [m for m in [
-        *[name for name, _ in _RECOMMENDED_MODELS if name in installed],
-        *other_installed,
-    ]]
+    # Build sorted choice list:
+    #   1. llmfit-recommended AND installed  → shown first with [llmfit ✓] badge
+    #   2. llmfit-recommended but NOT installed → shown with [pull disponible] badge
+    #   3. installed but not recommended    → shown last, no badge
+    static_rec_names = {name for name, _ in _RECOMMENDED_MODELS}
+
+    llmfit_installed     = [m for m in llmfit_recommended if m in installed]
+    llmfit_not_installed = [m for m in llmfit_recommended if m not in installed]
+    other_installed      = [m for m in installed if m not in llmfit_recommended]
+    # fallback when llmfit gave no data: sort by our static list
+    if not llmfit_recommended:
+        other_installed = (
+            [name for name, _ in _RECOMMENDED_MODELS if name in installed]
+            + [m for m in installed if m not in static_rec_names]
+        )
+
+    choices: list[str] = []
+    if llmfit_installed:
+        choices += [f"{m}  [llmfit ✓]" for m in llmfit_installed]
+    choices += other_installed
+    if llmfit_not_installed:
+        choices += [f"{m}  [pull disponible]" for m in llmfit_not_installed]
 
     if not choices:
         choices = installed
 
+    def _strip_badge(choice: str) -> str:
+        return choice.split("  [")[0].strip()
+
     if len(choices) == 1:
-        selected = choices[0]
+        selected = _strip_badge(choices[0])
         console.print(f"\n  Único modelo disponible: [bold]{selected}[/bold]")
     else:
-        selected = questionary.select(
+        if llmfit_recommended:
+            console.print("  [muted][llmfit ✓] = recomendado para tu hardware · [pull disponible] = no instalado[/muted]")
+        raw_selected = questionary.select(
             "  Elige el modelo a usar:",
             choices=choices,
             style=_q_style(),
         ).ask()
+        selected = _strip_badge(raw_selected) if raw_selected else None
+
+        # If user picked a not-installed model, guide them to pull it first
+        if raw_selected and "[pull disponible]" in raw_selected:
+            console.print(f"\n  [yellow]Este modelo no está instalado aún.[/yellow]")
+            console.print(f"  Ejecuta en otra terminal: [accent]ollama pull {selected}[/accent]")
+            pull_done = questionary.confirm(
+                "  ¿Ya terminó la descarga?",
+                default=True,
+                style=_q_style(),
+            ).ask()
+            if not pull_done or selected not in _get_ollama_models(base_url):
+                console.print(f"  [warning]Modelo no disponible aún. Ejecuta zana setup después de descargarlo.[/warning]")
+                return {}
 
     if not selected:
         return {}
