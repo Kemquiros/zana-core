@@ -7,6 +7,18 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.4] — 2026-04-29
+
+### Added
+- **Curator Pattern** — Autonomous skill lifecycle management inspired by Hermes Agent (Nous Research). `SkillCurator` runs inside the Aeon Heartbeat (30 min cycle) and reviews procedural skills with low Q-values or prolonged inactivity. Claude Haiku attempts improvement; skills with no viable path are archived (never deleted). Curation reports persist to `claude-obsidian/wiki/curator/`.
+- **Skill Lifecycle States** — `SkillRegistry` now tracks `lifecycle_state` (active / archived), `created_at`, and `last_executed` timestamps per skill. New methods: `mark_executed`, `get_stale_skills`, `archive_skill`, `get_skills_summary`.
+- **Curator Obsidian Reports** — Daily JSON report of each curation cycle written to the knowledge vault.
+
+### Fixed
+- **Orchestrator Logger** — Fixed undefined `logger` reference and missing `datetime` import in `orchestrator/graph.py`.
+
+---
+
 ## [2.9.3] — 2026-04-28
 
 ### Added

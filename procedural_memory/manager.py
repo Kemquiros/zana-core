@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -37,6 +38,9 @@ class SkillRegistry:
                 },
                 "q_value": 0.5,  # Initial neutrality
                 "version": "1.0.0",
+                "created_at": datetime.now().isoformat(),
+                "last_executed": None,
+                "lifecycle_state": "active",
             }
             self.save()
 
@@ -76,11 +80,57 @@ class SkillRegistry:
     def get_best_skill(self, domain: str) -> Optional[str]:
         """Returns the skill_id with highest Q-value in a given domain."""
         domain_skills = [
-            s_id for s_id, s in self.skills.items() if s["domain"] == domain
+            s_id for s_id, s in self.skills.items()
+            if s["domain"] == domain and s.get("lifecycle_state", "active") == "active"
         ]
         if not domain_skills:
             return None
         return max(domain_skills, key=lambda s_id: self.skills[s_id]["q_value"])
+
+    def mark_executed(self, skill_id: str):
+        """Actualiza last_executed al momento actual."""
+        if skill_id in self.skills:
+            self.skills[skill_id]["last_executed"] = datetime.now().isoformat()
+            self.save()
+
+    def get_stale_skills(self, days_inactive: int = 7, q_threshold: float = 0.5) -> List[str]:
+        """Retorna skill_ids activos que están degradados por inactividad o bajo rendimiento."""
+        stale = []
+        cutoff = datetime.now() - timedelta(days=days_inactive)
+        for skill_id, skill in self.skills.items():
+            if skill.get("lifecycle_state", "active") != "active":
+                continue
+            metrics = skill.get("metrics", {})
+            executions = metrics.get("executions", 0)
+            successes = metrics.get("successes", 0)
+            q_value = skill.get("q_value", 0.5)
+            last_executed = skill.get("last_executed")
+            # Stale por inactividad + Q bajo
+            if last_executed:
+                last_dt = datetime.fromisoformat(last_executed)
+                if last_dt < cutoff and q_value < q_threshold:
+                    stale.append(skill_id)
+                    continue
+            # Stale por tasa de éxito crítica
+            if executions > 5 and successes / executions < 0.4:
+                stale.append(skill_id)
+        return stale
+
+    def archive_skill(self, skill_id: str, reason: str = "curator"):
+        """Mueve una skill a estado archived. Nunca la elimina."""
+        if skill_id in self.skills:
+            self.skills[skill_id]["lifecycle_state"] = "archived"
+            self.skills[skill_id]["archived_at"] = datetime.now().isoformat()
+            self.skills[skill_id]["archive_reason"] = reason
+            self.save()
+
+    def get_skills_summary(self) -> Dict[str, int]:
+        """Retorna conteo de skills por lifecycle_state."""
+        summary: Dict[str, int] = {}
+        for skill in self.skills.values():
+            state = skill.get("lifecycle_state", "active")
+            summary[state] = summary.get(state, 0) + 1
+        return summary
 
 
 if __name__ == "__main__":

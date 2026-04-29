@@ -1,9 +1,16 @@
 import asyncio
-import os
 import json
 import logging
+import os
+import sys
 from datetime import datetime
+from pathlib import Path
 from typing import List, Dict
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from orchestrator.chronicler import TheChronicler
+from orchestrator.curator import SkillCurator
+from procedural_memory.manager import SkillRegistry
 
 # Configuración de logs
 logging.basicConfig(level=logging.INFO, format="💓 [%(asctime)s] %(message)s")
@@ -13,6 +20,12 @@ class AeonHeartbeat:
     def __init__(self, interval_minutes: int = 30):
         self.interval = interval_minutes * 60
         self.is_running = False
+        self._chronicler = TheChronicler()
+        self._curator = SkillCurator(
+            registry=SkillRegistry(),
+            chronicler=self._chronicler,
+            stale_days=7,
+        )
 
     async def scan_environment(self) -> List[str]:
         """Escanear servidores MCP, Shadow Observer y Wiki por nuevas tareas."""
@@ -45,19 +58,28 @@ class AeonHeartbeat:
     async def pulse(self):
         """Un único 'latido' de ZANA."""
         logger.info("--- INICIANDO LATIDO DE AEÓN ---")
-        
+
         # 1. Sentir
         alerts = await self.scan_environment()
         state = await self.audit_internal_state()
-        
+
         # 2. Pensar / Proponer
         proposals = await self.propose_actions(state)
-        
-        # 3. Actuar (Trigger Orchestrator if necessary)
+
+        # 3. Curar memoria procedural (Curator cycle)
+        curator_report = await self._curator.review_cycle()
+        if curator_report["reviewed"] > 0:
+            logger.info(
+                f"Curator: {curator_report['reviewed']} revisadas | "
+                f"{curator_report['improved']} mejoradas | "
+                f"{curator_report['archived']} archivadas"
+            )
+
+        # 4. Actuar (Trigger Orchestrator if necessary)
         if proposals or alerts:
             logger.info(f"Propuestas generadas: {proposals}")
             # Aquí se invocaría graph.run_task(proposals[0])
-        
+
         logger.info("--- LATIDO COMPLETADO ---")
 
     async def start(self):

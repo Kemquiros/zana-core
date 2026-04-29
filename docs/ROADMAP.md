@@ -59,6 +59,8 @@ Ubiquity, Identity, and Autonomous Lifecycle.
 - **The Update Pulse** — Background check every 4h; zero-downtime hot-swap deployment
 - **ZANA ID** — OIDC/OAuth2 authentication with multi-tenant data isolation
 - **Remote Access** — Automated Cloudflare/Tailscale secure tunnels
+- **Curator Pattern** ✅ — Autonomous skill lifecycle (active → stale → archived). Heartbeat reviews degraded procedural memory every 30 min via Claude Haiku; curation logs persist to the Obsidian vault.
+- **Context Compression** — Smart auto-summarization in the Orchestrator LangGraph when approaching context limits (anti-thrashing, language-aware). *next*
 
 ---
 

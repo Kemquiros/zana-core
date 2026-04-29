@@ -47,6 +47,20 @@ class TheChronicler:
             json.dump(skill_data, f, indent=2)
         logger.info(f"Nueva habilidad guardada: {skill_file}")
 
+    def save_curator_report(self, report: dict):
+        """Persistir el reporte del ciclo de curación en el vault de Obsidian."""
+        curator_path = self.wiki_path / "curator"
+        curator_path.mkdir(parents=True, exist_ok=True)
+        today = datetime.now().strftime("%Y-%m-%d")
+        report_file = curator_path / f"{today}.json"
+        # Acumular reportes del día en un array
+        existing = []
+        if report_file.exists():
+            existing = json.loads(report_file.read_text())
+        existing.append(report)
+        report_file.write_text(json.dumps(existing, indent=2, ensure_ascii=False))
+        logger.info(f"Reporte de curación guardado: {report_file}")
+
 if __name__ == "__main__":
     chronicler = TheChronicler()
     chronicler.save_diary_entry(["Iniciada integración de KoruOS", "Refactorizado orquestador a ReAct"])
