@@ -203,13 +203,13 @@ impl PyVectorIndex {
         self.inner.search(&query, top_k, project_id)
     }
 
-    fn save(&self, path: &str) -> PyResult<()> {
-        self.inner.save(path).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+    fn save(&self, base_path: &str, user_id: &str) -> PyResult<()> {
+        self.inner.save(base_path, user_id).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
     }
 
     #[staticmethod]
-    fn load(path: &str) -> PyResult<Self> {
-        let inner = memory::VectorIndex::load(path)
+    fn load(base_path: &str, user_id: &str) -> PyResult<Self> {
+        let inner = memory::VectorIndex::load(base_path, user_id)
             .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))?;
         Ok(Self { inner })
     }

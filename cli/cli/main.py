@@ -163,10 +163,14 @@ def upgrade(
     check: Annotated[
         bool, typer.Option("--check", help="Only check, do not install.")
     ] = False,
+    no_interactive: Annotated[
+        bool,
+        typer.Option("--no-interactive", help="Install without confirmation."),
+    ] = False,
 ) -> None:
     from cli.commands.upgrade import cmd_upgrade
 
-    cmd_upgrade(check_only=check)
+    cmd_upgrade(check_only=check, no_interactive=no_interactive)
 
 
 @app.command(help="Run first-time setup wizard.")

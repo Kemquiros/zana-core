@@ -30,7 +30,7 @@ def _current_version() -> str:
         return "unknown"
 
 
-def cmd_upgrade(check_only: bool = False) -> None:
+def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
     current = _current_version()
     console.print(f"[muted]Current version: {current}[/muted]")
     console.print("[muted]Checking GitHub Releases...[/muted]")
@@ -53,6 +53,12 @@ def cmd_upgrade(check_only: bool = False) -> None:
     if check_only:
         console.print("[muted]Run `zana upgrade` to install.[/muted]")
         return
+
+    if not no_interactive:
+        confirm = typer.confirm("  Do you want to initiate the Ascension Protocol (upgrade)?", default=True)
+        if not confirm:
+            console.print("[muted]Upgrade aborted.[/muted]")
+            return
 
     console.print("\n[primary]Updating Córtex...[/primary]")
     import subprocess

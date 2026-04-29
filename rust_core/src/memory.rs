@@ -78,15 +78,19 @@ impl VectorIndex {
         results.into_iter().take(top_k).collect()
     }
 
-    pub fn save(&self, path: &str) -> std::io::Result<()> {
+    pub fn save(&self, base_path: &str, user_id: &str) -> std::io::Result<()> {
+        let dir_path = format!("{}/{}", base_path, user_id);
+        std::fs::create_dir_all(&dir_path)?;
         let json = serde_json::to_string(&self)?;
-        let mut file = File::create(Path::new(path))?;
+        let path = format!("{}/semantic.index", dir_path);
+        let mut file = File::create(Path::new(&path))?;
         file.write_all(json.as_bytes())?;
         Ok(())
     }
 
-    pub fn load(path: &str) -> std::io::Result<Self> {
-        let mut file = File::open(Path::new(path))?;
+    pub fn load(base_path: &str, user_id: &str) -> std::io::Result<Self> {
+        let path = format!("{}/{}/semantic.index", base_path, user_id);
+        let mut file = File::open(Path::new(&path))?;
         let mut json = String::new();
         file.read_to_string(&mut json)?;
         let index: VectorIndex = serde_json::from_str(&json)?;

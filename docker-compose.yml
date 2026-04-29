@@ -9,6 +9,7 @@ services:
       - "${ZANA_POSTGRES_PORT:-55433}:5432"
     volumes:
       - ${ZANA_DATA_DIR:-./data}/postgres:/var/lib/postgresql/data
+      - ./procedural_memory/identity_schema.sql:/docker-entrypoint-initdb.d/01-identity-schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zana -d zana"]
       interval: 10s

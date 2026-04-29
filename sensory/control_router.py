@@ -9,10 +9,13 @@ _shadow_state / _swarm_state for a Redis-backed store.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
+import subprocess
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Optional
 
 import httpx
@@ -75,6 +78,76 @@ async def shadow_disable():
 async def shadow_status():
     return _shadow_state
 
+
+@router.get("/.well-known/openid-configuration", tags=["Identity"])
+async def oidc_discovery():
+    """OIDC Discovery endpoint for Sovereign Identity."""
+    base_url = os.getenv("ZANA_GATEWAY_URL", "http://localhost:54446")
+    return {
+        "issuer": base_url,
+        "authorization_endpoint": f"{base_url}/auth/authorize",
+        "token_endpoint": f"{base_url}/auth/token",
+        "userinfo_endpoint": f"{base_url}/auth/userinfo",
+        "jwks_uri": f"{base_url}/.well-known/jwks.json",
+        "response_types_supported": ["code", "token", "id_token"],
+        "subject_types_supported": ["public"],
+        "id_token_signing_alg_values_supported": ["RS256"],
+        "scopes_supported": ["openid", "profile", "email"],
+        "token_endpoint_auth_methods_supported": ["client_secret_post", "client_secret_basic"],
+        "claims_supported": ["sub", "name", "preferred_username", "email", "dna_metadata"]
+    }
+
+# ── System Update (Sovereign Update Pulse) ───────────────────────────────────
+
+UPDATE_STATE_FILE = Path.home() / ".config" / "zana" / "update_state.json"
+
+@router.get("/system/update-staged", summary="Get staged update info")
+async def get_staged_update():
+    """Retrieve the staged update info prepared by the Heartbeat."""
+    if not UPDATE_STATE_FILE.exists():
+        return {"status": "UP_TO_DATE", "latest_version": None}
+    
+    try:
+        data = json.loads(UPDATE_STATE_FILE.read_text())
+        return data
+    except Exception as e:
+        logger.error(f"Error reading update state: {e}")
+        return {"status": "ERROR", "message": str(e)}
+
+@router.post("/system/upgrade-trigger", summary="Initiate the Ascension Protocol")
+async def trigger_upgrade():
+    """
+    Trigger the hot-swap update. This will pull latest images and restart containers.
+    The caller (UI) should expect a few seconds of downtime.
+    """
+    if not UPDATE_STATE_FILE.exists():
+        return {"status": "ERROR", "message": "No update staged."}
+    
+    # We use subprocess.Popen so we can return the response before the system goes down
+    # The actual upgrade logic is handled by 'zana upgrade' or direct docker commands
+    try:
+        # Identify zana binary path
+        zana_cmd = "zana"
+        
+        # We trigger a background process that will pull and restart
+        # We use a shell script or a nohup to ensure it survives the container stop
+        # Actually, in a docker environment, the 'gateway' might be stopped.
+        # But if we are running in 'zana-core' host mode or via a sibling container:
+        # The best way is to let the host or orchestrator handle it.
+        # For now, we assume a local-first deployment where the CLI is available.
+        
+        # Non-blocking execution
+        subprocess.Popen(
+            ["zana", "upgrade", "--no-interactive"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True
+        )
+        
+        return {"status": "INSTALLING", "message": "Ascension Protocol initiated. See you on the other side."}
+    except Exception as e:
+        logger.error(f"Failed to trigger upgrade: {e}")
+        return {"status": "ERROR", "message": str(e)}
 
 # ── Swarm state ───────────────────────────────────────────────────────────────
 
