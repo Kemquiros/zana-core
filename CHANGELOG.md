@@ -7,6 +7,15 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.7] — 2026-04-29
+
+### Added
+- **Iteration Budget** — `BudgetConfig` frozen dataclass enforces hard limits on LangGraph loops. Tiers: `ZANA_MAX_ITERATIONS` (orchestrator, default 10) and `ZANA_SWARM_MAX_ITERATIONS` (per-Aeon, default 5). Features: 80% utilization warning, refundable ops that don't consume budget (`memory_read`, `semantic_search`, `context_recall`), `status_line()` telemetry on every critic tick. Budget exhaustion produces `outcome: "budget_exhausted"` in trajectory captures — providing a quality signal for model fine-tuning.
+- **Tripartite outcome** in `TrajectoryCapture`: `success` / `partial` / `budget_exhausted`. Previously binary.
+- **`AgentState.budget_exhausted`** — new boolean field propagated through chronicler into trajectory.
+
+---
+
 ## [2.9.6] — 2026-04-29
 
 ### Added

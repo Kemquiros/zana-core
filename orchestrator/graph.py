@@ -9,6 +9,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from langgraph.graph import StateGraph, END
 
+from orchestrator.budget import BUDGET
 from orchestrator.compressor import ContextCompressor
 from orchestrator.trajectory import TrajectoryCapture
 
@@ -34,6 +35,7 @@ class AgentState(TypedDict):
     observations: List[str]
     iterations: int
     task_completed: bool
+    budget_exhausted: bool
     compression_count: int
 
 
@@ -90,10 +92,20 @@ def executor(state: AgentState):
     }
 
 def critic(state: AgentState):
-    """Reflection Node: Verifies outcome and decides if more loops are needed."""
-    logger.info("🧠 Reflecting on outcome...")
-    if state["iterations"] >= len(state["plan"]):
-        return {"task_completed": True}
+    """Reflection Node: Verifies outcome or enforces iteration budget."""
+    iterations = state.get("iterations", 0)
+
+    if BUDGET.should_warn(iterations):
+        logger.warning(BUDGET.status_line(iterations))
+
+    if BUDGET.is_exhausted(iterations):
+        logger.error(f"Budget exhausted after {iterations} iterations — forcing stop.")
+        return {"task_completed": True, "budget_exhausted": True}
+
+    if iterations >= len(state.get("plan", [1])):
+        return {"task_completed": True, "budget_exhausted": False}
+
+    logger.info(f"🧠 Reflecting — {BUDGET.status_line(iterations)}")
     return {}
 
 def compressor(state: AgentState):
@@ -161,6 +173,7 @@ def run_task(task: str):
         "observations": [],
         "iterations": 0,
         "task_completed": False,
+        "budget_exhausted": False,
         "compression_count": 0,
     }
     for output in app.stream(initial_state):

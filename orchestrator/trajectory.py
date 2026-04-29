@@ -11,6 +11,7 @@ real interaction data.
 """
 import json
 import logging
+import os
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -69,9 +70,10 @@ class TrajectoryCapture:
             "iterations": state.get("iterations", 0),
             "compression_count": state.get("compression_count", 0),
             "messages": self._serialize_messages(messages),
-            "outcome": "success" if state.get("task_completed") else "partial",
+            "outcome": self._resolve_outcome(state),
             "metadata": {
                 "zana_version": ZANA_VERSION,
+                "budget_limit": int(os.getenv("ZANA_MAX_ITERATIONS", "10")),
             },
         }
 
@@ -130,6 +132,14 @@ class TrajectoryCapture:
             {"role": role, "content": content}
             for role, content in (self._classify_message(m) for m in messages)
         ]
+
+    @staticmethod
+    def _resolve_outcome(state: Dict[str, Any]) -> str:
+        if state.get("budget_exhausted"):
+            return "budget_exhausted"
+        if state.get("task_completed"):
+            return "success"
+        return "partial"
 
     def _extract_task(self, messages: List[BaseMessage]) -> str:
         for msg in messages:
