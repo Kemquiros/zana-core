@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.8.8] — 2026-04-28
+
+### Fixed
+- **Networking**: Fixed 502 Bad Gateway error by correcting the service name fallback in Caddyfile (from `pwa` to `aria-ui`).
+
+---
+
 ## [2.8.7] — 2026-04-28
 
 ### Fixed

@@ -13,7 +13,7 @@
   }
 
   handle {
-    reverse_proxy {$ZANA_PWA_HOST:-pwa}:3000
+    reverse_proxy {$ZANA_PWA_HOST:-aria-ui}:3000
   }
 
   encode gzip
