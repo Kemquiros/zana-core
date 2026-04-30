@@ -117,10 +117,15 @@ install_core() {
     else
         echo -e "${CYAN}▶ Cloning/Updating repository: $REPO...${RESET}"
         mkdir -p "$HOME/.zana"
+        # If directory exists but is not a valid git repo (partial install), wipe and re-clone.
+        if [ -d "$ZANA_REPO_DIR" ] && ! git -C "$ZANA_REPO_DIR" rev-parse --git-dir &>/dev/null; then
+            echo -e "${YELLOW}⚠ Directorio existente no es un repo git — limpiando y re-clonando...${RESET}"
+            rm -rf "$ZANA_REPO_DIR"
+        fi
         if [ ! -d "$ZANA_REPO_DIR" ]; then
             git clone "https://github.com/$REPO.git" "$ZANA_REPO_DIR"
         else
-            (cd "$ZANA_REPO_DIR" && git fetch --all && git reset --hard origin/main)
+            git -C "$ZANA_REPO_DIR" fetch --all && git -C "$ZANA_REPO_DIR" reset --hard origin/main
         fi
     fi
     
