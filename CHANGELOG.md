@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.13] — 2026-04-29
+
+### Fixed
+- **WSL / `curl|bash` installer crash (`Aborted.` + `;1R` escape leak)** — Three-layer fix for the onboarding wizard aborting silently when installed via `curl ... | bash` on WSL or any piped environment:
+  1. **`install.sh` — `/dev/tty` reconnect**: Before invoking `zana start`, the script runs `exec < /dev/tty` to reconnect stdin to the real terminal device (canonical Unix pattern used by rustup, nvm, Homebrew). This restores the TTY for the Python onboarding wizard. If `/dev/tty` is unavailable (headless CI, Docker without TTY), automatically sets `ZANA_NON_INTERACTIVE=1` to skip prompts gracefully.
+  2. **`onboarding.py` — hardened `_is_interactive()`**: The detection now uses three independent gates: CI env vars (`CI`, `DEBIAN_FRONTEND=noninteractive`, `ZANA_NON_INTERACTIVE`), `sys.stdin.isatty()`, and `termios.tcgetattr()` which catches the WSL edge case where `isatty()` reports a pseudo-terminal that `prompt_toolkit` cannot actually drive.
+  3. **`onboarding.py` — `ZANA_VAULT_PATH` env var**: Power users and CI pipelines can pre-set the vault path with `ZANA_VAULT_PATH=/my/vault curl ... | bash` without any prompts.
+- **`;1R` escape sequence leaking to shell**: Already fixed in v2.9.12 via lazy `questionary` import; the new `termios` gate ensures `questionary` is never imported in environments where it would trigger the `\e[6n` cursor query.
+
+### Changed
+- **Non-interactive mode now documents its escape hatch**: `install.sh` header comment documents `ZANA_NON_INTERACTIVE=1` and `ZANA_VAULT_PATH` for WSL, CI, and Docker usage.
+
+---
+
 ## [2.9.12] — 2026-04-29
 
 ### Fixed

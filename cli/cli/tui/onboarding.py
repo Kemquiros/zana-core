@@ -25,12 +25,27 @@ def _is_wsl() -> bool:
 
 
 def _is_interactive() -> bool:
-    """True only when stdin is a real terminal.
+    """True only when stdin is a real interactive terminal that questionary can drive.
 
-    curl | bash destroys the TTY, making sys.stdin.isatty() return False.
-    questionary aborts in that scenario; we fall back to silent defaults instead.
+    Three independent signals gate this — all must pass:
+    1. No CI / non-interactive env vars (CI, DEBIAN_FRONTEND, ZANA_NON_INTERACTIVE).
+    2. sys.stdin.isatty() — catches the common curl|bash case.
+    3. termios.tcgetattr — validates the fd is a *proper* tty, not a WSL/pty
+       pseudo-terminal that isatty() incorrectly reports as interactive.
     """
-    return sys.stdin.isatty()
+    import os
+    if (os.environ.get("CI")
+            or os.environ.get("DEBIAN_FRONTEND") == "noninteractive"
+            or os.environ.get("ZANA_NON_INTERACTIVE")):
+        return False
+    if not sys.stdin.isatty():
+        return False
+    try:
+        import termios
+        termios.tcgetattr(sys.stdin.fileno())
+        return True
+    except Exception:
+        return False
 
 
 def _get_windows_username() -> str:
@@ -686,7 +701,13 @@ def run_onboarding() -> bool:
     console.print("\n[secondary]Configuración de Bóveda Soberana[/secondary]")
     default_vault = _default_vault_path()
 
-    if _is_interactive():
+    # ZANA_VAULT_PATH env var lets curl|bash + CI users pre-configure without prompts
+    env_vault = os.environ.get("ZANA_VAULT_PATH", "").strip()
+
+    if env_vault:
+        vault_path = env_vault
+        console.print(f"  [muted]Bóveda desde ZANA_VAULT_PATH:[/muted] [accent]{vault_path}[/accent]")
+    elif _is_interactive():
         import questionary
         vault_path = questionary.path(
             "Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):",

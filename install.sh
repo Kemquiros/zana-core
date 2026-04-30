@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
-# 🧠 ZANA Installer v2.9.12 — Sovereign Cognitive Architecture
+# 🧠 ZANA Installer v2.9.13 — Sovereign Cognitive Architecture
 # "Juntos hacemos temblar los cielos"
+#
+# Non-interactive / CI mode options (set before running):
+#   ZANA_NON_INTERACTIVE=1   — skip all prompts, use defaults
+#   ZANA_VAULT_PATH=/path    — set vault path without prompts
+#   ZANA_INSTALL_DIR=/path   — override CLI install directory
+#
+# Example (WSL or CI):
+#   ZANA_NON_INTERACTIVE=1 ZANA_VAULT_PATH="$HOME/ZANA_Vault" curl -fsSL ... | bash
 
 set -euo pipefail
 
@@ -27,7 +35,7 @@ MSG_DOCKER_MISSING[en]="Docker not found. Needed for Sovereign Memory and local 
 MSG_PYTHON_MISSING[en]="Python 3.12+ missing. It is the nervous system of logic."
 MSG_GIT_MISSING[en]="Git not found. Needed to clone the Cortex."
 MSG_UV_INSTALLING[en]="Installing 'uv' (Neural-speed Python manager)..."
-MSG_SUCCESS[en]="ZANA v2.9.12 — INSTALLED SUCCESSFULLY."
+MSG_SUCCESS[en]="ZANA v2.9.13 — INSTALLED SUCCESSFULLY."
 MSG_FORGING[en]="Forging CLI tools..."
 MSG_STARTING[en]="Starting automated configuration (zana start)..."
 
@@ -38,7 +46,7 @@ MSG_DOCKER_MISSING[es]="Docker no detectado. Vital para la Memoria Soberana y al
 MSG_PYTHON_MISSING[es]="Falta Python 3.12+. Es el sistema nervioso de la lógica."
 MSG_GIT_MISSING[es]="Falta 'git'. Vital para clonar el Córtex."
 MSG_UV_INSTALLING[es]="Instalando 'uv' (Gestor de Python de alta velocidad)..."
-MSG_SUCCESS[es]="ZANA v2.9.12 — INSTALADA CON ÉXITO."
+MSG_SUCCESS[es]="ZANA v2.9.13 — INSTALADA CON ÉXITO."
 MSG_FORGING[es]="Forjando herramientas CLI..."
 MSG_STARTING[es]="Iniciando protocolo de configuración automatizado (zana start)..."
 
@@ -130,7 +138,7 @@ install_core() {
     fi
     
     # Ensure fresh installation of the CLI tool
-    echo -e "${CYAN}▶ Deploying ZANA CLI v2.9.12...${RESET}"
+    echo -e "${CYAN}▶ Deploying ZANA CLI v2.9.13...${RESET}"
     uv tool uninstall zana || true
     uv tool install "$ZANA_REPO_DIR/cli" --force
     
@@ -178,4 +186,20 @@ echo -e "\n  ${MAGENTA}TU SOBERANÍA COGNITIVA HA DESPERTADO / YOUR COGNITIVE SO
 
 echo -e "${CYAN}▶ ${MSG_STARTING[$LANGUAGE]}${RESET}"
 sleep 1
+
+# Reconnect stdin to the real terminal before launching the interactive onboarding wizard.
+# curl | bash pipes stdin through curl, destroying the TTY for subprocesses.
+# This is the canonical Unix fix (used by rustup, nvm, Homebrew):
+#   exec < /dev/tty redirects the current shell's stdin to the terminal device,
+#   so the zana process inherits a proper TTY and questionary works normally.
+# If /dev/tty is unavailable (headless CI, Docker without TTY), we fall back to
+# ZANA_NON_INTERACTIVE=1 so the Python wizard skips all prompts gracefully.
+if [ -z "${ZANA_NON_INTERACTIVE:-}" ]; then
+    if [ -e /dev/tty ] && (true < /dev/tty) 2>/dev/null; then
+        exec < /dev/tty
+    else
+        export ZANA_NON_INTERACTIVE=1
+    fi
+fi
+
 "$ZANA_INSTALL_DIR/zana" start
