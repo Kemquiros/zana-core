@@ -7,6 +7,27 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.14] — 2026-04-29
+
+### Added
+- **Web Search nativo — H1 Roadmap #1** — ZANA ya no necesita salir a Google para investigar. El OPERATOR agent ahora tiene acceso a búsqueda web real con dos herramientas smolagents:
+  - `web_search(query, num_results)` — busca en la web y retorna título, URL y snippet por resultado
+  - `browse_url(url)` — fetcha una URL y extrae el texto limpio (HTML stripped, max 4000 chars)
+  - Provider priority: **Tavily** (`TAVILY_API_KEY`) → **SearXNG** self-hosted (`SEARXNG_URL`) → **DuckDuckGo** (fallback sin clave, siempre disponible)
+  - Zero nuevas dependencias obligatorias — usa `httpx` que ya estaba en el stack
+- **`POST /search`** — endpoint HTTP en el Sensory Gateway (port 54446) para búsqueda desde cualquier servicio interno
+- **`POST /search/browse`** — endpoint HTTP para fetch+extract de URLs
+- **`GET /search/config`** — muestra qué provider está activo y qué env vars están configuradas
+- **`.env.example`** — documenta `TAVILY_API_KEY` y `SEARXNG_URL` con instrucciones de setup
+
+### Architecture
+- `swarm/apex/web_tools.py` (nuevo) — `WebSearchTool`, `BrowseUrlTool`, funciones auxiliares `web_search()` y `browse_url()` compartidas con el router HTTP
+- `sensory/search_router.py` (nuevo) — FastAPI router montado en `/search`
+- `swarm/apex/agents.py` — `operator_agent` ahora tiene `tools=[web_search_tool, browse_url_tool]` (antes `tools=[]`)
+- `sensory/multimodal_gateway.py` — monta `search_router` junto a los demás routers
+
+---
+
 ## [2.9.13] — 2026-04-29
 
 ### Fixed

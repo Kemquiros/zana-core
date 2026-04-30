@@ -1,6 +1,6 @@
 [project]
 name = "zana"
-version = "2.9.13"
+version = "2.9.14"
 description = "ZANA — Zero Autonomous Neural Architecture CLI"
 requires-python = ">=3.12"
 license = { text = "MIT" }

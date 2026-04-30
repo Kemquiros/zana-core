@@ -151,13 +151,17 @@ try:
     from sensory.reasoning_router import router as _reason_router
     from sensory.memory_router import router as _memory_router
     from sensory.control_router import router as _control_router
-    from sensory.projects_router import router as _projects_router # NEW
+    from sensory.projects_router import router as _projects_router
+    from sensory.identity_router import router as _identity_router
+    from sensory.search_router import router as _search_router
 
     app.include_router(_reason_router)
     app.include_router(_memory_router)
     app.include_router(_control_router)
-    app.include_router(_projects_router) # NEW
-    logger.info("✓  [GATEWAY] reason / memory / control / projects routers loaded")
+    app.include_router(_projects_router)
+    app.include_router(_identity_router)
+    app.include_router(_search_router)
+    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search routers loaded")
 except Exception as _e:
     logger.warning("Power-user routers not loaded: %s", _e)
 
@@ -824,6 +828,7 @@ def health():
             "memory": "GET  /memory/episodic  GET /memory/stats",
             "shadow": "POST /shadow/enable|disable  GET /shadow/status",
             "swarm": "POST /swarm/init|stop|assimilate|query  GET /swarm/status",
+            "search": "POST /search  POST /search/browse  GET /search/config",
             "agent_card": "GET  /.well-known/agent-card.json",
         },
     }

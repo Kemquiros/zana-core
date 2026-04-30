@@ -7,6 +7,7 @@ Refined with advanced Agentic AI patterns (ToT, ReAct, Reflection, CoT).
 import os
 from smolagents import ToolCallingAgent, LiteLLMModel
 from .rust_tools import CalculateEmlTool, KalmanFilterSurpriseTool, AuditSecurityPayloadTool
+from .web_tools import WebSearchTool, BrowseUrlTool
 
 MODEL_ID = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022")
 
@@ -17,6 +18,8 @@ def get_llm():
 calculate_eml = CalculateEmlTool()
 kalman_filter_surprise = KalmanFilterSurpriseTool()
 audit_security_payload = AuditSecurityPayloadTool()
+web_search_tool = WebSearchTool()
+browse_url_tool = BrowseUrlTool()
 
 # ==========================================
 # ARCHITECTURAL PROMPTS
@@ -105,7 +108,7 @@ herald_agent = ToolCallingAgent(
 )
 
 operator_agent = ToolCallingAgent(
-    tools=[],
+    tools=[web_search_tool, browse_url_tool],
     model=get_llm(),
     name="Operator",
     description="ZANA's hands. Executes scripts, browses the web, and calls external APIs.",
