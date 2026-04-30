@@ -185,6 +185,17 @@ def doctor() -> None:
     cmd_doctor()
 
 
+@app.command(help="Expose Aria UI securely to the public internet via Cloudflare Tunnels.")
+def expose(
+    port: Annotated[
+        int, typer.Option("--port", "-p", help="Local port to expose (default 54448 for Aria UI).")
+    ] = 54448,
+) -> None:
+    from cli.commands.expose import cmd_expose
+
+    cmd_expose(port=port)
+
+
 @app.command(
     name="hardware",
     help=(
