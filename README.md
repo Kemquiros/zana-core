@@ -75,7 +75,10 @@ wsl --install
 bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 ```
 
-> Windows users: see the **[full WSL installation guide](docs/INSTALL_WSL.md)** for Docker setup, Obsidian vault path, and troubleshooting.
+> **Full Installation Guides:** 
+> - 🐧 [Linux (Ubuntu) Guide](docs/INSTALL_LINUX.md)
+> - 🍎 [macOS Guide](docs/INSTALL_MACOS.md)
+> - 🪟 [Windows (WSL 2) Guide](docs/INSTALL_WSL.md)
 
 Once the containers are live, navigate to:
 **`http://localhost:54448`**
