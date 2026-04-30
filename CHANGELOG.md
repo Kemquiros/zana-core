@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.12] — 2026-04-29
+
+### Fixed
+- **Ollama → Docker networking ("CUERPO OFFLINE")** — `zana start` now calls `_sync_user_env_to_stack()` before booting Docker. This reads `ZANA_PRIMARY_MODEL`, `OLLAMA_BASE_URL`, and all API keys from `~/.zana/.env` (written by `zana setup`) and merges them into the stack `.env` that Docker containers actually read. Critically, `OLLAMA_BASE_URL=http://localhost:11434` is rewritten to `http://host.docker.internal:11434` — `localhost` inside a Docker container resolves to the container, not the WSL/macOS host where Ollama is running. Closes the gap where a user who completed `zana setup` with Ollama still got "CUERPO OFFLINE" on every message.
+
+---
+
 ## [2.9.11] — 2026-04-29
 
 ### Fixed

@@ -36,6 +36,75 @@ def _get_gateway_url() -> str:
     port = os.getenv("ZANA_GATEWAY_PORT", "54446")
     return f"http://localhost:{port}/health"
 
+def _sync_user_env_to_stack(stack_root: Path) -> None:
+    """Propagate LLM keys from ~/.zana/.env into the stack .env so Docker containers see them."""
+    user_env = Path.home() / ".zana" / ".env"
+    stack_env = stack_root / ".env"
+
+    if not user_env.exists():
+        return
+
+    # Keys to sync from the user env into the stack env
+    LLM_KEYS = {
+        "ZANA_PRIMARY_MODEL",
+        "OLLAMA_BASE_URL",
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GOOGLE_API_KEY",
+        "GROQ_API_KEY",
+        "ZANA_PRIMARY_PROVIDER",
+        "ZANA_PRIMARY_PROVIDER_MODEL",
+    }
+
+    # Read user env
+    user_vars: dict[str, str] = {}
+    for line in user_env.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        user_vars[key.strip()] = val.strip()
+
+    # Read stack env (may not exist yet)
+    stack_lines: list[str] = []
+    stack_keys: set[str] = set()
+    if stack_env.exists():
+        for line in stack_env.read_text().splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "=" in stripped:
+                k = stripped.split("=", 1)[0].strip()
+                stack_keys.add(k)
+            stack_lines.append(line)
+
+    changed = False
+    for key in LLM_KEYS:
+        if key not in user_vars:
+            continue
+        value = user_vars[key]
+
+        # Docker containers cannot reach WSL/macOS host via 'localhost' —
+        # host.docker.internal resolves to the host machine from inside a container.
+        if key == "OLLAMA_BASE_URL":
+            value = value.replace("localhost", "host.docker.internal").replace(
+                "127.0.0.1", "host.docker.internal"
+            )
+
+        new_line = f"{key}={value}"
+        if key in stack_keys:
+            # Update existing line in-place
+            stack_lines = [
+                new_line if (l.strip().split("=", 1)[0].strip() == key and not l.strip().startswith("#")) else l
+                for l in stack_lines
+            ]
+        else:
+            stack_lines.append(new_line)
+        changed = True
+
+    if changed:
+        stack_env.write_text("\n".join(stack_lines) + "\n")
+        console.print("[muted]  LLM config synced to stack .env.[/muted]")
+
+
 def cmd_start(detach: bool = True) -> None:
     compose = STACK_ROOT / "docker-compose.yml"
     if not compose.exists():
@@ -45,10 +114,13 @@ def cmd_start(detach: bool = True) -> None:
     # 1. Ensure .env is securely configured with passwords before starting
     ensure_env_configured(STACK_ROOT)
 
-    # 2. Fix data directory permissions (Docker context scan fix)
+    # 2. Sync LLM provider config from ~/.zana/.env → stack .env (Docker networking fix)
+    _sync_user_env_to_stack(STACK_ROOT)
+
+    # 3. Fix data directory permissions (Docker context scan fix)
     _fix_data_permissions(STACK_ROOT)
 
-    # 3. Ensure Rust Steel Core is built (needed for Docker build context)
+    # 4. Ensure Rust Steel Core is built (needed for Docker build context)
     _ensure_steel_core_built(STACK_ROOT)
 
     console.print("[primary]Booting ZANA stack...[/primary]")
