@@ -124,15 +124,25 @@ def cmd_start(detach: bool = True) -> None:
     _ensure_steel_core_built(STACK_ROOT)
 
     console.print("[primary]Booting ZANA stack...[/primary]")
+    console.print("[muted]  Note: Your data in ./data is safe. Containers are transient, memories are permanent.[/muted]")
+
+    # Attempt to clear port conflicts by stopping existing stack if it exists
+    # This prevents the 'port is already allocated' error during recreation.
+    subprocess.run(
+        ["docker", "compose", "-f", str(compose), "stop"],
+        cwd=str(STACK_ROOT),
+        capture_output=True,
+    )
 
     flags = ["-d"] if detach else []
     result = subprocess.run(
-        ["docker", "compose", "-f", str(compose), "up", "--build"] + flags,
+        ["docker", "compose", "-f", str(compose), "up", "--build", "--remove-orphans"] + flags,
         cwd=str(STACK_ROOT),
     )
 
     if result.returncode != 0:
         console.print("[error]docker compose failed.[/error]")
+        console.print("[yellow]Hint: Port conflict detected. Try: docker stop $(docker ps -q) && zana start[/yellow]")
         raise typer.Exit(result.returncode)
 
     if detach:
