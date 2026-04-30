@@ -7,6 +7,35 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.11] — 2026-04-29
+
+### Fixed
+- **`zana upgrade` rewrite** — No longer requires a published GitHub Release. Checks `releases/latest` first; if absent, falls back to the latest commit SHA on `main`. On confirmation, pulls the local repo clone (`git reset --hard origin/main`) and reinstalls the CLI via `uv tool install git+...`. Closes the silent no-op that left users on outdated versions indefinitely.
+
+---
+
+## [2.9.10] — 2026-04-29
+
+### Added
+- **Hardware Intelligence — `zana hardware`** — New CLI command powered by [llmfit](https://github.com/AlexsJones/llmfit) (MIT). Displays a hardware panel (RAM / GPU / VRAM / CPU cores) and, with `--recommend`, shows the top N LLM models scored by quality, speed, and fit for the exact machine. `--install` auto-installs llmfit via the official installer or Homebrew. `--top N` controls result count.
+- **llmfit in the model picker** — `zana setup`'s Ollama model selector now queries llmfit when available. Recommended models appear first with a `[llmfit ✓]` badge; uninstalled recommended models appear with `[pull disponible]`. If llmfit is absent, a one-line tip offers optional installation (`default=No` — zero friction). Name normalization converts llmfit display names (`Gemma 3 4B Q8_0`) to Ollama tags (`gemma3:4b`) via a lookup table + regex fallback. Fully defensive — any failure silently uses the static list.
+
+---
+
+## [2.9.9] — 2026-04-29
+
+### Added
+- **Sovereign Inference Wizard** — `zana setup` offers a guided 3-step Ollama configuration when no cloud API keys are entered. Step 1: pings `localhost:11434`, shows platform-specific install instructions if Ollama is not running. Step 2: lists installed models sorted by llmfit recommendation; if none exist, suggests `ollama pull gemma3:4b` and waits. Step 3: sends a real prompt to `/api/generate` and shows the live response. On success, writes `ZANA_PRIMARY_MODEL=ollama/<model>` and `OLLAMA_BASE_URL` to `~/.zana/.env`. Closes the "zombie mode" gap where ZANA responded `[Inference Error]` to every message when no keys were configured.
+- **Windows / WSL Sovereignty** — Three bugs fixed in the onboarding wizard: (1) `curl | bash` TTY destruction: `_is_interactive()` check falls back to silent defaults, never aborts. (2) `;1R` ANSI escape leak: `import questionary` is now lazy — prompt_toolkit's cursor query never fires in non-TTY mode. (3) Wrong Obsidian vault path on WSL: `_is_wsl()` detects WSL via `/proc/version` and `_default_vault_path()` returns `/mnt/c/Users/<win_user>/Documents/ZANA_Vault` so Windows-side Obsidian can open it directly.
+- **Rust + gcc auto-install** — `_ensure_rust_installed()` in `start.py` installs Rust via rustup if `cargo` is missing. Also detects missing C linker (`cc`/`gcc`) on apt-based systems and auto-runs `apt-get install build-essential` — without it, cargo installs successfully but fails to link binaries on fresh WSL. `install.sh` now installs both at setup time, not deferred to first boot.
+- **`docs/INSTALL_WSL.md`** — Full step-by-step Windows installation guide: WSL 2 setup, Docker Desktop WSL integration, Obsidian vault path, Rust note, installer syntax, post-install verification, troubleshooting. Linked from `README.md` Quick Start and from the Windows tab in `zana-landing/Installation.tsx`.
+
+### Changed
+- **`README.md` Quick Start** — Split into Linux/macOS and Windows sections. Command corrected from `curl | bash` to `bash <(curl ...)` across both.
+- **`zana-landing/Installation.tsx`** — Windows command fixed; conditional "Full Windows guide →" link appears when the Windows tab is selected.
+
+---
+
 ## [2.9.8] — 2026-04-29
 
 ### Added

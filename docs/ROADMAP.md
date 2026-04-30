@@ -64,6 +64,10 @@ Ubiquity, Identity, and Autonomous Lifecycle.
 - **Trajectory Capture** ✅ — Every completed session saved to `data/trajectories/` in ZANA native + ShareGPT JSONL. Pipeline toward fine-tuning a sovereign ZANA model.
 - **Iteration Budget** ✅ — `BudgetConfig` frozen dataclass with tier limits (orchestrator / swarm), 80% warning, refundable ops, and `budget_exhausted` trajectory signal.
 - **Transport Abstraction** ✅ — `BaseTransport` interface + `AnthropicTransport`, `OllamaTransport`, `OpenAICompatTransport`. `transport_from_env(role)` factory — swap any cognitive module to any provider with one env var. Sovereign model endpoint ready.
+- **Windows / WSL Sovereignty** ✅ — Full WSL 2 compatibility: TTY detection prevents `curl | bash` abort, lazy questionary import eliminates `;1R` escape leak, automatic WSL path detection routes the Obsidian vault to `/mnt/c/Users/...` so Windows-side Obsidian sees it. Rust + `build-essential` auto-installed at first boot. Full step-by-step guide at `docs/INSTALL_WSL.md`.
+- **Sovereign Inference Wizard** ✅ — `zana setup` now offers a guided 3-step Ollama configuration when no cloud API keys are entered: connection check → model picker → live inference test. Writes `ZANA_PRIMARY_MODEL=ollama/<model>` automatically. Closes the "zombie mode" gap where ZANA returned `[Inference Error]` to every message without keys.
+- **Hardware Intelligence** ✅ — `llmfit` integrated into the model picker: scans RAM/GPU/CPU and recommends the highest-quality quantization that fits your machine. New `zana hardware [--recommend] [--install] [--top N]` CLI command. llmfit is optional — ZANA works without it, suggests it silently, installs on request.
+- **Self-Healing Upgrade** ✅ — `zana upgrade` rewritten: no longer requires a GitHub Release to exist. Checks latest commit SHA on `main`, pulls the local repo clone, and reinstalls the CLI from git. Fixes the silent no-op that left users on outdated versions indefinitely.
 
 ---
 
