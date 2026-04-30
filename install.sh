@@ -128,7 +128,12 @@ install_core() {
         # If directory exists but is not a valid git repo (partial install), wipe and re-clone.
         if [ -d "$ZANA_REPO_DIR" ] && ! git -C "$ZANA_REPO_DIR" rev-parse --git-dir &>/dev/null; then
             echo -e "${YELLOW}⚠ Directorio existente no es un repo git — limpiando y re-clonando...${RESET}"
-            rm -rf "$ZANA_REPO_DIR"
+            # Use sudo if available to override docker-created volume permissions
+            if command -v sudo &>/dev/null; then
+                sudo rm -rf "$ZANA_REPO_DIR" || rm -rf "$ZANA_REPO_DIR"
+            else
+                rm -rf "$ZANA_REPO_DIR"
+            fi
         fi
         if [ ! -d "$ZANA_REPO_DIR" ]; then
             git clone "https://github.com/$REPO.git" "$ZANA_REPO_DIR"
