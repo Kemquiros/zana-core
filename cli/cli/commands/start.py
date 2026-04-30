@@ -119,33 +119,49 @@ def _fix_data_permissions(root: Path) -> None:
 
 
 def _ensure_rust_installed() -> str:
-    """Return path to cargo, installing Rust via rustup if needed."""
+    """Return absolute path to cargo, installing Rust + build deps if needed."""
     import shutil
 
+    # 1. Already on PATH
     cargo = shutil.which("cargo")
     if cargo:
         return cargo
 
-    # cargo might exist in ~/.cargo/bin even if not on PATH yet
+    # 2. Installed but not on PATH yet (common after first rustup run)
     cargo_home = Path.home() / ".cargo" / "bin" / "cargo"
     if cargo_home.exists():
         os.environ["PATH"] = f"{cargo_home.parent}:{os.environ.get('PATH', '')}"
         return str(cargo_home)
 
+    # 3. Install Rust via rustup
     console.print("\n[bold yellow]⚙️  Rust no detectado — instalando via rustup...[/bold yellow]")
-    console.print("[muted]Esto toma 1-2 minutos y solo ocurre una vez.[/muted]")
+    console.print("[muted]  Esto toma 1-2 minutos y solo ocurre una vez.[/muted]")
 
-    result = subprocess.run(
+    r = subprocess.run(
         "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path",
         shell=True,
     )
-    if result.returncode != 0:
+    if r.returncode != 0:
         console.print("[error]No se pudo instalar Rust automáticamente.[/error]")
-        console.print("[yellow]Instálalo manualmente: https://rustup.rs  →  luego ejecuta `zana start` de nuevo.[/yellow]")
+        console.print(
+            "[yellow]Instálalo manualmente:[/yellow] https://rustup.rs  "
+            "→ luego ejecuta [accent]zana start[/accent] de nuevo."
+        )
         raise typer.Exit(1)
 
     os.environ["PATH"] = f"{cargo_home.parent}:{os.environ.get('PATH', '')}"
-    console.print("[success]✅ Rust instalado correctamente.[/success]\n")
+    console.print("[success]✅ Rust instalado.[/success]")
+
+    # 4. Ensure C linker (cc/gcc) is present — required by cargo to link binaries.
+    #    On fresh Debian/Ubuntu/WSL installs, build-essential is often missing.
+    if not shutil.which("cc") and shutil.which("apt-get"):
+        console.print("[muted]  Instalando build-essential (linker C para cargo)...[/muted]")
+        subprocess.run(
+            ["sudo", "apt-get", "install", "-y", "build-essential"],
+            capture_output=True,
+        )
+
+    console.print()
     return str(cargo_home)
 
 

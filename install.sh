@@ -62,7 +62,7 @@ EOF
 
 check_dependencies() {
     echo -e "${CYAN}▶ ${MSG_DEP_CHECK[$LANGUAGE]}${RESET}"
-    
+
     if ! command -v python3 &>/dev/null; then
         echo -e "${RED}✗ ${MSG_PYTHON_MISSING[$LANGUAGE]}${RESET}"
         echo -e "${YELLOW}Install it from https://python.org${RESET}"
@@ -84,6 +84,25 @@ check_dependencies() {
         echo -e "${CYAN}▶ ${MSG_UV_INSTALLING[$LANGUAGE]}${RESET}"
         curl -LsSf https://astral.sh/uv/install.sh | bash
         export PATH="$HOME/.local/bin:$PATH"
+    fi
+
+    # Rust / cargo — required to compile the Steel Core (.so binaries).
+    # Install Rust toolchain if cargo is missing. On Debian/Ubuntu also
+    # ensure build-essential (gcc/cc) is present — without it cargo can
+    # link but never produce a binary.
+    if ! command -v cargo &>/dev/null && [ ! -f "$HOME/.cargo/bin/cargo" ]; then
+        echo -e "${CYAN}▶ Rust no detectado — instalando via rustup...${RESET}"
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+        export PATH="$HOME/.cargo/bin:$PATH"
+        echo -e "${GREEN}✓ Rust instalado.${RESET}"
+    else
+        export PATH="$HOME/.cargo/bin:$PATH"
+    fi
+
+    # gcc / cc linker — needed by cargo on fresh Debian/Ubuntu/WSL installs
+    if ! command -v cc &>/dev/null && command -v apt-get &>/dev/null; then
+        echo -e "${CYAN}▶ Instalando build-essential (gcc / cc linker para Rust)...${RESET}"
+        sudo apt-get install -y build-essential > /dev/null 2>&1 || true
     fi
 }
 
