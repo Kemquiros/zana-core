@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [2.9.15] — 2026-05-01
+
+### Fixed
+- **CLI Port Conflicts** — `zana start` now automatically detects and forcefully cleans up lingering containers from older or differently-named ZANA deployments (`zana-core`, `core-repo`) to prevent "port is already allocated" errors during initialization.
+
+---
+
 ## [2.9.14] — 2026-04-29
 
 ### Added
