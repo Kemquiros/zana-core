@@ -105,6 +105,42 @@ def _sync_user_env_to_stack(stack_root: Path) -> None:
         console.print("[muted]  LLM config synced to stack .env.[/muted]")
 
 
+def _clear_conflicting_containers(compose_file: Path) -> None:
+    """Finds and forcefully removes any lingering ZANA containers to prevent port conflicts."""
+    try:
+        # First, try to bring down the current project cleanly
+        subprocess.run(
+            ["docker", "compose", "-f", str(compose_file), "down"],
+            cwd=str(compose_file.parent),
+            capture_output=True,
+        )
+
+        # Then, forcefully remove known old project names that cause conflicts
+        projects_to_clear = ["zana-core", "core-repo", "zana"]
+        container_ids = []
+        for proj in projects_to_clear:
+            cmd = ["docker", "ps", "-aq", "--filter", f"label=com.docker.compose.project={proj}"]
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            container_ids.extend([cid.strip() for cid in res.stdout.splitlines() if cid.strip()])
+        
+        # Also catch containers by name prefix just in case
+        prefixes = ["zana-core-", "core-repo-", "zana-"]
+        for prefix in prefixes:
+            cmd = ["docker", "ps", "-aq", "--filter", f"name={prefix}"]
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            container_ids.extend([cid.strip() for cid in res.stdout.splitlines() if cid.strip()])
+            
+        unique_ids = list(set(container_ids))
+        if unique_ids:
+            console.print("[yellow]Limpiando contenedores conflictivos de instalaciones previas...[/yellow]")
+            subprocess.run(["docker", "rm", "-f"] + unique_ids, capture_output=True)
+            
+        # Also prune unused ZANA networks that might conflict
+        subprocess.run(["docker", "network", "prune", "-f"], capture_output=True)
+    except Exception:
+        pass
+
+
 def cmd_start(detach: bool = True) -> None:
     compose = STACK_ROOT / "docker-compose.yml"
     if not compose.exists():
@@ -126,13 +162,8 @@ def cmd_start(detach: bool = True) -> None:
     console.print("[primary]Booting ZANA stack...[/primary]")
     console.print("[muted]  Note: Your data in ./data is safe. Containers are transient, memories are permanent.[/muted]")
 
-    # Attempt to clear port conflicts by stopping existing stack if it exists
-    # This prevents the 'port is already allocated' error during recreation.
-    subprocess.run(
-        ["docker", "compose", "-f", str(compose), "stop"],
-        cwd=str(STACK_ROOT),
-        capture_output=True,
-    )
+    # Clear port conflicts automatically before bringing up the stack
+    _clear_conflicting_containers(compose)
 
     flags = ["-d"] if detach else []
     result = subprocess.run(
