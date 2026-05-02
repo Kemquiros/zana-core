@@ -23,7 +23,7 @@ services:
     volumes:
       - ${ZANA_DATA_DIR:-./data}/redis:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,7 +38,7 @@ services:
     volumes:
       - ./data/neo4j/data:/data
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_PASSWORD:-zana_neo4j}", "RETURN 1"]
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p ${NEO4J_PASSWORD:-zana_neo4j} 'RETURN 1'"]
       interval: 10s
       timeout: 5s
       retries: 5

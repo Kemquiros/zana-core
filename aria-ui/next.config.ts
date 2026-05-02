@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
         {
           source: "/sense/:path*",
           destination: "http://localhost:54446/sense/:path*"
+        },
+        {
+          source: "/memory/:path*",
+          destination: "http://localhost:54446/memory/:path*"
+        },
+        {
+          source: "/search/:path*",
+          destination: "http://localhost:54446/search/:path*"
         }
       ];
     }

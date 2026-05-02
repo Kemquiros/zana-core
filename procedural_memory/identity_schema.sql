@@ -7,10 +7,20 @@ CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username TEXT UNIQUE NOT NULL,
     email TEXT UNIQUE,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT, -- Nullable for users who only use Social Logins or Passkeys
     dna_metadata JSONB DEFAULT '{}',
     is_master BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS user_identities (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL, -- 'google', 'github', 'facebook', 'passkey', 'telegram', 'temp_token'
+    provider_id TEXT NOT NULL, -- e.g., Google's 'sub', Telegram user ID, Passkey Credential ID
+    credential_data JSONB DEFAULT '{}', -- Stores Passkey public keys or OAuth refresh tokens
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_id)
 );
 
 CREATE TABLE IF NOT EXISTS invitations (

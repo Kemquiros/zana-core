@@ -9,6 +9,7 @@ import OnboardingWizard from "../components/OnboardingWizard";
 import ChatInterface from "../components/ChatInterface";
 import SettingsModal from "../components/SettingsModal";
 import { Settings, ExternalLink, Activity, Zap, Heart, Brain, Star } from "lucide-react";
+import MemoryGraph from "../components/MemoryGraph";
 import { useZanaStream } from "../lib/zana-stream";
 
 export default function CockpitPage() {
@@ -260,6 +261,11 @@ export default function CockpitPage() {
                     <AeonCard key={aeon.id} aeon={aeon} active={profile?.optimized_aeon_fleet?.includes(aeon.id)} />
                 ))}
             </div>
+        </section>
+
+        {/* Memory Map */}
+        <section className="p-8 rounded-[2.5rem] bg-white/[0.015] border border-white/5">
+          <MemoryGraph />
         </section>
 
         <section className="space-y-10">
