@@ -88,11 +88,34 @@ class SkillRegistry:
             return None
         return max(domain_skills, key=lambda s_id: self.skills[s_id]["q_value"])
 
-    def mark_executed(self, skill_id: str):
-        """Actualiza last_executed al momento actual."""
-        if skill_id in self.skills:
-            self.skills[skill_id]["last_executed"] = datetime.now().isoformat()
-            self.save()
+    def mark_executed(self, skill_id: str, session_id: str = "global"):
+        """Actualiza last_executed al momento actual y emite SkillActivation event."""
+        if skill_id not in self.skills:
+            return
+        self.skills[skill_id]["last_executed"] = datetime.now().isoformat()
+        self.save()
+        # Sentinel: SkillActivation
+        try:
+            import asyncio
+            from sentinel.event_bus import get_bus, ZanaEvent, EventType
+            skill = self.skills[skill_id]
+            event = ZanaEvent(
+                type=EventType.SKILL_ACTIVATION,
+                payload={
+                    "skill_id": skill_id,
+                    "skill_name": skill.get("name", skill_id),
+                    "domain": skill.get("domain", "general"),
+                    "q_value": skill.get("q_value", 0.5),
+                },
+                session_id=session_id,
+            )
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                asyncio.create_task(get_bus().emit(event))
+            else:
+                loop.run_until_complete(get_bus().emit(event, fire_and_forget=False))
+        except Exception:
+            pass
 
     def get_stale_skills(self, days_inactive: int = 7, q_threshold: float = 0.5) -> List[str]:
         """Retorna skill_ids activos que están degradados por inactividad o bajo rendimiento."""

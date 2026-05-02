@@ -431,6 +431,37 @@ def swarm_query(
 from cli.commands.sync import app as sync_app
 app.add_typer(sync_app, name="sync")
 
+sentinel_app = typer.Typer(
+    name="sentinel",
+    help="Sentinel Event Bus — lifecycle events and Civic Ledger audit.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(sentinel_app, name="sentinel")
+
+
+@sentinel_app.command("status", help="Bus health + event type counts.")
+def sentinel_status() -> None:
+    from cli.commands.sentinel import cmd_sentinel_status
+    cmd_sentinel_status()
+
+
+@sentinel_app.command("events", help="Recent events from the in-memory ring buffer.")
+def sentinel_events(
+    limit: Annotated[int, typer.Option("--limit", "-n", help="Number of events.")] = 20,
+    event_type: Annotated[Optional[str], typer.Option("--type", "-t", help="Filter by event type.")] = None,
+) -> None:
+    from cli.commands.sentinel import cmd_sentinel_events
+    cmd_sentinel_events(limit=limit, event_type=event_type)
+
+
+@sentinel_app.command("ledger", help="Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl).")
+def sentinel_ledger(
+    limit: Annotated[int, typer.Option("--limit", "-n", help="Number of entries.")] = 20,
+) -> None:
+    from cli.commands.sentinel import cmd_sentinel_ledger
+    cmd_sentinel_ledger(limit=limit)
+
 wisdom_app = typer.Typer(
     name="wisdom",
     help="Auto-WisdomRules inbox — review, approve, and mine skills from sessions.",

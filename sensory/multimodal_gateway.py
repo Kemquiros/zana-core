@@ -77,6 +77,26 @@ from autonomy.resonance_engine import ResonanceEngine
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger("zana.gateway")
 
+# ── Sentinel Event Bus — lazy import to avoid circular deps ───────────────────
+try:
+    import sys as _sys
+    _sys.path.insert(0, str(root))
+    from sentinel.event_bus import get_bus as _get_sentinel_bus, ZanaEvent, EventType as _ET
+    _sentinel_available = True
+except Exception as _e:
+    logger.warning("Sentinel Event Bus not available: %s", _e)
+    _sentinel_available = False
+
+
+async def _emit(event_type, payload: dict, session_id: str = "gateway") -> None:
+    if not _sentinel_available:
+        return
+    try:
+        bus = _get_sentinel_bus()
+        await bus.emit(ZanaEvent(type=event_type, payload=payload, session_id=session_id))
+    except Exception as _e:
+        logger.debug("Sentinel emit failed silently: %s", _e)
+
 # --- CONFIG ---
 GATEWAY_PORT = int(os.getenv("ZANA_GATEWAY_PORT", "54446"))
 SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
@@ -155,6 +175,7 @@ try:
     from sensory.identity_router import router as _identity_router
     from sensory.search_router import router as _search_router
     from sensory.wisdom_router import router as _wisdom_router
+    from sensory.sentinel_router import router as _sentinel_router
 
     app.include_router(_reason_router)
     app.include_router(_memory_router)
@@ -163,7 +184,8 @@ try:
     app.include_router(_identity_router)
     app.include_router(_search_router)
     app.include_router(_wisdom_router)
-    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search / wisdom routers loaded")
+    app.include_router(_sentinel_router)
+    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search / wisdom / sentinel routers loaded")
 except Exception as _e:
     logger.warning("Power-user routers not loaded: %s", _e)
 
@@ -303,9 +325,25 @@ async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str
     # We pass the custom identity as a prefix to the context
     full_context = f"[IDENTITY]\n{system_identity}\n\n[CONTEXT]\n{cortex_context}"
 
-    return await llm.generate_async(
+    # Sentinel: ExternalAPI event before LLM call
+    await _emit(
+        _ET.EXTERNAL_API if _sentinel_available else None,
+        {"provider": llm.__class__.__name__, "modality": event.modality, "input_len": len(modality_prefix)},
+        session_id=event.session_id or "gateway",
+    ) if _sentinel_available else None
+
+    response = await llm.generate_async(
         modality_prefix, context=full_context, session_id=event.session_id or ""
     )
+
+    # Sentinel: MemoryWrite event after response generated (episodic store)
+    await _emit(
+        _ET.MEMORY_WRITE if _sentinel_available else None,
+        {"store": "episodic", "role": "aeon", "session_id": event.session_id, "content_len": len(response)},
+        session_id=event.session_id or "gateway",
+    ) if _sentinel_available else None
+
+    return response
 
 
 def _build_aeon_response(event: PerceptionEvent, cortex_context: str) -> str:

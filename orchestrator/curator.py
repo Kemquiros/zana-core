@@ -235,6 +235,21 @@ class SkillCurator:
 
         _save_wisdom_inbox(inbox)
         logger.info(f"Auto-WisdomRules: mined {len(entries)} trajectories → proposed {added} new rules")
+
+        # Sentinel: ZSyncRequest — new wisdom rules ready for potential federation
+        if added > 0:
+            try:
+                from sentinel.event_bus import get_bus, ZanaEvent, EventType
+                await get_bus().emit(
+                    ZanaEvent(
+                        type=EventType.ZSYNC_REQUEST,
+                        payload={"proposed_rules": added, "source": "trajectory_mining"},
+                    ),
+                    fire_and_forget=True,
+                )
+            except Exception as _e:
+                logger.debug("Sentinel ZSyncRequest emit failed: %s", _e)
+
         return {"mined": len(entries), "proposed": added}
 
 
