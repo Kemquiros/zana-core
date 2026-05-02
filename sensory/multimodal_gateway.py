@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -105,10 +106,28 @@ async def _emit(event_type, payload: dict, session_id: str = "gateway") -> None:
 GATEWAY_PORT = int(os.getenv("ZANA_GATEWAY_PORT", "54446"))
 SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from orchestrator.background_scheduler import start_scheduler, stop_scheduler
+        await start_scheduler()
+        logger.info("✓  [GATEWAY] Background scheduler started")
+    except Exception as _e:
+        logger.warning("[GATEWAY] Background scheduler unavailable: %s", _e)
+        stop_scheduler = None
+    yield
+    try:
+        if stop_scheduler:
+            await stop_scheduler()
+    except Exception:
+        pass
+
+
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
     version="2.9.3",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
@@ -851,6 +870,13 @@ def health():
         if llm_info.get("vision_model")
         else ("claude-vision" if getattr(_vision, '_client', None) else "mock")
     )
+    scheduler_info: dict = {}
+    try:
+        from orchestrator.background_scheduler import scheduler_status
+        scheduler_info = scheduler_status()
+    except Exception:
+        scheduler_info = {"running": 0}
+
     return {
         "status": "online",
         "backends": {
@@ -861,6 +887,7 @@ def health():
             "kalman": "rust-steel-core" if _kalman_registry.get("default") and hasattr(_kalman_registry["default"], "update_text") else "numpy (dynamic)",
             "armor": armor_backend(),
         },
+        "scheduler": scheduler_info,
         "endpoints": {
             "audio": "POST /sense/audio",
             "vision": "POST /sense/vision",
