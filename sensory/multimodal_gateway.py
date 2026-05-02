@@ -126,7 +126,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="ZANA Multimodal Sensory Gateway",
     description="Audio · Vision · TTS · Reason · Memory · Swarm — The Aeon's sensory layer",
-    version="2.9.3",
+    version="3.0.0",
     lifespan=lifespan,
 )
 app.add_middleware(
