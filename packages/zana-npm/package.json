@@ -1,0 +1,30 @@
+{
+  "name": "@vecanova/zana",
+  "version": "2.9.15",
+  "description": "ZANA — Zero Autonomous Neural Architecture. Every person deserves their own Aeon.",
+  "keywords": ["ai", "agent", "cognitive", "sovereign", "aeon", "llm", "local-ai"],
+  "author": "John Tapias <absurdoeco@gmail.com> (https://vecanova.com)",
+  "license": "MIT",
+  "homepage": "https://github.com/Kemquiros/zana-core",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Kemquiros/zana-core.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kemquiros/zana-core/issues"
+  },
+  "bin": {
+    "zana": "./bin/zana.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "files": [
+    "bin/",
+    "postinstall.js",
+    "README.md"
+  ]
+}

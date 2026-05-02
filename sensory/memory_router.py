@@ -1,17 +1,23 @@
 """
 /memory — 4-store memory query endpoints.
 
-  GET /memory/episodic          last N episodic records (PostgreSQL+pgvector)
+  GET /memory/episodic          last N episodic records
   GET /memory/episodic/search   vector similarity search in episodic store
   GET /memory/stats             collection sizes across all 4 stores
   POST /memory/episodic         store a new episodic record
+
+Backends (EPISODIC_BACKEND env var):
+  sqlite    — default, zero-config, stores at ~/.zana/episodic.db
+  postgres  — PostgreSQL + pgvector (full-stack, requires Docker)
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -22,14 +28,132 @@ logger = logging.getLogger("zana.memory")
 
 router = APIRouter(prefix="/memory", tags=["Memory"])
 
+# ── Backend selection ─────────────────────────────────────────────────────────
+
+EPISODIC_BACKEND = os.getenv("EPISODIC_BACKEND", "sqlite").lower()
+
+# PostgreSQL config (only used when EPISODIC_BACKEND=postgres)
 PG_HOST = os.getenv("ZANA_PG_HOST", "localhost")
 PG_PORT = int(os.getenv("ZANA_PG_PORT", "55433"))
 PG_DB = os.getenv("ZANA_PG_DB", "zana_episodic")
 PG_USER = os.getenv("ZANA_PG_USER", "zana")
 PG_PASS = os.getenv("ZANA_PG_PASSWORD", "")
 
+# SQLite config (default)
+_SQLITE_DB_PATH = Path(os.getenv("ZANA_SQLITE_PATH", str(Path.home() / ".zana" / "episodic.db")))
 
-# ── PostgreSQL async connection pool ─────────────────────────────────────────
+
+# ── SQLite backend ────────────────────────────────────────────────────────────
+
+_SCHEMA = """
+CREATE TABLE IF NOT EXISTS episodic_memory (
+    id          TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    session_id  TEXT NOT NULL,
+    project_id  TEXT,
+    role        TEXT NOT NULL,
+    content     TEXT NOT NULL,
+    modality    TEXT DEFAULT 'text',
+    emotion     TEXT,
+    kalman_surprise REAL,
+    created_at  TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_session ON episodic_memory(session_id);
+CREATE INDEX IF NOT EXISTS idx_project ON episodic_memory(project_id);
+CREATE INDEX IF NOT EXISTS idx_created ON episodic_memory(created_at DESC);
+"""
+
+_sqlite_initialized = False
+
+
+async def _sqlite_ensure_schema() -> None:
+    global _sqlite_initialized
+    if _sqlite_initialized:
+        return
+    try:
+        import aiosqlite
+        _SQLITE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+        async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
+            await db.executescript(_SCHEMA)
+            await db.commit()
+        _sqlite_initialized = True
+        logger.info("SQLite episodic store ready: %s", _SQLITE_DB_PATH)
+    except ImportError:
+        logger.warning("aiosqlite not installed — run: pip install aiosqlite")
+    except Exception as e:
+        logger.warning("SQLite init failed: %s", e)
+
+
+async def _sqlite_fetch(
+    limit: int,
+    session_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+) -> list[dict]:
+    await _sqlite_ensure_schema()
+    try:
+        import aiosqlite
+        query = "SELECT id, session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at FROM episodic_memory WHERE 1=1"
+        params: list = []
+        if session_id:
+            query += " AND session_id = ?"
+            params.append(session_id)
+        if project_id:
+            query += " AND project_id = ?"
+            params.append(project_id)
+        query += " ORDER BY created_at DESC LIMIT ?"
+        params.append(limit)
+
+        async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+            async with db.execute(query, params) as cur:
+                rows = await cur.fetchall()
+                return [dict(r) for r in rows]
+    except Exception as e:
+        logger.warning("SQLite fetch failed: %s", e)
+        return []
+
+
+async def _sqlite_insert(rec) -> bool:
+    await _sqlite_ensure_schema()
+    try:
+        import aiosqlite
+        row_id = uuid.uuid4().hex
+        async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
+            await db.execute(
+                """INSERT INTO episodic_memory
+                   (id, session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    row_id,
+                    rec.session_id,
+                    rec.project_id,
+                    rec.role,
+                    rec.content,
+                    rec.modality,
+                    rec.emotion,
+                    rec.kalman_surprise,
+                    datetime.now(timezone.utc).isoformat(),
+                ),
+            )
+            await db.commit()
+        return True
+    except Exception as e:
+        logger.warning("SQLite insert failed: %s", e)
+        return False
+
+
+async def _sqlite_count() -> Optional[int]:
+    await _sqlite_ensure_schema()
+    try:
+        import aiosqlite
+        async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
+            async with db.execute("SELECT COUNT(*) FROM episodic_memory") as cur:
+                row = await cur.fetchone()
+                return row[0] if row else 0
+    except Exception:
+        return None
+
+
+# ── PostgreSQL backend (legacy / full-stack) ──────────────────────────────────
 
 _pool = None
 
@@ -103,33 +227,36 @@ async def get_episodic(
     session_id: Optional[str] = Query(default=None, description="Filter by session"),
     project_id: Optional[str] = Query(default=None, description="Filter by project"),
 ):
-    """Returns the most recent episodic memory records from PostgreSQL."""
+    """Returns the most recent episodic memory records. Backend: SQLite (default) or PostgreSQL."""
+    if EPISODIC_BACKEND == "sqlite":
+        rows = await _sqlite_fetch(limit, session_id=session_id, project_id=project_id)
+        return rows
+
+    # PostgreSQL path
     query = "SELECT id, session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at FROM episodic_memory WHERE 1=1"
     args = []
-    
     if session_id:
         args.append(session_id)
         query += f" AND session_id = ${len(args)}"
     if project_id:
         args.append(project_id)
         query += f" AND project_id = ${len(args)}"
-        
     args.append(limit)
     query += f" ORDER BY created_at DESC LIMIT ${len(args)}"
-    
     rows = await _pg_fetch(query, *args)
-
-    # Normalize timestamps for JSON
     for r in rows:
         if isinstance(r.get("created_at"), datetime):
             r["created_at"] = r["created_at"].isoformat()
-
     return rows
 
 
 @router.post("/episodic", summary="Store a new episodic record", status_code=201)
 async def store_episodic(rec: EpisodicRecord):
     """Persists one turn of conversation into episodic memory."""
+    if EPISODIC_BACKEND == "sqlite":
+        ok = await _sqlite_insert(rec)
+        return {"stored": ok, "session_id": rec.session_id, "backend": "sqlite"}
+
     ok = await _pg_execute(
         """INSERT INTO episodic_memory
                (session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at)
@@ -143,7 +270,7 @@ async def store_episodic(rec: EpisodicRecord):
         rec.kalman_surprise,
         datetime.now(timezone.utc),
     )
-    return {"stored": ok, "session_id": rec.session_id}
+    return {"stored": ok, "session_id": rec.session_id, "backend": "postgres"}
 
 
 @router.get("/graph", summary="Knowledge graph — topics + entities extracted from episodic memory")
@@ -184,15 +311,18 @@ async def memory_graph(
         "gran","solo","sólo","pues","donde","menos","algo","nadie","nada",
     }
 
-    rows = await _pg_fetch(
-        """SELECT session_id, project_id, role, content, emotion, kalman_surprise, created_at
-           FROM episodic_memory
-           WHERE 1=1 {filter}
-           ORDER BY created_at DESC LIMIT $1""".replace(
-            "{filter}", f"AND project_id = $2" if project_id else ""
-        ),
-        *(([limit, project_id]) if project_id else [limit]),
-    )
+    if EPISODIC_BACKEND == "sqlite":
+        rows = await _sqlite_fetch(limit, project_id=project_id)
+    else:
+        rows = await _pg_fetch(
+            """SELECT session_id, project_id, role, content, emotion, kalman_surprise, created_at
+               FROM episodic_memory
+               WHERE 1=1 {filter}
+               ORDER BY created_at DESC LIMIT $1""".replace(
+                "{filter}", f"AND project_id = $2" if project_id else ""
+            ),
+            *(([limit, project_id]) if project_id else [limit]),
+        )
 
     # Normalize timestamps
     for r in rows:
@@ -279,11 +409,15 @@ async def memory_graph(
 @router.get("/stats", summary="Collection sizes across all 4 memory stores")
 async def memory_stats():
     """Aggregate statistics for the full 4-store memory system."""
-    # Episodic count
-    ep_rows = await _pg_fetch("SELECT COUNT(*) AS cnt FROM episodic_memory")
-    ep_count = ep_rows[0]["cnt"] if ep_rows else None
-
-    pg_status = "online" if ep_count is not None else "offline"
+    if EPISODIC_BACKEND == "sqlite":
+        ep_count = await _sqlite_count()
+        ep_backend_label = f"SQLite ({_SQLITE_DB_PATH})"
+        ep_status = "online" if ep_count is not None else "offline"
+    else:
+        ep_rows = await _pg_fetch("SELECT COUNT(*) AS cnt FROM episodic_memory")
+        ep_count = ep_rows[0]["cnt"] if ep_rows else None
+        ep_backend_label = "PostgreSQL+pgvector"
+        ep_status = "online" if ep_count is not None else "offline"
 
     return {
         "stores": {
@@ -293,8 +427,8 @@ async def memory_stats():
                 "total_documents": "simulated",
             },
             "episodic": {
-                "backend": "PostgreSQL+pgvector",
-                "status": pg_status,
+                "backend": ep_backend_label,
+                "status": ep_status,
                 "total_records": ep_count,
             },
             "world_model": {
