@@ -49,7 +49,7 @@ No one should own your soul.**
 
 ## Quick Start
 
-**Linux / macOS**
+**Linux / macOS** — one command, no Docker required:
 ```bash
 bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 ```
@@ -64,9 +64,16 @@ wsl --install
 bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 ```
 
-Then run `zana start` and open **http://localhost** in your browser.
+**Alternative — direct from GitHub:**
+```bash
+bash <(curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/install.sh)
+```
+
+Then run `zana init` to create your Aeon (≤ 4 questions), then `zana start`.
 
 > **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows/WSL](docs/INSTALL_WSL.md) · [User Manual](docs/USER_MANUAL.md)
+
+> `npm install -g @vecanova/zana` — coming in v3.1 after registry review.
 
 ---
 

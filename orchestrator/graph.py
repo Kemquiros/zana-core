@@ -180,7 +180,7 @@ def run_task(task: str):
             print(f"--- Node: {node} ---")
             if "next_node" in data:
                 print(f"Transitioning to: {data['next_node']}")
-    print("   /\ \n  /  \ \n /____\ \n [ VALHALLA REACHED ]")
+    print("   /\\ \n  /  \\ \n /____\\ \n [ VALHALLA REACHED ]")
 
 
 if __name__ == "__main__":

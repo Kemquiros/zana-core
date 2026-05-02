@@ -87,6 +87,10 @@ except Exception as _e:
     logger.warning("Sentinel Event Bus not available: %s", _e)
     _sentinel_available = False
 
+    class _ET:  # noqa: N801 — stub so call-sites don't need guards
+        EXTERNAL_API = "ExternalAPI"
+        MEMORY_WRITE = "MemoryWrite"
+
 
 async def _emit(event_type, payload: dict, session_id: str = "gateway") -> None:
     if not _sentinel_available:
@@ -327,10 +331,10 @@ async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str
 
     # Sentinel: ExternalAPI event before LLM call
     await _emit(
-        _ET.EXTERNAL_API if _sentinel_available else None,
+        _ET.EXTERNAL_API,
         {"provider": llm.__class__.__name__, "modality": event.modality, "input_len": len(modality_prefix)},
         session_id=event.session_id or "gateway",
-    ) if _sentinel_available else None
+    )
 
     response = await llm.generate_async(
         modality_prefix, context=full_context, session_id=event.session_id or ""
@@ -338,10 +342,10 @@ async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str
 
     # Sentinel: MemoryWrite event after response generated (episodic store)
     await _emit(
-        _ET.MEMORY_WRITE if _sentinel_available else None,
+        _ET.MEMORY_WRITE,
         {"store": "episodic", "role": "aeon", "session_id": event.session_id, "content_len": len(response)},
         session_id=event.session_id or "gateway",
-    ) if _sentinel_available else None
+    )
 
     return response
 

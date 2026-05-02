@@ -357,11 +357,14 @@ _RECOMMENDED_MODELS = [
 ]
 
 
-def _setup_ollama(cloud_keys: dict) -> dict:
+def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
     """
     Offer Ollama as the sovereign local engine when no cloud API keys are configured.
     Guides the user step by step with real connection and inference tests.
     Returns env vars to write (e.g. {"ZANA_PRIMARY_MODEL": "ollama/gemma3:4b"}).
+
+    skip_confirm=True bypasses the "¿Configurar Ollama?" question — use when the
+    caller already knows the user wants Ollama (e.g. run_init_wizard Q2 selection).
     """
     if not _is_interactive():
         return {}
@@ -375,20 +378,25 @@ def _setup_ollama(cloud_keys: dict) -> dict:
     console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
     console.print("[bold white]  Modo Soberano Local — Inferencia sin API Keys[/bold white]")
     console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print(
-        "\n  No configuraste APIs en la nube. ZANA puede funcionar\n"
-        "  [bold]100% offline[/bold] con [accent]Ollama[/accent] — sin costos, sin datos enviados, soberanía total.\n"
-    )
 
-    use_ollama = questionary.confirm(
-        "¿Configurar Ollama como motor de inferencia local?",
-        default=True,
-        style=_q_style(),
-    ).ask()
+    if not skip_confirm:
+        console.print(
+            "\n  No configuraste APIs en la nube. ZANA puede funcionar\n"
+            "  [bold]100% offline[/bold] con [accent]Ollama[/accent] — sin costos, sin datos enviados, soberanía total.\n"
+        )
+        use_ollama = questionary.confirm(
+            "¿Configurar Ollama como motor de inferencia local?",
+            default=True,
+            style=_q_style(),
+        ).ask()
 
-    if not use_ollama:
-        console.print("\n  [muted]Sin problema. Configúralo cuando quieras con:[/muted] [accent]zana setup[/accent]\n")
-        return {}
+        if not use_ollama:
+            console.print("\n  [muted]Sin problema. Configúralo cuando quieras con:[/muted] [accent]zana setup[/accent]\n")
+            return {}
+    else:
+        console.print(
+            "\n  Configurando [accent]Ollama[/accent] — inferencia soberana, 100% local, sin API keys.\n"
+        )
 
     base_url = os.getenv("OLLAMA_BASE_URL", os.getenv("OLLAMA_URL", "http://localhost:11434"))
 
@@ -847,7 +855,7 @@ def run_init_wizard() -> bool:
     if selected_provider == "ollama":
         # Ollama path — reuse existing 3-step wizard (connection + model + inference test)
         console.print(f"\n[bold cyan]3 / 4[/bold cyan]  Configurando Ollama (motor soberano local)...")
-        ollama_env = _setup_ollama({})  # no cloud keys → will always offer Ollama
+        ollama_env = _setup_ollama({}, skip_confirm=True)  # user already chose Ollama in Q2
         env_keys.update(ollama_env)
     else:
         env_var_name, provider_label = _PROVIDERS[selected_provider]
