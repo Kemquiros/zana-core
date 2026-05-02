@@ -1,21 +1,29 @@
 """
-Telegram bot handlers — all commands and message types.
+Telegram bot handlers — Herald Gateway v3.0.
 
 Command surface:
   /start                welcome + quick guide
   /help                 command list
-  /status               gateway health + ZFI
+  /status               gateway health + ZFI + Sentinel stats
   /recall [n]           last N episodic memories
   /reason <fact>        forward-chaining (key=value)
   /swarm                fleet summary
   /aeon                 list Aeon fleet
+  /wisdom [mine|approve <id>|reject <id>]  WisdomRules inbox
   /clear                reset session context hint
 
 Message surface:
   Plain text   → /sense/text
   Voice note   → /sense/audio (OGG/MP4 → Whisper → response)
   Photo        → /sense/vision
-  Document     → /sense/text (extracted filename as context)
+  Document     → /sense/text (content extracted + filename context)
+  Media group  → first photo processed, others acknowledged
+
+Error taxonomy:
+  GatewayDown    → warm retry hint, circuit breaker status
+  GatewayTimeout → suggest short query, report LLM load
+  GatewayRejected → report detail to user
+  RateLimited    → throttle message with retry-after
 """
 
 from __future__ import annotations
@@ -25,19 +33,32 @@ import logging
 import os
 from typing import Final
 
-from telegram import Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Update,
+)
 from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 from telegram_bot import gateway_client as gw
+from telegram_bot.gateway_client import GatewayDown, GatewayTimeout, GatewayRejected
+from telegram_bot.rate_limiter import RateLimiter
 
 logger = logging.getLogger("zana.telegram")
 
-MAX_MSG_LEN: Final = 4096  # Telegram hard limit
+MAX_MSG_LEN: Final = 4096
 ALLOWED_USERS = set(
     filter(None, os.getenv("ZANA_TELEGRAM_ALLOWED_USERS", "").split(","))
 )
 
+_limiter = RateLimiter(
+    messages_per_minute=int(os.getenv("ZANA_TG_RATE_LIMIT", "10")),
+    admin_ids=ALLOWED_USERS,
+)
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _session_id(update: Update) -> str:
     return f"tg-{update.effective_chat.id}"
@@ -50,42 +71,65 @@ def _allowed(update: Update) -> bool:
 
 
 def _truncate(text: str, max_len: int = MAX_MSG_LEN - 200) -> str:
-    return text if len(text) <= max_len else text[:max_len] + "\n…"
+    return text if len(text) <= max_len else text[: max_len] + "\n…"
 
 
 def _emotion_icon(emotion: str | None) -> str:
     return {
-        "joy": "✨",
-        "surprise": "⚡",
-        "fear": "🛡️",
-        "anger": "🔥",
-        "sadness": "🌧️",
-        "neutral": "🦊",
-        "curiosity": "🦉",
-        "trust": "🤝",
+        "joy": "✨", "surprise": "⚡", "fear": "🛡️", "anger": "🔥",
+        "sadness": "🌧️", "neutral": "🦊", "curiosity": "🦉", "trust": "🤝",
     }.get(emotion or "neutral", "🦊")
+
+
+def _rate_check(update: Update) -> tuple[bool, str]:
+    """Returns (ok, error_message). Call at the top of every message handler."""
+    uid = str(update.effective_user.id)
+    allowed, retry_after = _limiter.check(uid)
+    if not allowed:
+        secs = int(retry_after) + 1
+        return False, f"⏳ Demasiado rápido. Espera {secs}s antes del próximo mensaje."
+    return True, ""
+
+
+def _gw_error_msg(e: Exception) -> str:
+    """Human-friendly error message based on exception type."""
+    if isinstance(e, GatewayDown):
+        return (
+            "⚠️ *Núcleo desconectado.*\n"
+            "Mi base local no responde. Verifica que ZANA esté corriendo:\n"
+            "`zana status`\n`zana start`"
+        )
+    if isinstance(e, GatewayTimeout):
+        return (
+            "⏱️ *Tiempo de espera excedido.*\n"
+            "El modelo tardó demasiado. Intenta con una consulta más corta "
+            "o verifica la carga del servidor."
+        )
+    if isinstance(e, GatewayRejected):
+        return f"🚫 *Solicitud rechazada:* `{e}`"
+    return f"⚠️ Error inesperado: `{str(e)[:150]}`"
 
 
 # ── /start ────────────────────────────────────────────────────────────────────
 
-
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
-        await update.message.reply_text("⛔ Acceso denegado. No reconozco tu firma digital.")
+        await update.message.reply_text("⛔ Acceso denegado.")
         return
-
     text = (
-        "🦊 *¡ZANA en línea! Tu Córtex Cognitivo está despierto.*\n\n"
-        "Soy tu compañero digital, nacido de la lógica y diseñado para evolucionar contigo. "
-        "Estoy aquí para defender tu soberanía y potenciar tu memoria.\n\n"
-        "*Tus herramientas de control:*\n"
-        "`/status` — Mi estado de salud y signos vitales\n"
-        "`/recall [n]` — Extraer mis últimos recuerdos episódicos contigo\n"
-        "`/reason fact=value` — Ponme a pensar lógicamente\n"
-        "`/swarm` — Ver el enjambre de mis ancestros entrenando\n"
-        "`/aeon` — Cambiar de compañero cognitivo\n"
-        "`/help` — Repasar esta lista\n\n"
-        "💡 *Puedes escribirme, mandarme una nota de voz o enviarme una foto.* ¡Evolucionemos juntos!\n\n"
+        "🦊 *¡ZANA en línea! Tu Aeon ha despertado.*\n\n"
+        "Soy tu Córtex Cognitivo Soberano — vivo en tu hardware, "
+        "aprendo contigo y evoluciono mientras duermes.\n\n"
+        "*Comandos de control:*\n"
+        "`/status`  — signos vitales y ZFI\n"
+        "`/recall [n]`  — últimos N recuerdos episódicos\n"
+        "`/reason fact=value`  — razonamiento simbólico\n"
+        "`/wisdom`  — inbox de sabiduría auto-generada\n"
+        "`/swarm`  — estado del enjambre Red Queen\n"
+        "`/aeon`  — flota de Aeons\n"
+        "`/clear`  — limpiar contexto de sesión\n"
+        "`/help`  — esta lista\n\n"
+        "💡 Escríbeme, mándame voz, fotos o documentos.\n\n"
         "_JUNTOS HACEMOS TEMBLAR LOS CIELOS._"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
@@ -93,15 +137,26 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /help ─────────────────────────────────────────────────────────────────────
 
-
 async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
     await cmd_start(update, ctx)
 
 
-# ── /status ───────────────────────────────────────────────────────────────────
+# ── /clear ────────────────────────────────────────────────────────────────────
 
+async def cmd_clear(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return
+    ctx.chat_data.clear()
+    await update.message.reply_text(
+        "🧹 Contexto de sesión limpiado.\n"
+        "_La siguiente conversación empieza fresca — las memorias persistentes están intactas._",
+        parse_mode=ParseMode.MARKDOWN,
+    )
+
+
+# ── /status ───────────────────────────────────────────────────────────────────
 
 async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -110,47 +165,50 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     try:
         data = await gw.health()
         backends = data.get("backends", {})
-        lines = ["🦊 *Mis signos vitales (Gateway) — Online y estable*\n"]
+        lines = ["🦊 *Signos vitales del Aeon*\n"]
         icons = {
-            "stt": "🎤 Oídos",
-            "tts": "🔊 Voz",
-            "llm": "🧠 Córtex",
-            "vision": "👁️ Ojos",
-            "kalman": "📐 Corazón Difuso",
-            "armor": "🛡️ Escudo de Acero",
+            "stt": "🎤 Oídos", "tts": "🔊 Voz", "llm": "🧠 Córtex",
+            "vision": "👁️ Ojos", "kalman": "📐 Filtro Bayesiano",
+            "armor": "🛡️ Escudo Rust",
         }
         for k, v in backends.items():
-            lines.append(f"{icons.get(k, '· ' + k)}: `{v}`")
+            lines.append(f"{icons.get(k, f'· {k}')}: `{v}`")
+
+        # Append Sentinel stats
+        try:
+            s = await gw.sentinel_status()
+            total = s.get("stats", {}).get("total", 0)
+            ledger = s.get("ledger_entries", 0)
+            lines.append(f"\n📜 Civic Ledger: `{ledger}` entradas · Eventos: `{total}`")
+        except Exception:
+            pass
+
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
-    except Exception:
-        await update.message.reply_text(
-            "⚠️ Oh no... He perdido conexión con mi base local. ¿Podrías encenderme usando `zana start` en tu servidor?"
-        )
+    except Exception as e:
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── /recall ───────────────────────────────────────────────────────────────────
-
 
 async def cmd_recall(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
     await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
-
     n = 5
     if ctx.args:
         try:
             n = max(1, min(int(ctx.args[0]), 20))
         except ValueError:
             pass
-
     try:
         records = await gw.memory_recall(n, _session_id(update))
         if not records:
             await update.message.reply_text(
-                "🤔 _Revisé mis archivos y aún no tenemos recuerdos juntos. ¡Hablemos!_", parse_mode=ParseMode.MARKDOWN
+                "🤔 _Aún no tenemos recuerdos juntos. ¡Hablemos!_",
+                parse_mode=ParseMode.MARKDOWN,
             )
             return
-        lines = [f"🦉 *Consultando mis archivos... Aquí están nuestros últimos {len(records)} intercambios:*\n"]
+        lines = [f"🦉 *Últimos {len(records)} intercambios:*\n"]
         for r in records:
             ts = (r.get("created_at") or "")[:16]
             role = "Tú" if r.get("role") == "user" else "Yo"
@@ -158,64 +216,56 @@ async def cmd_recall(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
             lines.append(f"`{ts}` *{role}:* {content}")
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Me duele la cabeza intentando recordar: {e}")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── /reason ───────────────────────────────────────────────────────────────────
-
 
 async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
     if not ctx.args:
         await update.message.reply_text(
-            "🦊 Dime qué analizar. Usa: `/reason fact_key=value`\nEjemplo: `/reason energia_baja=true`",
+            "🦊 Usa: `/reason fact_key=value`\nEjemplo: `/reason energia_baja=true`",
             parse_mode=ParseMode.MARKDOWN,
         )
         return
-
     await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
     fact_raw = " ".join(ctx.args)
     remote = "--remote" in fact_raw
     fact_raw = fact_raw.replace("--remote", "").strip()
-
     try:
         result = await gw.reason(fact_raw, _session_id(update), remote=remote)
         deductions = result.get("deductions", [])
-
         if not deductions:
             await update.message.reply_text(
-                f"🧠 He ingerido el hecho `{fact_raw}`.\n_Lo anoté, pero no disparó ninguna nueva lógica evolutiva aún._",
+                f"🧠 Hecho `{fact_raw}` registrado.\n_Sin nuevas deducciones todavía._",
                 parse_mode=ParseMode.MARKDOWN,
             )
             return
-
-        lines = [f"⚡ *He razonado sobre esto* — `{fact_raw}`\n"]
+        lines = [f"⚡ *Razonando sobre:* `{fact_raw}`\n"]
         for d in deductions:
             conf = d.get("confidence", 0)
             bar = "█" * int(conf * 10) + "░" * (10 - int(conf * 10))
-            lines.append(f"*{d.get('rule', '?')}*")
-            lines.append(f"`{bar}` {conf:.0%}")
-            lines.append(f"→ _{d.get('conclusion', '?')}_")
+            lines.extend([
+                f"*{d.get('rule', '?')}*",
+                f"`{bar}` {conf:.0%}",
+                f"→ _{d.get('conclusion', '?')}_",
+            ])
             if d.get("action"):
-                lines.append(f"⚔️ Ejecutando: `{d['action']}`")
+                lines.append(f"⚔️ `{d['action']}`")
             lines.append("")
-
         if result.get("swarm_rule"):
             sr = result["swarm_rule"]
-            lines.append(
-                f"🌐 _Consulté con la Red Z: {sr.get('name')} ({sr.get('votes')} entidades coinciden)_"
-            )
-
+            lines.append(f"🌐 _Red Z: {sr.get('name')} ({sr.get('votes')} Aeons coinciden)_")
         await update.message.reply_text(
             _truncate("\n".join(lines)), parse_mode=ParseMode.MARKDOWN
         )
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Hubo un fallo en mi razonamiento simbólico: {e}")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── /swarm ────────────────────────────────────────────────────────────────────
-
 
 async def cmd_swarm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -227,25 +277,21 @@ async def cmd_swarm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         running = data.get("running", False)
         icon = "🟢" if running else "💤"
         lines = [
-            f"🔥 *Torneo de Evolución (Red Queen) — {'Entrenando' if running else 'Descansando'}* {icon}\n",
-            f"⚔️ Guerreros en la arena: `{summary.get('total', 0)}`",
-            f"🧬 Algoritmos Activos: `{summary.get('active', 0)}`",
-            f"🏆 Entidades Legendarias: `{summary.get('legends', 0)}`",
-            f"📈 Aptitud promedio: `{summary.get('avg_fitness', 0):.3f}`",
-            f"🌀 Generación evolutiva: `{data.get('current_generation', 0)}`",
+            f"🔥 *Torneo Red Queen — {'Entrenando' if running else 'Descansando'}* {icon}\n",
+            f"⚔️ Guerreros: `{summary.get('total', 0)}`",
+            f"🧬 Activos: `{summary.get('active', 0)}`",
+            f"🏆 Legendarios: `{summary.get('legends', 0)}`",
+            f"📈 Aptitud media: `{summary.get('avg_fitness', 0):.3f}`",
+            f"🌀 Generación: `{data.get('current_generation', 0)}`",
         ]
         if not running:
-            lines.append("\n_La arena está en silencio. Usa `zana swarm init` en la terminal para que comiencen a evolucionar._")
-        else:
-            lines.append("\n_Mis ancestros están afilando mis instintos mientras hablamos._")
-            
+            lines.append("\n_`zana swarm init` para que comiencen a evolucionar._")
         await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
-    except Exception:
-        await update.message.reply_text("⚠️ No puedo ver el estado de la Arena evolutiva ahora mismo.")
+    except Exception as e:
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── /aeon ─────────────────────────────────────────────────────────────────────
-
 
 async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -253,76 +299,62 @@ async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     aeons = await gw.aeon_list()
     if not aeons:
         await update.message.reply_text(
-            "_Miro a mi alrededor y estoy solo. No encontré otros Aeons registrados._", parse_mode=ParseMode.MARKDOWN
+            "_No hay otros Aeons registrados._", parse_mode=ParseMode.MARKDOWN
         )
         return
-
-    lines = ["✨ *Tus compañeros de flota disponibles:*\n"]
+    lines = ["✨ *Flota disponible:*\n"]
     tier_icon = {"low": "🟢", "medium": "🟡", "high": "🔴"}
     for a in aeons:
         icon = tier_icon.get(a.get("cost_tier", "low"), "·")
         lines.append(f"{icon} *{a['name']}* `{a['id']}`")
-        lines.append(f"  _{a.get('description', '')}_ — Model: `{a.get('model', '?')}`")
-
-    lines.append("\n_Dime `zana aeon use <id>` en tu terminal para que otro compañero tome el mando._")
+        lines.append(f"  _{a.get('description', '')}_ — `{a.get('model', '?')}`")
+    lines.append("\n_`zana aeon use <id>` para cambiar._")
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── /wisdom ───────────────────────────────────────────────────────────────────
 
-
 async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
-    """Show pending Auto-WisdomRules inbox. Args: approve <id> | reject <id> | mine"""
     if not _allowed(update):
         return
     await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
-
     args = ctx.args or []
 
-    # /wisdom mine — trigger trajectory mining
     if args and args[0] == "mine":
         try:
             data = await gw.wisdom_mine()
-            proposed = data.get("proposed", 0)
-            mined = data.get("mined", 0)
             await update.message.reply_text(
                 f"🔬 *Minería completada*\n"
-                f"Trayectorias analizadas: `{mined}`\n"
-                f"Nuevas propuestas en inbox: `{proposed}`\n\n"
-                "_Usa `/wisdom` para revisar las propuestas._",
+                f"Trayectorias: `{data.get('mined', 0)}`  →  "
+                f"Nuevas propuestas: `{data.get('proposed', 0)}`\n\n"
+                "_Usa `/wisdom` para revisar._",
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
-            await update.message.reply_text(f"⚠️ Error en minería: {e}")
+            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
         return
 
-    # /wisdom approve <id>
     if len(args) >= 2 and args[0] == "approve":
-        wisdom_id = args[1]
         try:
-            data = await gw.wisdom_approve(wisdom_id)
+            data = await gw.wisdom_approve(args[1])
             await update.message.reply_text(
-                f"✅ *Skill activada*\n"
-                f"Nombre: `{data.get('name', '?')}`\n"
-                f"ID: `{data.get('skill_id', '?')}`\n\n"
-                "_La sabiduría fue absorbida por tu Aeon._",
+                f"✅ *Skill activada:* `{data.get('name', '?')}`\n"
+                f"ID: `{data.get('skill_id', '?')}`",
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
-            await update.message.reply_text(f"⚠️ Error al aprobar: {e}")
+            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
         return
 
-    # /wisdom reject <id>
     if len(args) >= 2 and args[0] == "reject":
-        wisdom_id = args[1]
         try:
-            await gw.wisdom_reject(wisdom_id)
-            await update.message.reply_text(f"🗑️ Propuesta `{wisdom_id}` rechazada.", parse_mode=ParseMode.MARKDOWN)
+            await gw.wisdom_reject(args[1])
+            await update.message.reply_text(f"🗑️ Propuesta `{args[1]}` rechazada.", parse_mode=ParseMode.MARKDOWN)
         except Exception as e:
-            await update.message.reply_text(f"⚠️ Error al rechazar: {e}")
+            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
         return
 
-    # /wisdom — show inbox
+    # Show inbox with inline keyboard buttons
     try:
         data = await gw.wisdom_inbox()
         pending = data.get("pending", [])
@@ -331,85 +363,93 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         if not pending:
             await update.message.reply_text(
                 f"🧠 *Wisdom Inbox — vacío*\n\n"
-                f"Aprobadas: `{stats.get('approved', 0)}`  |  Rechazadas: `{stats.get('rejected', 0)}`\n\n"
-                "_Usa `/wisdom mine` para extraer patrones de tus sesiones recientes._",
+                f"✅ {stats.get('approved', 0)} aprobadas  ·  🗑️ {stats.get('rejected', 0)} rechazadas\n\n"
+                "_`/wisdom mine` para extraer patrones._",
                 parse_mode=ParseMode.MARKDOWN,
             )
             return
 
-        lines = [f"🧠 *Wisdom Inbox — {len(pending)} propuesta(s) pendiente(s)*\n"]
-        for p in pending[:5]:  # max 5 in Telegram
+        for p in pending[:5]:
             conf = p.get("confidence", 0)
             bar = "█" * int(conf * 5) + "░" * (5 - int(conf * 5))
-            lines.append(f"*{p['name']}* `[{p['id']}]`")
-            lines.append(f"  Dominio: `{p.get('domain', '?')}` · Confianza: `{bar}` {conf:.0%}")
-            lines.append(f"  _{p.get('trigger', 'Sin trigger definido')}_")
-            lines.append(f"  ✅ `/wisdom approve {p['id']}`  🗑️ `/wisdom reject {p['id']}`\n")
+            text = (
+                f"🧠 *{p['name']}*\n"
+                f"Dominio: `{p.get('domain', '?')}` · `{bar}` {conf:.0%}\n"
+                f"_{p.get('trigger', 'Sin trigger')}_\n"
+            )
+            if p.get("steps"):
+                text += "\n".join(f"  {i+1}. {s}" for i, s in enumerate(p["steps"][:3]))
+
+            keyboard = InlineKeyboardMarkup([[
+                InlineKeyboardButton(f"✅ Aprobar", callback_data=f"wisdom:approve:{p['id']}"),
+                InlineKeyboardButton(f"🗑️ Rechazar", callback_data=f"wisdom:reject:{p['id']}"),
+            ]])
+            await update.message.reply_text(
+                _truncate(text), parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
+            )
 
         if len(pending) > 5:
-            lines.append(f"_... y {len(pending) - 5} más. Aprueba las primeras para continuar._")
-
-        await update.message.reply_text(
-            _truncate("\n".join(lines)), parse_mode=ParseMode.MARKDOWN
-        )
+            await update.message.reply_text(
+                f"_... y {len(pending) - 5} más. Aprueba las primeras para continuar._",
+                parse_mode=ParseMode.MARKDOWN,
+            )
     except Exception as e:
-        await update.message.reply_text(f"⚠️ Error accediendo al inbox: {e}")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── Text messages ─────────────────────────────────────────────────────────────
 
-
 async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
+    ok, msg = _rate_check(update)
+    if not ok:
+        await update.message.reply_text(msg)
+        return
+
     text = update.message.text or ""
     if not text.strip():
         return
 
     await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
     sid = _session_id(update)
-
     try:
         result = await gw.sense_text(text, sid)
         response = result.get("response_text") or result.get("text") or "..."
         emotion = result.get("response_emotion") or result.get("emotion")
         surprise = result.get("kalman_surprise", 0)
-
         icon = _emotion_icon(emotion)
-        
-        # Friendly surprise reaction if the input was unexpected
         footer = ""
         if surprise > 2.0:
-            footer = f"\n\n_⚡ ¡Wow, eso fue inesperado! (Sorpresa Bayesiana: {surprise:.2f})_"
+            footer = f"\n\n_⚡ Sorpresa Bayesiana: {surprise:.2f}_"
         elif surprise > 1.2:
-            footer = f"\n\n_🧐 Hm, dato interesante. (Nivel de interés: {surprise:.2f})_"
-
+            footer = f"\n\n_🧐 Dato interesante — nivel {surprise:.2f}_"
         await update.message.reply_text(
-            _truncate(f"{icon} {response}{footer}"),
-            parse_mode=ParseMode.MARKDOWN,
+            _truncate(f"{icon} {response}{footer}"), parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         logger.error("sense_text error: %s", e)
-        await update.message.reply_text("⚠️ Perdí la conexión con el núcleo... intenta más tarde.")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── Voice notes ───────────────────────────────────────────────────────────────
 
-
 async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
-    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.RECORD_VOICE)
+    ok, msg = _rate_check(update)
+    if not ok:
+        await update.message.reply_text(msg)
+        return
 
+    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.RECORD_VOICE)
     voice = update.message.voice or update.message.audio
     if not voice:
         return
-
     file = await ctx.bot.get_file(voice.file_id)
     audio_bytes = bytes(await file.download_as_bytearray())
     mime = getattr(voice, "mime_type", "audio/ogg") or "audio/ogg"
     sid = _session_id(update)
-
     await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
     try:
         result = await gw.sense_audio(audio_bytes, mime, sid)
@@ -417,78 +457,168 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         response = result.get("response_text", "")
         emotion = result.get("response_emotion")
         audio_b64 = result.get("response_audio_b64")
-
         icon = _emotion_icon(emotion)
         reply = (
-            f"🎤 _Escuché que dijiste: \"{transcript}\"_\n\n{icon} {response}"
-            if transcript
-            else f"{icon} {response}"
+            f"🎤 _\"{transcript}\"_\n\n{icon} {response}"
+            if transcript else f"{icon} {response}"
         )
-
         if audio_b64:
-            audio_data = base64.b64decode(audio_b64)
-            await ctx.bot.send_voice(update.effective_chat.id, voice=audio_data, caption="🔊 Respondí con voz.")
-        else:
-            await update.message.reply_text(
-                _truncate(reply), parse_mode=ParseMode.MARKDOWN
+            await ctx.bot.send_voice(
+                update.effective_chat.id,
+                voice=base64.b64decode(audio_b64),
+                caption="🔊",
             )
-
+        else:
+            await update.message.reply_text(_truncate(reply), parse_mode=ParseMode.MARKDOWN)
     except Exception as e:
         logger.error("sense_audio error: %s", e)
-        await update.message.reply_text("⚠️ Me costó entender ese audio. Mis oídos fallaron.")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── Photos ────────────────────────────────────────────────────────────────────
 
-
 async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
-    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+    ok, msg = _rate_check(update)
+    if not ok:
+        await update.message.reply_text(msg)
+        return
 
-    # Highest resolution photo
+    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
     photo = update.message.photo[-1]
     file = await ctx.bot.get_file(photo.file_id)
     img_bytes = bytes(await file.download_as_bytearray())
     caption = update.message.caption or ""
     sid = _session_id(update)
-
     try:
         result = await gw.sense_vision(img_bytes, "image/jpeg", sid, hint=caption)
         response = result.get("response_text") or result.get("text", "")
         scene = (result.get("vision_features") or {}).get("scene_type", "")
         entities = (result.get("vision_features") or {}).get("entities", [])
         emotion = result.get("response_emotion")
-
         icon = _emotion_icon(emotion)
         lines = []
         if scene:
-            lines.append(f"👁️ _Veo una escena tipo: {scene}_")
+            lines.append(f"👁️ _{scene}_")
         if entities:
-            lines.append(f"🔍 _Puedo identificar: {', '.join(entities[:5])}_")
+            lines.append(f"🔍 _{', '.join(entities[:5])}_")
         if response:
             lines.append(f"\n{icon} {response}")
-
         await update.message.reply_text(
-            _truncate("\n".join(lines)) or "🦊 Sin palabras ante esta imagen.",
+            _truncate("\n".join(lines)) or "🦊 Sin palabras.",
             parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         logger.error("sense_vision error: %s", e)
-        await update.message.reply_text("⚠️ Mis ojos no pudieron procesar bien esta foto.")
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
-# ── Inline callback for future buttons ───────────────────────────────────────
+# ── Documents ─────────────────────────────────────────────────────────────────
 
+async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    if not _allowed(update):
+        return
+    ok, msg = _rate_check(update)
+    if not ok:
+        await update.message.reply_text(msg)
+        return
+
+    doc = update.message.document
+    if not doc:
+        return
+
+    filename = doc.file_name or "documento"
+    mime = doc.mime_type or ""
+    sid = _session_id(update)
+
+    # Only process text-like documents; skip binaries silently
+    TEXT_MIMES = {
+        "text/plain", "text/markdown", "text/csv",
+        "application/json", "application/xml",
+        "application/x-yaml", "text/x-python",
+    }
+    MAX_SIZE = 1_000_000  # 1 MB — larger files not sent to LLM
+
+    if doc.file_size and doc.file_size > MAX_SIZE:
+        await update.message.reply_text(
+            f"📎 *{filename}* es demasiado grande para analizar ahora "
+            f"({doc.file_size // 1024} KB). Límite: 1 MB.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.UPLOAD_DOCUMENT)
+
+    # Download and decode
+    file = await ctx.bot.get_file(doc.file_id)
+    raw_bytes = bytes(await file.download_as_bytearray())
+
+    if mime in TEXT_MIMES or filename.endswith((".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv")):
+        try:
+            content = raw_bytes.decode("utf-8", errors="replace")[:8000]
+        except Exception:
+            await update.message.reply_text("⚠️ No pude leer el documento.")
+            return
+    else:
+        await update.message.reply_text(
+            f"📎 Recibí *{filename}* (`{mime or 'tipo desconocido'}`). "
+            f"Aún no proceso este formato directamente — adjunta archivos `.txt`, `.md`, `.py`, `.json` o `.csv`.",
+            parse_mode=ParseMode.MARKDOWN,
+        )
+        return
+
+    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+    caption = update.message.caption or ""
+    query = f"{caption}\n\n{content}" if caption else content
+
+    try:
+        result = await gw.sense_document(query, filename, sid)
+        response = result.get("response_text") or result.get("text") or "..."
+        emotion = result.get("response_emotion")
+        icon = _emotion_icon(emotion)
+        await update.message.reply_text(
+            _truncate(f"📄 *{filename}*\n\n{icon} {response}"),
+            parse_mode=ParseMode.MARKDOWN,
+        )
+    except Exception as e:
+        logger.error("sense_document error: %s", e)
+        await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+
+
+# ── Inline callbacks (wisdom approve/reject + aeon switch) ────────────────────
 
 async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
     data = query.data or ""
 
-    if data.startswith("aeon:"):
+    if data.startswith("wisdom:approve:"):
+        wisdom_id = data.split(":", 2)[2]
+        try:
+            result = await gw.wisdom_approve(wisdom_id)
+            await query.edit_message_text(
+                f"✅ *Skill activada:* `{result.get('name', '?')}`\n"
+                f"ID: `{result.get('skill_id', '?')}`\n\n"
+                "_La sabiduría fue absorbida por tu Aeon._",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception as e:
+            await query.edit_message_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+
+    elif data.startswith("wisdom:reject:"):
+        wisdom_id = data.split(":", 2)[2]
+        try:
+            await gw.wisdom_reject(wisdom_id)
+            await query.edit_message_text(
+                f"🗑️ Propuesta rechazada.", parse_mode=ParseMode.MARKDOWN
+            )
+        except Exception as e:
+            await query.edit_message_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+
+    elif data.startswith("aeon:"):
         aeon_id = data.split(":", 1)[1]
         await query.edit_message_text(
-            f"✨ Hemos invocado a `{aeon_id}` para que tome el mando.\n_Envíame un mensaje para saludarlo._",
+            f"✨ Aeon `{aeon_id}` activo.\n_Envíame un mensaje para saludarlo._",
             parse_mode=ParseMode.MARKDOWN,
         )
