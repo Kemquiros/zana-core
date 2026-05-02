@@ -80,6 +80,7 @@ async def _post_init(app: Application) -> None:
         BotCommand("reason", "Razonamiento simbólico: /reason fact=value"),
         BotCommand("swarm", "Estado del enjambre Red Queen"),
         BotCommand("aeon", "Flota de Aeons disponibles"),
+        BotCommand("wisdom", "Inbox de Auto-WisdomRules: /wisdom [mine|approve|reject]"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("✓  Bot commands registered")
@@ -94,6 +95,7 @@ def build_app() -> Application:
         cmd_reason,
         cmd_swarm,
         cmd_aeon,
+        cmd_wisdom,
         handle_text,
         handle_voice,
         handle_photo,
@@ -110,6 +112,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("reason", cmd_reason))
     app.add_handler(CommandHandler("swarm", cmd_swarm))
     app.add_handler(CommandHandler("aeon", cmd_aeon))
+    app.add_handler(CommandHandler("wisdom", cmd_wisdom))
 
     # Inline callbacks
     app.add_handler(CallbackQueryHandler(handle_callback))

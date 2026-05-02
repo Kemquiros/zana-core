@@ -110,6 +110,34 @@ async def swarm_status() -> dict:
         return r.json()
 
 
+async def wisdom_inbox() -> dict:
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as c:
+        r = await c.get(f"{GATEWAY_URL}/wisdom/inbox")
+        r.raise_for_status()
+        return r.json()
+
+
+async def wisdom_approve(wisdom_id: str) -> dict:
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as c:
+        r = await c.post(f"{GATEWAY_URL}/wisdom/approve/{wisdom_id}", json={})
+        r.raise_for_status()
+        return r.json()
+
+
+async def wisdom_reject(wisdom_id: str) -> dict:
+    async with httpx.AsyncClient(timeout=_TIMEOUT) as c:
+        r = await c.post(f"{GATEWAY_URL}/wisdom/reject/{wisdom_id}")
+        r.raise_for_status()
+        return r.json()
+
+
+async def wisdom_mine() -> dict:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as c:
+        r = await c.post(f"{GATEWAY_URL}/wisdom/mine")
+        r.raise_for_status()
+        return r.json()
+
+
 async def aeon_list() -> list[dict]:
     """Read Aeon registry directly from file (no Gateway route needed)."""
     import json

@@ -268,6 +268,94 @@ async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("\n".join(lines), parse_mode=ParseMode.MARKDOWN)
 
 
+# ── /wisdom ───────────────────────────────────────────────────────────────────
+
+
+async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show pending Auto-WisdomRules inbox. Args: approve <id> | reject <id> | mine"""
+    if not _allowed(update):
+        return
+    await ctx.bot.send_chat_action(update.effective_chat.id, ChatAction.TYPING)
+
+    args = ctx.args or []
+
+    # /wisdom mine — trigger trajectory mining
+    if args and args[0] == "mine":
+        try:
+            data = await gw.wisdom_mine()
+            proposed = data.get("proposed", 0)
+            mined = data.get("mined", 0)
+            await update.message.reply_text(
+                f"🔬 *Minería completada*\n"
+                f"Trayectorias analizadas: `{mined}`\n"
+                f"Nuevas propuestas en inbox: `{proposed}`\n\n"
+                "_Usa `/wisdom` para revisar las propuestas._",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception as e:
+            await update.message.reply_text(f"⚠️ Error en minería: {e}")
+        return
+
+    # /wisdom approve <id>
+    if len(args) >= 2 and args[0] == "approve":
+        wisdom_id = args[1]
+        try:
+            data = await gw.wisdom_approve(wisdom_id)
+            await update.message.reply_text(
+                f"✅ *Skill activada*\n"
+                f"Nombre: `{data.get('name', '?')}`\n"
+                f"ID: `{data.get('skill_id', '?')}`\n\n"
+                "_La sabiduría fue absorbida por tu Aeon._",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        except Exception as e:
+            await update.message.reply_text(f"⚠️ Error al aprobar: {e}")
+        return
+
+    # /wisdom reject <id>
+    if len(args) >= 2 and args[0] == "reject":
+        wisdom_id = args[1]
+        try:
+            await gw.wisdom_reject(wisdom_id)
+            await update.message.reply_text(f"🗑️ Propuesta `{wisdom_id}` rechazada.", parse_mode=ParseMode.MARKDOWN)
+        except Exception as e:
+            await update.message.reply_text(f"⚠️ Error al rechazar: {e}")
+        return
+
+    # /wisdom — show inbox
+    try:
+        data = await gw.wisdom_inbox()
+        pending = data.get("pending", [])
+        stats = data.get("stats", {})
+
+        if not pending:
+            await update.message.reply_text(
+                f"🧠 *Wisdom Inbox — vacío*\n\n"
+                f"Aprobadas: `{stats.get('approved', 0)}`  |  Rechazadas: `{stats.get('rejected', 0)}`\n\n"
+                "_Usa `/wisdom mine` para extraer patrones de tus sesiones recientes._",
+                parse_mode=ParseMode.MARKDOWN,
+            )
+            return
+
+        lines = [f"🧠 *Wisdom Inbox — {len(pending)} propuesta(s) pendiente(s)*\n"]
+        for p in pending[:5]:  # max 5 in Telegram
+            conf = p.get("confidence", 0)
+            bar = "█" * int(conf * 5) + "░" * (5 - int(conf * 5))
+            lines.append(f"*{p['name']}* `[{p['id']}]`")
+            lines.append(f"  Dominio: `{p.get('domain', '?')}` · Confianza: `{bar}` {conf:.0%}")
+            lines.append(f"  _{p.get('trigger', 'Sin trigger definido')}_")
+            lines.append(f"  ✅ `/wisdom approve {p['id']}`  🗑️ `/wisdom reject {p['id']}`\n")
+
+        if len(pending) > 5:
+            lines.append(f"_... y {len(pending) - 5} más. Aprueba las primeras para continuar._")
+
+        await update.message.reply_text(
+            _truncate("\n".join(lines)), parse_mode=ParseMode.MARKDOWN
+        )
+    except Exception as e:
+        await update.message.reply_text(f"⚠️ Error accediendo al inbox: {e}")
+
+
 # ── Text messages ─────────────────────────────────────────────────────────────
 
 

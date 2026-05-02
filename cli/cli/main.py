@@ -2,7 +2,7 @@ from typing import Annotated, Optional
 
 import typer
 from cli.tui.theme import console, BANNER
-from cli.tui.onboarding import run_onboarding, is_first_run
+from cli.tui.onboarding import run_onboarding, run_init_wizard, is_first_run
 
 app = typer.Typer(
     name="zana",
@@ -176,6 +176,11 @@ def upgrade(
 @app.command(help="Run first-time setup wizard.")
 def setup() -> None:
     run_onboarding()
+
+
+@app.command(help="Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.")
+def init() -> None:
+    run_init_wizard()
 
 
 @app.command(help="Full system health audit — environment, services, config.")
@@ -425,6 +430,42 @@ def swarm_query(
 
 from cli.commands.sync import app as sync_app
 app.add_typer(sync_app, name="sync")
+
+wisdom_app = typer.Typer(
+    name="wisdom",
+    help="Auto-WisdomRules inbox — review, approve, and mine skills from sessions.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(wisdom_app, name="wisdom")
+
+
+@wisdom_app.command("inbox", help="List pending wisdom proposals.")
+def wisdom_inbox() -> None:
+    from cli.commands.wisdom import cmd_wisdom_inbox
+    cmd_wisdom_inbox()
+
+
+@wisdom_app.command("mine", help="Trigger trajectory mining to generate new proposals.")
+def wisdom_mine() -> None:
+    from cli.commands.wisdom import cmd_wisdom_mine
+    cmd_wisdom_mine()
+
+
+@wisdom_app.command("approve", help="Approve a proposal and register it as an active skill.")
+def wisdom_approve(
+    wisdom_id: Annotated[str, typer.Argument(help="Wisdom proposal ID.")],
+) -> None:
+    from cli.commands.wisdom import cmd_wisdom_approve
+    cmd_wisdom_approve(wisdom_id)
+
+
+@wisdom_app.command("reject", help="Reject a wisdom proposal.")
+def wisdom_reject(
+    wisdom_id: Annotated[str, typer.Argument(help="Wisdom proposal ID.")],
+) -> None:
+    from cli.commands.wisdom import cmd_wisdom_reject
+    cmd_wisdom_reject(wisdom_id)
 
 if __name__ == "__main__":
     app()

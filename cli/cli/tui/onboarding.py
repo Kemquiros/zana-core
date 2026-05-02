@@ -755,3 +755,169 @@ def run_onboarding() -> bool:
 
 def is_first_run() -> bool:
     return not (ZANA_CONFIG_DIR / ".onboarded").exists()
+
+
+# ── zana init — Zero-Friction Wizard (v3.0) ───────────────────────────────────
+
+_PROVIDERS = {
+    "anthropic": ("ANTHROPIC_API_KEY", "Anthropic Claude (recommended for Analyst)"),
+    "openai":    ("OPENAI_API_KEY",    "OpenAI GPT-4o"),
+    "gemini":    ("GEMINI_API_KEY",    "Google Gemini"),
+    "groq":      ("GROQ_API_KEY",      "Groq (ultra-fast inference)"),
+    "ollama":    (None,                "Ollama — local, free, 100% sovereign"),
+}
+
+_AEON_NAMES = [
+    "Forge",
+    "Athena",
+    "Nexus",
+    "Cipher",
+    "Oracle",
+    "Custom...",
+]
+
+
+def run_init_wizard() -> bool:
+    """Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.
+
+    Questions:
+    1. Aeon name
+    2. Provider (Anthropic / OpenAI / Gemini / Groq / Ollama)
+    3. API key (if cloud provider)
+    4. (if Ollama) connection + model selection (counts as 1 flow)
+    5. —done— (vault defaults silently)
+    """
+    console.clear()
+    console.print(BANNER)
+    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("[bold white]  ZANA init — Tu Aeon despierta[/bold white]")
+    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n  [muted]5 preguntas. Menos de 3 minutos. Tu Aeon, tu hardware, tu soberanía.[/muted]\n"
+    )
+
+    if not _is_interactive():
+        console.print("[muted]Modo no-interactivo: ejecuta[/muted] [accent]zana init[/accent] [muted]en una terminal real.[/muted]")
+        return False
+
+    import questionary
+
+    # ── Q1: Aeon name ──────────────────────────────────────────────────────────
+    console.print("[bold cyan]1 / 4[/bold cyan]  ¿Cómo llamarás a tu Aeon?")
+    name_choice = questionary.select(
+        "  Elige un nombre:",
+        choices=_AEON_NAMES,
+        style=_q_style(),
+    ).ask()
+
+    if name_choice == "Custom...":
+        aeon_name = questionary.text(
+            "  Escribe el nombre de tu Aeon:",
+            style=_q_style(),
+        ).ask() or "Aeon"
+    else:
+        aeon_name = name_choice or "Aeon"
+
+    console.print(f"\n  [success]✓[/success]  Aeon [bold]{aeon_name}[/bold] registrado.\n")
+
+    # ── Q2: Provider ───────────────────────────────────────────────────────────
+    console.print("[bold cyan]2 / 4[/bold cyan]  ¿Qué motor de inferencia usarás?")
+    provider_labels = {
+        "anthropic": "Anthropic Claude    [API key requerida]",
+        "openai":    "OpenAI GPT          [API key requerida]",
+        "gemini":    "Google Gemini       [API key requerida]",
+        "groq":      "Groq                [API key requerida, free tier disponible]",
+        "ollama":    "Ollama local        [gratis, soberano, sin API key] ← recomendado",
+    }
+    provider_key = questionary.select(
+        "  Motor:",
+        choices=list(provider_labels.values()),
+        style=_q_style(),
+    ).ask()
+
+    # reverse-map label → key
+    selected_provider = next(
+        (k for k, v in provider_labels.items() if v == provider_key),
+        "ollama",
+    )
+
+    env_keys: dict = {"ZANA_AEON_NAME": aeon_name}
+
+    # ── Q3 / Q4: credentials or Ollama setup ──────────────────────────────────
+    if selected_provider == "ollama":
+        # Ollama path — reuse existing 3-step wizard (connection + model + inference test)
+        console.print(f"\n[bold cyan]3 / 4[/bold cyan]  Configurando Ollama (motor soberano local)...")
+        ollama_env = _setup_ollama({})  # no cloud keys → will always offer Ollama
+        env_keys.update(ollama_env)
+    else:
+        env_var_name, provider_label = _PROVIDERS[selected_provider]
+        console.print(f"\n[bold cyan]3 / 4[/bold cyan]  API key para {provider_label.split(' (')[0]}:")
+        api_key = questionary.password(
+            f"  Pega tu {provider_var_name(selected_provider)}:",
+            style=_q_style(),
+        ).ask()
+        if api_key and api_key.strip():
+            env_keys[env_var_name] = api_key.strip()
+            # Auto-set primary model based on provider
+            model_defaults = {
+                "anthropic": "claude-haiku-4-5-20251001",
+                "openai":    "gpt-4o-mini",
+                "gemini":    "gemini-2.0-flash",
+                "groq":      "llama-3.1-8b-instant",
+            }
+            env_keys["ZANA_PRIMARY_MODEL"] = model_defaults[selected_provider]
+            console.print(f"\n  [success]✓[/success]  API key guardada. Modelo: [accent]{env_keys['ZANA_PRIMARY_MODEL']}[/accent]\n")
+        else:
+            console.print("\n  [warning]Sin API key. Puedes añadirla después con[/warning] [accent]zana setup[/accent].\n")
+
+    # ── Q4: vault path (silent default) ───────────────────────────────────────
+    console.print("[bold cyan]4 / 4[/bold cyan]  Bóveda de memoria (ruta donde ZANA almacena tus documentos)")
+    default_vault = _default_vault_path()
+    env_vault = os.environ.get("ZANA_VAULT_PATH", "").strip()
+    vault_path = env_vault or default_vault
+
+    use_default = questionary.confirm(
+        f"  Usar ruta por defecto: {vault_path}",
+        default=True,
+        style=_q_style(),
+    ).ask()
+
+    if not use_default:
+        vault_path = questionary.path(
+            "  Ruta a tu bóveda:",
+            default=default_vault,
+            style=_q_style(),
+        ).ask() or default_vault
+
+    env_keys["VAULT_PATH"] = vault_path
+
+    # ── Persist & finalize ─────────────────────────────────────────────────────
+    _write_env(env_keys)
+
+    ZANA_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    (ZANA_CONFIG_DIR / ".onboarded").touch()
+
+    # Aeon profile — save name to aeon_profile.json
+    aeon_profile_path = ZANA_ENV_DIR / "aeon_profile.json"
+    ZANA_ENV_DIR.mkdir(parents=True, exist_ok=True)
+    import json as _json
+    profile = {"name": aeon_name, "init_at": __import__("datetime").datetime.now().isoformat()}
+    aeon_profile_path.write_text(_json.dumps(profile, indent=2))
+
+    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(f"[success]  {aeon_name} ha despertado.[/success]")
+    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(f"\n  [accent]zana start[/accent]  — arranca el stack completo")
+    console.print(f"  [accent]zana chat[/accent]   — primera conversación con {aeon_name}")
+    console.print(f"\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
+    return True
+
+
+def provider_var_name(provider: str) -> str:
+    mapping = {
+        "anthropic": "ANTHROPIC_API_KEY",
+        "openai":    "OPENAI_API_KEY",
+        "gemini":    "GEMINI_API_KEY",
+        "groq":      "GROQ_API_KEY",
+    }
+    return mapping.get(provider, "API_KEY")

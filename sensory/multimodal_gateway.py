@@ -154,6 +154,7 @@ try:
     from sensory.projects_router import router as _projects_router
     from sensory.identity_router import router as _identity_router
     from sensory.search_router import router as _search_router
+    from sensory.wisdom_router import router as _wisdom_router
 
     app.include_router(_reason_router)
     app.include_router(_memory_router)
@@ -161,7 +162,8 @@ try:
     app.include_router(_projects_router)
     app.include_router(_identity_router)
     app.include_router(_search_router)
-    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search routers loaded")
+    app.include_router(_wisdom_router)
+    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search / wisdom routers loaded")
 except Exception as _e:
     logger.warning("Power-user routers not loaded: %s", _e)
 

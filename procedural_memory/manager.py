@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -131,6 +132,147 @@ class SkillRegistry:
             state = skill.get("lifecycle_state", "active")
             summary[state] = summary.get(state, 0) + 1
         return summary
+
+
+    # ── Z-Skill v1.0: SKILL.md I/O ────────────────────────────────────────────
+
+    def load_skill_from_skillmd(self, path: Path) -> Optional[str]:
+        """Parse a SKILL.md file (agentskills.io compatible + ZANA extensions).
+
+        Expected frontmatter fields:
+          name, version, domain, author, license, trigger (ZANA extension),
+          pillar, wisdom_level, q_value_hint, civic_hash (ZANA extensions)
+
+        Steps parsed from the ## Steps section (numbered list items).
+        Returns skill_id if successfully registered, None on parse failure.
+        """
+        try:
+            content = path.read_text()
+        except Exception:
+            return None
+
+        # Parse YAML frontmatter between --- delimiters
+        fm: dict = {}
+        body = content
+        fm_match = re.match(r"^---\n(.*?)\n---\n(.*)", content, re.DOTALL)
+        if fm_match:
+            fm_text, body = fm_match.group(1), fm_match.group(2)
+            for line in fm_text.splitlines():
+                if ":" in line:
+                    key, _, val = line.partition(":")
+                    fm[key.strip()] = val.strip().strip('"').strip("'")
+
+        name = fm.get("name") or path.stem
+        domain = fm.get("domain", "general")
+        version = fm.get("version", "1.0.0")
+
+        # Parse steps from ## Steps section
+        steps: list[str] = []
+        steps_match = re.search(r"##\s+Steps\s*\n(.*?)(?:\n##|\Z)", body, re.DOTALL)
+        if steps_match:
+            for line in steps_match.group(1).splitlines():
+                line = line.strip()
+                # Accept numbered list (1. step), bullet (- step), or plain text
+                step_text = re.sub(r"^(\d+\.\s*|-\s*|\*\s*)", "", line).strip()
+                if step_text:
+                    steps.append(step_text)
+
+        if not steps:
+            return None
+
+        # Derive skill_id from name
+        skill_id = re.sub(r"[^a-z0-9_]", "_", name.lower()).strip("_")
+
+        self.register_skill(skill_id=skill_id, name=name, steps=steps, domain=domain)
+
+        # Apply ZANA-specific extensions
+        if skill_id in self.skills:
+            skill = self.skills[skill_id]
+            skill["version"] = version
+            if "author" in fm:
+                skill["author"] = fm["author"]
+            if "license" in fm:
+                skill["license"] = fm["license"]
+            if "trigger" in fm:
+                skill["trigger"] = fm["trigger"]
+            if "pillar" in fm:
+                skill["pillar"] = fm["pillar"]
+            if "wisdom_level" in fm:
+                skill["wisdom_level"] = fm["wisdom_level"]
+            if "q_value_hint" in fm:
+                try:
+                    skill["q_value"] = float(fm["q_value_hint"])
+                except ValueError:
+                    pass
+            if "civic_hash" in fm:
+                skill["civic_hash"] = fm["civic_hash"]
+            skill["source"] = "skillmd_import"
+            self.save()
+
+        return skill_id
+
+    def export_skill_to_skillmd(self, skill_id: str, output_path: Path) -> bool:
+        """Export a skill to SKILL.md format (agentskills.io + ZANA extensions).
+
+        Returns True on success.
+        """
+        skill = self.skills.get(skill_id)
+        if not skill:
+            return False
+
+        name = skill.get("name", skill_id)
+        domain = skill.get("domain", "general")
+        version = skill.get("version", "1.0.0")
+        author = skill.get("author", "ZANA")
+        license_ = skill.get("license", "MIT")
+        trigger = skill.get("trigger", "")
+        pillar = skill.get("pillar", "Operator")
+        wisdom_level = skill.get("wisdom_level", "Warrior")
+        q_value = skill.get("q_value", 0.5)
+        steps = skill.get("steps", [])
+
+        metrics = skill.get("metrics", {})
+        executions = metrics.get("executions", 0)
+        successes = metrics.get("successes", 0)
+        success_rate = successes / executions if executions > 0 else 0.0
+
+        numbered_steps = "\n".join(f"{i+1}. {s}" for i, s in enumerate(steps))
+
+        content = f"""---
+name: {name}
+version: {version}
+domain: {domain}
+author: {author}
+license: {license_}
+trigger: "{trigger}"
+pillar: {pillar}
+wisdom_level: {wisdom_level}
+q_value_hint: {q_value:.3f}
+---
+
+# {name}
+
+> {trigger or f"A {domain} skill for ZANA Aeons."}
+
+## Steps
+
+{numbered_steps}
+
+## Metrics
+
+| Field | Value |
+|---|---|
+| Executions | {executions} |
+| Success Rate | {success_rate:.0%} |
+| Q-Value | {q_value:.3f} |
+| Lifecycle | {skill.get("lifecycle_state", "active")} |
+
+---
+*Generated by ZANA v3.0 — Z-Skill v1.0 format*
+"""
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(content)
+        return True
 
 
 if __name__ == "__main__":
