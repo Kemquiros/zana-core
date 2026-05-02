@@ -43,9 +43,21 @@
   <!-- Background -->
   <circle cx="200" cy="200" r="200" fill="url(#bgGrad)"/>
 
-  <!-- Outer ring glow -->
-  <circle cx="200" cy="200" r="175" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.3" filter="url(#glow)"/>
-  <circle cx="200" cy="200" r="172" fill="none" stroke="#a855f7" stroke-width="0.5" opacity="0.5"/>
+  <!-- Outer ring glow (Ubuntu Base) -->
+  <circle cx="200" cy="200" r="175" fill="none" stroke="#7c3aed" stroke-width="2" opacity="0.4" filter="url(#glow)"/>
+  <circle cx="200" cy="200" r="172" fill="none" stroke="#a855f7" stroke-width="1" opacity="0.6"/>
+
+  <!-- Ubuntu Interconnected Nodes -->
+  <g fill="#0d0017" stroke="#e879f9" stroke-width="3" filter="url(#strongGlow)">
+    <circle cx="200" cy="25" r="12" />
+    <circle cx="351.5" cy="287.5" r="12" />
+    <circle cx="48.5" cy="287.5" r="12" />
+  </g>
+  <g stroke="#e879f9" stroke-width="2" opacity="0.7" fill="none" filter="url(#glow)">
+    <path d="M 210 30 A 175 175 0 0 1 345 278" />
+    <path d="M 340 295 A 175 175 0 0 1 60 295" />
+    <path d="M 55 278 A 175 175 0 0 1 190 30" />
+  </g>
 
   <!-- Grid lines (subtle) -->
   <g clip-path="url(#circleClip)" opacity="0.07">
@@ -79,40 +91,30 @@
   <!-- Pupil inner glow -->
   <ellipse cx="200" cy="200" rx="18" ry="18" fill="#e879f9" opacity="0.15"/>
 
-  <!-- === ZANA CROSS / X MARK in pupil === -->
-  <!-- The X symbol - signature of ZANA -->
-  <g filter="url(#glow)" stroke="#e879f9" stroke-width="3" stroke-linecap="round">
-    <line x1="186" y1="186" x2="214" y2="214"/>
-    <line x1="214" y1="186" x2="186" y2="214"/>
+  <!-- Sharingan Tomoes -->
+  <g fill="#0d0017" stroke="#1a0030" stroke-width="1">
+    <!-- Top Tomoe -->
+    <g transform="rotate(0 200 200)">
+      <path d="M 200 156 A 7 7 0 1 1 193 163 Q 193 148 212 144 Q 200 147 200 156 Z" filter="url(#glow)"/>
+    </g>
+    <!-- Bottom Right Tomoe -->
+    <g transform="rotate(120 200 200)">
+      <path d="M 200 156 A 7 7 0 1 1 193 163 Q 193 148 212 144 Q 200 147 200 156 Z" filter="url(#glow)"/>
+    </g>
+    <!-- Bottom Left Tomoe -->
+    <g transform="rotate(240 200 200)">
+      <path d="M 200 156 A 7 7 0 1 1 193 163 Q 193 148 212 144 Q 200 147 200 156 Z" filter="url(#glow)"/>
+    </g>
   </g>
 
-  <!-- Iris detail lines -->
-  <g stroke="#c084fc" stroke-width="0.8" opacity="0.6">
-    <line x1="200" y1="148" x2="200" y2="155"/>
-    <line x1="200" y1="245" x2="200" y2="252"/>
-    <line x1="148" y1="200" x2="155" y2="200"/>
-    <line x1="245" y1="200" x2="252" y2="200"/>
+  <!-- === ZANA CROSS / X MARK in pupil === -->
+  <g filter="url(#glow)" stroke="#e879f9" stroke-width="2.5" stroke-linecap="round">
+    <line x1="190" y1="190" x2="210" y2="210"/>
+    <line x1="210" y1="190" x2="190" y2="210"/>
   </g>
 
   <!-- Eye highlight -->
   <ellipse cx="185" cy="185" rx="8" ry="5" fill="white" opacity="0.12" transform="rotate(-30 185 185)"/>
-
-  <!-- Corner tick marks on outer ring -->
-  <g stroke="#6d28d9" stroke-width="1.5" opacity="0.7">
-    <!-- Top -->
-    <line x1="200" y1="25" x2="200" y2="40"/>
-    <!-- Bottom -->
-    <line x1="200" y1="360" x2="200" y2="375"/>
-    <!-- Left -->
-    <line x1="25" y1="200" x2="40" y2="200"/>
-    <!-- Right -->
-    <line x1="360" y1="200" x2="375" y2="200"/>
-    <!-- Diagonals -->
-    <line x1="76" y1="76" x2="85" y2="85"/>
-    <line x1="315" y1="76" x2="324" y2="85"/>
-    <line x1="76" y1="324" x2="85" y2="315"/>
-    <line x1="315" y1="315" x2="324" y2="324"/>
-  </g>
 
   <!-- ZANA text at bottom -->
   <text x="200" y="345" text-anchor="middle" font-family="'Courier New', monospace" font-size="22"
@@ -120,14 +122,6 @@
 
   <!-- Subtitle -->
   <text x="200" y="362" text-anchor="middle" font-family="'Courier New', monospace" font-size="7"
-        letter-spacing="4" fill="#6d28d9" opacity="0.7">ZERO AUTONOMOUS NEURAL ARCHITECTURE</text>
-
-  <!-- Outer decorative ring segments -->
-  <g stroke="#7c3aed" stroke-width="1" fill="none" opacity="0.4">
-    <path d="M 200 28 A 172 172 0 0 1 340 115"/>
-    <path d="M 372 200 A 172 172 0 0 1 285 342"/>
-    <path d="M 115 372 A 172 172 0 0 1 28 200"/>
-    <path d="M 60 85 A 172 172 0 0 1 200 28"/>
-  </g>
+        letter-spacing="4" fill="#6d28d9" opacity="0.7">SOVEREIGN COGNITIVE CORTEX</text>
 
 </svg>

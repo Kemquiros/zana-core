@@ -68,3 +68,7 @@ docs/paper/*.toc
 docs/paper/*.log
 aria-ui/src-tauri/sidecar/zana-gateway*
 .worktrees
+
+# Private strategic documents
+docs/ROADMAP_MAESTRO*.md
+master_book/
