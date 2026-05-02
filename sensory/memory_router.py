@@ -255,6 +255,7 @@ async def store_episodic(rec: EpisodicRecord):
     """Persists one turn of conversation into episodic memory."""
     if EPISODIC_BACKEND == "sqlite":
         ok = await _sqlite_insert(rec)
+        _emit_memory_write(rec, ok, "sqlite")
         return {"stored": ok, "session_id": rec.session_id, "backend": "sqlite"}
 
     ok = await _pg_execute(
@@ -270,7 +271,31 @@ async def store_episodic(rec: EpisodicRecord):
         rec.kalman_surprise,
         datetime.now(timezone.utc),
     )
+    _emit_memory_write(rec, ok, "postgres")
     return {"stored": ok, "session_id": rec.session_id, "backend": "postgres"}
+
+
+def _emit_memory_write(rec: "EpisodicRecord", success: bool, backend: str) -> None:
+    """Fire MEMORY_WRITE sentinel event (best-effort, never raises)."""
+    try:
+        from sentinel.event_bus import get_bus, ZanaEvent, EventType
+        import asyncio
+        event = ZanaEvent(
+            type=EventType.MEMORY_WRITE,
+            payload={
+                "store": "episodic",
+                "backend": backend,
+                "session_id": rec.session_id,
+                "role": rec.role,
+                "modality": rec.modality,
+                "success": success,
+                "content_len": len(rec.content) if rec.content else 0,
+            },
+            session_id=rec.session_id,
+        )
+        asyncio.create_task(get_bus().emit(event, fire_and_forget=True))
+    except Exception as _e:
+        logger.debug("Sentinel MEMORY_WRITE emit skipped: %s", _e)
 
 
 @router.get("/graph", summary="Knowledge graph — topics + entities extracted from episodic memory")

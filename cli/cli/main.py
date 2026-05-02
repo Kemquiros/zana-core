@@ -71,14 +71,27 @@ def main(
         ),
     ] = None,
 ) -> None:
-    if ctx.invoked_subcommand is None:
-        console.print(BANNER)
-        console.print(
-            "[primary]ZANA en línea. Sensores activos. ¿Qué imperio construiremos hoy?[/primary]"
-        )
-        console.print(
-            "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
-        )
+    if ctx.invoked_subcommand:
+        from cli.sentinel_hooks import fire_pre_tool_use, fire_post_tool_use
+        import time as _time
+        _t0 = _time.perf_counter()
+        fire_pre_tool_use(ctx.invoked_subcommand)
+        def _on_close():
+            fire_post_tool_use(
+                ctx.invoked_subcommand,
+                success=True,
+                elapsed_ms=(_time.perf_counter() - _t0) * 1000,
+            )
+        ctx.call_on_close(_on_close)
+        return
+
+    console.print(BANNER)
+    console.print(
+        "[primary]ZANA en línea. Sensores activos. ¿Qué imperio construiremos hoy?[/primary]"
+    )
+    console.print(
+        "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
+    )
 
 
 @app.command(help="Boot the full ZANA stack (Docker services).")
