@@ -72,8 +72,8 @@ command -v python3   >/dev/null || error "python3 not found"
 command -v git       >/dev/null || error "git not found"
 
 if ! $SKIP_PYPI; then
-  python3 -m twine --version >/dev/null 2>&1 || error "twine not found. Run: pip install build twine"
-  python3 -m build --version >/dev/null 2>&1 || error "build not found. Run: pip install build"
+  command -v uv >/dev/null || error "uv not found. Install from https://astral.sh/uv"
+  uvx twine --version >/dev/null 2>&1 || error "twine not available via uvx. Run: uv tool install twine"
 fi
 if ! $SKIP_NPM; then
   command -v npm >/dev/null || error "npm not found"
@@ -106,11 +106,12 @@ else
   cd "$CLI_DIR"
   rm -rf dist/
   if $DRY_RUN; then
-    info "[DRY RUN] python -m build"
+    info "[DRY RUN] uv build"
+    info "[DRY RUN] uvx twine upload dist/*"
   else
-    python3 -m build
+    uv build
     info "Uploading to PyPI via twine ..."
-    python3 -m twine upload dist/* --non-interactive
+    uvx twine upload dist/* --non-interactive
     success "PyPI upload complete — https://pypi.org/project/zana/$VERSION/"
   fi
   cd "$REPO_ROOT"
