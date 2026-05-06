@@ -909,14 +909,79 @@ def run_init_wizard() -> bool:
     aeon_profile_path = ZANA_ENV_DIR / "aeon_profile.json"
     ZANA_ENV_DIR.mkdir(parents=True, exist_ok=True)
     import json as _json
-    profile = {"name": aeon_name, "init_at": __import__("datetime").datetime.now().isoformat()}
-    aeon_profile_path.write_text(_json.dumps(profile, indent=2))
+    from datetime import datetime
+    profile_data = {
+        "name": aeon_name,
+        "init_at": datetime.now().isoformat(),
+        "archetype": "unknown",
+    }
+    aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
+
+    # ── Step 5: Vault Cartography (optional) ──────────────────────────────────
+    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("[bold cyan]5 / 5[/bold cyan]  (Opcional) ¿Dónde vive tu conocimiento?")
+    console.print(
+        f"  [dim]ZANA puede indexar tus notas para que {aeon_name} las cite en tus conversaciones.[/dim]"
+    )
+
+    do_vault = questionary.confirm(
+        f"  ¿Quieres que {aeon_name} conozca tus archivos ahora?",
+        default=True,
+        style=_q_style(),
+    ).ask()
+
+    vault_index = None
+    if do_vault:
+        try:
+            from cli.core.vault.application.cartographer import run_vault_cartography, index_sources
+            selected_paths = run_vault_cartography()
+            if selected_paths:
+                console.print()
+                vault_index = index_sources(selected_paths)
+                if vault_index and vault_index.total_docs > 0:
+                    profile_data["vault_notes"] = vault_index.total_docs
+                    aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
+            else:
+                console.print(f"  [dim]{aeon_name} empezará con vault vacío — crece con cada conversación.[/dim]")
+        except Exception as e:
+            console.print(f"  [warning]Vault omitido: {e}[/warning]")
+    else:
+        console.print(f"  [dim]Ok — {aeon_name} empezará vacío. Añade tu vault después con[/dim] [accent]zana vault add[/accent]")
+
+    # ── Step 6: Resonance Test (optional) ─────────────────────────────────────
+    console.print()
+    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print("[bold cyan]Bonus[/bold cyan]  Test de Resonancia (3 minutos · recomendado)")
+    console.print(
+        f"  [dim]Sin él, {aeon_name} funciona. Con él, {aeon_name} te conoce.[/dim]"
+    )
+
+    do_resonance = questionary.confirm(
+        f"  ¿Calibrar a {aeon_name} con tu forma de pensar?",
+        default=True,
+        style=_q_style(),
+    ).ask()
+
+    if do_resonance:
+        try:
+            from cli.tui.aeon_sigil import AeonProfile
+            from cli.tui.resonance import run_resonance_test
+            aeon_profile = AeonProfile.load()
+            archetype = run_resonance_test(aeon_profile)
+            profile_data["archetype"] = archetype.value
+            aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
+        except Exception as e:
+            console.print(f"  [warning]Test omitido: {e}[/warning]")
+            console.print(f"  [dim]Ejecuta después con[/dim] [accent]zana aeon resonance[/accent]")
+    else:
+        console.print(f"  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]")
 
     console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
     console.print(f"[success]  {aeon_name} ha despertado.[/success]")
     console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print(f"\n  [accent]zana start[/accent]  — arranca el stack completo")
-    console.print(f"  [accent]zana chat[/accent]   — primera conversación con {aeon_name}")
+    console.print(f"\n  [accent]zana aeon sigil[/accent]  — ver tu Aeón vivo")
+    console.print(f"  [accent]zana aeon card[/accent]   — tarjeta de identidad compartible")
+    console.print(f"  [accent]zana chat[/accent]        — primera conversación con {aeon_name}")
     console.print(f"\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
     return True
 

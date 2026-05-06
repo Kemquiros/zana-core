@@ -330,6 +330,32 @@ def aeon_status() -> None:
     cmd_status()
 
 
+@aeon_app.command("sigil", help="Animated Aeon sigil — living visual representation.")
+def aeon_sigil(
+    duration: Annotated[
+        float, typer.Option("--duration", "-d", help="Seconds to animate (0 = loop until Ctrl+C).")
+    ] = 0,
+) -> None:
+    from cli.commands.aeon import cmd_sigil
+    cmd_sigil(duration=duration or None)
+
+
+@aeon_app.command("card", help="Show and export your Aeon Card (shareable).")
+def aeon_card(
+    export: Annotated[
+        bool, typer.Option("--export", help="Save card to ~/.zana/aeon_card.txt")
+    ] = False,
+) -> None:
+    from cli.commands.aeon import cmd_card
+    cmd_card(export=export)
+
+
+@aeon_app.command("resonance", help="Run the Resonance Test to calibrate your Aeon archetype.")
+def aeon_resonance() -> None:
+    from cli.commands.aeon import cmd_resonance
+    cmd_resonance()
+
+
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 

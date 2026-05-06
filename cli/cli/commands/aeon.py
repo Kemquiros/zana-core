@@ -207,6 +207,42 @@ def _match_rules(ctx: str, rules: dict) -> tuple[str, str]:
     return rules.get("default", "herald"), "General task — conversational Aeon."
 
 
+def cmd_sigil(duration: float | None = None) -> None:
+    from cli.tui.aeon_sigil import AeonProfile, AeonState, animate
+    profile = AeonProfile.load()
+    pc = profile.primary_color
+    console.print(f"\n[{pc}]◈ {profile.name} · {profile.stage_label} · {profile.archetype_name}[/{pc}]\n")
+    animate(profile, state=AeonState.IDLE, duration=duration)
+
+
+def cmd_card(export: bool = False) -> None:
+    from cli.tui.aeon_sigil import AeonProfile, render_card
+    profile = AeonProfile.load()
+    card_text = render_card(profile)
+    console.print(f"\n[{profile.primary_color}]{card_text}[/{profile.primary_color}]")
+    if export:
+        card_path = Path.home() / ".zana" / "aeon_card.txt"
+        card_path.write_text(card_text)
+        console.print(f"\n[success]✓[/success] Guardado en [accent]{card_path}[/accent]")
+        console.print("[muted]  Cópialo y compártelo — es tuyo.[/muted]")
+
+
+def cmd_resonance() -> None:
+    from cli.tui.aeon_sigil import AeonProfile
+    from cli.tui.resonance import run_resonance_test
+    import json as _json
+
+    profile = AeonProfile.load()
+    archetype = run_resonance_test(profile)
+    profile.archetype = archetype
+    profile.save()
+    console.print(
+        f"\n[success]✓[/success] Arquetipo [bold]{profile.archetype_name}[/bold] "
+        f"guardado en [accent]~/.zana/aeon_profile.json[/accent]"
+    )
+    console.print("[muted]  Usa [accent]zana aeon sigil[/accent] para ver tu Aeón vivo.[/muted]\n")
+
+
 def cmd_status() -> None:
     registry = _load_registry()
     active_id = _active_aeon_id()
