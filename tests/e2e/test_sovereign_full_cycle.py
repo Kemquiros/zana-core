@@ -1,5 +1,5 @@
 import pytest
-from cli.cli.tui.aeon_dna import derive_dna, AeonArchetype
+from cli.tui.aeon_dna import derive_dna, AeonArchetype
 
 def test_sovereign_full_cycle():
     # 1. Initialization
