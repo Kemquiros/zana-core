@@ -5,6 +5,12 @@ Sentinel Event Bus — ZANA v3.0
 Zero ZANA module dependencies — pure infrastructure layer.
 """
 
-from sentinel.event_bus import EventBus, EventType, ZanaEvent, get_bus, emit_aeon_evolution
+from sentinel.event_bus import (
+    EventBus,
+    EventType,
+    ZanaEvent,
+    emit_aeon_evolution,
+    get_bus,
+)
 
 __all__ = ["EventBus", "EventType", "ZanaEvent", "get_bus", "emit_aeon_evolution"]

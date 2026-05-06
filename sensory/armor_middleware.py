@@ -5,6 +5,7 @@ Falls back to a pure-Python implementation if the .so is not compiled yet.
 """
 
 from __future__ import annotations
+
 import re
 import time
 from typing import TypedDict

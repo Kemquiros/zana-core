@@ -1,5 +1,5 @@
 import math
-from typing import Dict, Any
+from typing import Any
 
 
 class PhiPartition:
@@ -13,7 +13,7 @@ class PhiPartition:
     INV_PHI_SQ = 1 / (PHI**2)  # ≈ 0.382
 
     @staticmethod
-    def partition_tokens(total_tokens: int) -> Dict[str, int]:
+    def partition_tokens(total_tokens: int) -> dict[str, int]:
         """
         Partition a token budget into Core Reason (61.8%) and Context/Tools (38.2%).
         """
@@ -22,7 +22,7 @@ class PhiPartition:
         return {"core_reasoning": core, "episodic_context": context}
 
     @staticmethod
-    def recursive_partition(total_tokens: int, depth: int) -> Dict[str, Any]:
+    def recursive_partition(total_tokens: int, depth: int) -> dict[str, Any]:
         """
         Fractally partition tokens across agent sub-tasks.
         """

@@ -1,5 +1,6 @@
-import requests
 import time
+
+import requests
 
 
 def test_dynamic_rule():

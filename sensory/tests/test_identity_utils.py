@@ -1,6 +1,5 @@
-import pytest
-from pathlib import Path
-from identity_utils import generate_sovereign_keys, ensure_keys_exist
+from identity_utils import ensure_keys_exist, generate_sovereign_keys
+
 
 def test_generate_sovereign_keys():
     priv, pub = generate_sovereign_keys()

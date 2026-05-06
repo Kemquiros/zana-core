@@ -1,12 +1,11 @@
 import json
 import re
 from pathlib import Path
-from typing import Optional
 
 import typer
-from rich.table import Table
-from rich.panel import Panel
 from rich import box
+from rich.panel import Panel
+from rich.table import Table
 
 from cli.tui.theme import console
 
@@ -136,7 +135,7 @@ def cmd_use(aeon_id: str) -> None:
     )
 
 
-def cmd_recommend(context: Optional[str] = None) -> None:
+def cmd_recommend(context: str | None = None) -> None:
     registry = _load_registry()
     rules = registry["recommendation_rules"]
 
@@ -374,3 +373,60 @@ def cmd_status() -> None:
             padding=(1, 2),
         )
     )
+
+def cmd_resonance() -> None:
+    """Forges an Aeon using the KORU-GENOME v4.0 protocol."""
+    from cli.tui.resonance import ResonanceProtocol
+    protocol = ResonanceProtocol()
+    profile = protocol.run()
+    if profile:
+        # Save to registry or a special personal_aeons list
+        pass
+
+def cmd_export(output_path: Path | None = None) -> None:
+    """Exports the active Aeon DNA to a portable .aeon file."""
+    profile_path = Path.home() / ".zana" / "aeon_profile.json"
+    if not profile_path.exists():
+        console.print("[error]No forged Aeon found. Run `zana aeon resonance` first.[/error]")
+        return
+
+    profile = json.loads(profile_path.read_text())
+    name = profile["name"]
+    
+    if not output_path:
+        output_path = Path.cwd() / f"{name}.aeon"
+
+    # Add AEP metadata
+    aep_packet = {
+        "aep_version": "1.0",
+        "exported_at": __import__("datetime").datetime.now().isoformat(),
+        "profile": profile
+    }
+    
+    output_path.write_text(json.dumps(aep_packet, indent=2))
+    console.print(f"[success]✓ Aeon {name} exported to [bold]{output_path}[/bold][/success]")
+
+def cmd_summon(aeon_file: Path) -> None:
+    """Summons an external Aeon from a .aeon file."""
+    if not aeon_file.exists():
+        console.print(f"[error]File not found: {aeon_file}[/error]")
+        return
+        
+    try:
+        packet = json.loads(aeon_file.read_text())
+        profile = packet["profile"]
+        console.print(Panel(
+            f"[bold cyan]{profile['name']}[/bold cyan]\n"
+            f"Archetype: {profile['archetype']}\n"
+            f"Birth Hash: {profile['birth_hash'][:16]}...",
+            title="Summoning Successful",
+            border_style="green"
+        ))
+        
+        # Save to ~/.zana/summons/
+        summon_dir = Path.home() / ".zana" / "summons"
+        summon_dir.mkdir(parents=True, exist_ok=True)
+        (summon_dir / f"{profile['name']}.json").write_text(json.dumps(profile, indent=2))
+        
+    except Exception as e:
+        console.print(f"[error]Failed to summon Aeon: {e}[/error]")

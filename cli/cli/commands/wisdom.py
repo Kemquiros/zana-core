@@ -10,6 +10,7 @@ zana wisdom — Auto-WisdomRules inbox CLI.
 from __future__ import annotations
 
 import httpx
+
 from cli.tui.theme import console
 
 GATEWAY_URL = "http://localhost:54446"

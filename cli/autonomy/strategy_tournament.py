@@ -1,6 +1,6 @@
-import random
 import json
-from typing import List, Dict, Any
+import random
+from typing import Any
 
 
 class StrategyEvolution:
@@ -11,7 +11,7 @@ class StrategyEvolution:
 
     def __init__(self):
         self.generation = 0
-        self.population: List[Dict[str, Any]] = []
+        self.population: list[dict[str, Any]] = []
         self.criteria = [
             "Sovereignty",
             "Scalability",
@@ -56,7 +56,7 @@ class StrategyEvolution:
         ]
         self.population = raw_ideas
 
-    def mutate(self, idea: Dict[str, Any]) -> Dict[str, Any]:
+    def mutate(self, idea: dict[str, Any]) -> dict[str, Any]:
         """Adds a random mutation to a strategy trait."""
         new_idea = json.loads(json.dumps(idea))  # Deep copy
         traits = list(new_idea["traits"].keys())
@@ -90,8 +90,8 @@ class StrategyEvolution:
         return new_idea
 
     def crossover(
-        self, parent_a: Dict[str, Any], parent_b: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, parent_a: dict[str, Any], parent_b: dict[str, Any]
+    ) -> dict[str, Any]:
         """Combines traits of two successful strategies."""
         child_traits = {}
         for key in parent_a["traits"]:
@@ -105,7 +105,7 @@ class StrategyEvolution:
             "fitness": 0,
         }
 
-    def evaluate_fitness(self, idea: Dict[str, Any]) -> float:
+    def evaluate_fitness(self, idea: dict[str, Any]) -> float:
         """Score based on ZANA's Constitutional Principles."""
         t = idea["traits"]
         score = 0

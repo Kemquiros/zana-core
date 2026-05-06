@@ -1,8 +1,9 @@
-import os
-import json
-import redis
 import hashlib
-from typing import Optional, Dict, Any
+import json
+import os
+from typing import Any
+
+import redis
 
 
 class SemanticCache:
@@ -21,7 +22,7 @@ class SemanticCache:
         h = hashlib.sha256(query.encode()).hexdigest()
         return f"cache:semantic:{h}"
 
-    def get(self, query: str) -> Optional[Dict[str, Any]]:
+    def get(self, query: str) -> dict[str, Any] | None:
         """
         Retrieves a cached response if it exists.
         """
@@ -36,7 +37,7 @@ class SemanticCache:
             print(f"❌ Cache error: {e}")
             return None
 
-    def set(self, query: str, response: str, metadata: Dict[str, Any] = None):
+    def set(self, query: str, response: str, metadata: dict[str, Any] = None):
         """Stores a response in the cache."""
         key = self._get_key(query)
         payload = {"response": response, "metadata": metadata or {}}

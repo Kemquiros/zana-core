@@ -3,8 +3,8 @@ from pathlib import Path
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from swarm.meta_evolution import MetaEvolutionaryModule
 from swarm.hive_node import HiveNode
+from swarm.meta_evolution import MetaEvolutionaryModule
 
 
 def test_swarm_e2e():

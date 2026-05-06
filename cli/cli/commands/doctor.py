@@ -12,9 +12,9 @@ import time
 from pathlib import Path
 
 import httpx
-from rich.table import Table
-from rich.panel import Panel
 from rich import box
+from rich.panel import Panel
+from rich.table import Table
 
 from cli.tui.theme import console
 
@@ -238,7 +238,7 @@ def cmd_doctor() -> None:
     ) or sum(
         weights.get(name, 0)
         for name, probe, target, port, _ in services
-        if ((_http(target)[0] if probe == "http" else _tcp(target, port)[0]))
+        if (_http(target)[0] if probe == "http" else _tcp(target, port)[0])
     )
     zfi_color = "success" if zfi >= 90 else "warning" if zfi >= 60 else "error"
     console.print(

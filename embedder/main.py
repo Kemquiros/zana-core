@@ -1,15 +1,12 @@
 """ZANA Vault Embedding Pipeline"""
 
+import json
 import os
 import sys
 from pathlib import Path
 
 import click
-import json
-from rich.console import Console
-from rich.progress import track
 import zana_steel_core
-
 from chunker import chunk_file
 from config import (
     MAX_CHUNK_CHARS,
@@ -18,6 +15,8 @@ from config import (
     SKIP_FOLDERS,
     VAULT_PATH,
 )
+from rich.console import Console
+from rich.progress import track
 
 console = Console()
 

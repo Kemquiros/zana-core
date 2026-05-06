@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Optional
+
 import litellm
 
 logger = logging.getLogger("zana.local_llm")
@@ -144,7 +144,7 @@ class LocalLLM:
 
     def analyze_image_local(
         self, image_bytes: bytes, mime_type: str, context_hint: str = ""
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Analyze image via vision model.
         Returns raw JSON string.

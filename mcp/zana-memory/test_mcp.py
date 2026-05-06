@@ -3,7 +3,7 @@ from pathlib import Path
 
 # Fix python path since this is a one-off script
 sys.path.append(str(Path(__file__).parent))
-from server import semantic_search, get_entity, related_concepts
+from server import get_entity, related_concepts, semantic_search
 
 query = sys.argv[1]
 action = sys.argv[2] if len(sys.argv) > 2 else "search"

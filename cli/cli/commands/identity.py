@@ -1,6 +1,6 @@
+import hashlib
 import json
 import secrets
-import hashlib
 from pathlib import Path
 
 from cli.tui.theme import console

@@ -8,9 +8,9 @@ before reaching the Cortex. It is the "atom" of the sensory system.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
-from typing import Literal, Optional
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from typing import Literal
 
 Modality = Literal["text", "audio", "vision", "multimodal"]
 
@@ -46,16 +46,16 @@ class PerceptionEvent:
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+        default_factory=lambda: datetime.now(UTC).isoformat()
     )
     modality: Modality = "text"
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
     # ── Content by modality ──────────────────────────────────────────────────
-    text: Optional[str] = None  # raw text or audio transcript
-    audio_features: Optional[AudioFeatures] = None
-    vision_features: Optional[VisionFeatures] = None
-    source_mime: Optional[str] = None  # "audio/wav", "image/jpeg", "video/mp4"
+    text: str | None = None  # raw text or audio transcript
+    audio_features: AudioFeatures | None = None
+    vision_features: VisionFeatures | None = None
+    source_mime: str | None = None  # "audio/wav", "image/jpeg", "video/mp4"
 
     # ── ZANA processing ───────────────────────────────────────────────────────
     kalman_surprise: float = 0.0  # Bayesian novelty score
@@ -64,8 +64,8 @@ class PerceptionEvent:
     )  # Fact keys sent to ReasoningEngine
 
     # ── Aeon response ─────────────────────────────────────────────────────────
-    response_text: Optional[str] = None
-    response_audio_b64: Optional[str] = None  # base64 MP3 from TTS
+    response_text: str | None = None
+    response_audio_b64: str | None = None  # base64 MP3 from TTS
     response_emotion: str = "neutral"
 
     def to_dict(self) -> dict:

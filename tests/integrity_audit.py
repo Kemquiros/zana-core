@@ -1,10 +1,12 @@
 import sys
-import numpy as np
 from pathlib import Path
+
+import numpy as np
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
 from autonomy.brain import PolicyBrain
+
 from episodic.kalman import CognitiveKalmanFilter
 from world_model.eml import log_eml
 

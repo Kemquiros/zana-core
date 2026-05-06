@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 import zana_steel_core
 
+
 def test_memory():
     # Initialize Vector Index
     index = zana_steel_core.PyVectorIndex()

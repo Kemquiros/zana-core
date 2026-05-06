@@ -1,11 +1,12 @@
 import sys
 from pathlib import Path
+
 import numpy as np
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from procedural_memory.math_agent import EMLMathAgent
 from procedural_memory.manager import SkillRegistry
+from procedural_memory.math_agent import EMLMathAgent
 
 
 def test_phase6_e2e():

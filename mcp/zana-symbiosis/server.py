@@ -1,6 +1,7 @@
 import os
+from typing import Any
+
 import httpx
-from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -21,7 +22,7 @@ EPISODIC_API_URL = os.getenv("EPISODIC_API_URL", "http://localhost:8002")
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
+        self.active_connections: list[WebSocket] = []
 
     async def connect(self, websocket: WebSocket):
         await websocket.accept()
@@ -102,7 +103,7 @@ class PushEvent(BaseModel):
     intent: str
     emotion: str
     message: str
-    data: Optional[Dict[str, Any]] = None
+    data: dict[str, Any] | None = None
 
 
 @app.post("/mcp/intervene")

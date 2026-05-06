@@ -27,10 +27,11 @@ import hashlib
 import json
 import logging
 from collections import defaultdict
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 logger = logging.getLogger("zana.sentinel")
 
@@ -56,7 +57,7 @@ class ZanaEvent:
     payload: dict[str, Any] = field(default_factory=dict)
     session_id: str = "global"
     aeon_id: str = "default"
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     @property
     def civic_hash(self) -> str:
@@ -197,8 +198,8 @@ async def emit_aeon_evolution(old_rank: str, new_rank: str, aeon_id: str = "defa
 
 async def _civic_ledger_handler(event: ZanaEvent) -> None:
     """Write every event to the Civic Ledger (SHA-256 audit trail)."""
-    from pathlib import Path
     import json as _json
+    from pathlib import Path
 
     ledger_path = Path.home() / ".zana" / "civic_ledger.jsonl"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)

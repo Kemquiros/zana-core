@@ -1,7 +1,7 @@
-import boto3
 import logging
 from pathlib import Path
-from typing import Optional
+
+import boto3
 
 logger = logging.getLogger("zana.sync.storage")
 

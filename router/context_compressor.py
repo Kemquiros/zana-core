@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
 import numpy as np
 
 # Add project root to sys.path
@@ -19,8 +20,8 @@ class ContextCompressor:
         self.surprise_threshold = surprise_threshold
 
     def filter_segments(
-        self, segments: List[Dict[str, Any]], embeddings: List[np.ndarray]
-    ) -> List[Dict[str, Any]]:
+        self, segments: list[dict[str, Any]], embeddings: list[np.ndarray]
+    ) -> list[dict[str, Any]]:
         """
         Filters a list of context segments based on Bayesian Surprise.
 

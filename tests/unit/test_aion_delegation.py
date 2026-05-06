@@ -1,4 +1,5 @@
-from swarm.apex.aion import AionMessage, AeonDelegationRequest, AeonDelegationResponse
+from swarm.apex.aion import AeonDelegationRequest, AeonDelegationResponse, AionMessage
+
 
 def test_aion_delegation_request():
     msg = AionMessage(intent="calculate", latent_state=[0.1, 0.5], payload={"x": 1})

@@ -1,12 +1,13 @@
-import sys
 import json
+import sys
 from pathlib import Path
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent))
+import redis
+
 from episodic.kalman import CognitiveKalmanFilter
 from world_model.eml import exp_eml
-import redis
 
 
 def handshake():

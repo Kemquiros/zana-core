@@ -20,7 +20,6 @@ from pathlib import Path
 
 from cli.tui.theme import console
 
-
 # ── helpers ───────────────────────────────────────────────────────────────
 
 def _find_llmfit() -> str | None:
@@ -180,7 +179,7 @@ def cmd_hardware(install: bool, recommend: bool, top: int) -> None:
             console.print(f"  [bold cyan]  ║[/bold cyan]  [bold]{i:2}.[/bold] [accent]{name}[/accent]{badge}{speed_str}")
 
     console.print("[bold cyan]  ║[/bold cyan]")
-    console.print(f"[bold cyan]  ╚═════════════════════════════════════════════╝[/bold cyan]")
+    console.print("[bold cyan]  ╚═════════════════════════════════════════════╝[/bold cyan]")
     console.print()
     console.print(
         "  [muted]Para usar el modelo recomendado con ZANA:[/muted]\n"

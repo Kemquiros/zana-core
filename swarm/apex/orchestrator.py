@@ -3,19 +3,20 @@ The Central Orchestrator (The Apex Quintet in Action).
 Manages communication between the 5 sub-agents using the AION Protocol.
 """
 
+from autonomy.resonance_engine import ResonanceEngine
+
 from .agents import (
-    archivist_agent,
-    herald_agent,
-    operator_agent,
-    analyst_agent,
-    sentinel_agent,
+    ANALYST_PROMPT,
     ARCHIVIST_PROMPT,
     HERALD_PROMPT,
     OPERATOR_PROMPT,
-    ANALYST_PROMPT,
     SENTINEL_PROMPT,
+    analyst_agent,
+    archivist_agent,
+    herald_agent,
+    operator_agent,
+    sentinel_agent,
 )
-from autonomy.resonance_engine import ResonanceEngine
 
 
 class ApexOrchestrator:

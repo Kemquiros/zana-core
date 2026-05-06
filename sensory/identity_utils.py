@@ -1,7 +1,8 @@
-import os
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
 from pathlib import Path
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 
 def generate_sovereign_keys():
     """Generate a 4096-bit RSA key pair for OIDC signing."""

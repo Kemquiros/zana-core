@@ -14,7 +14,6 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -42,7 +41,7 @@ def _save_inbox(inbox: dict) -> None:
 
 
 class ApproveRequest(BaseModel):
-    skill_id_override: Optional[str] = None
+    skill_id_override: str | None = None
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
@@ -129,7 +128,7 @@ async def reject_wisdom(wisdom_id: str):
 async def trigger_mining():
     """Manually trigger trajectory mining to generate new wisdom proposals."""
     try:
-        from orchestrator.curator import SkillCurator, _load_wisdom_inbox
+        from orchestrator.curator import SkillCurator
         from procedural_memory.manager import SkillRegistry
 
         reg = SkillRegistry()

@@ -2,12 +2,9 @@ import asyncio
 import hashlib
 import json
 import logging
-import os
 import sys
-from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 from dotenv import load_dotenv
 
@@ -121,7 +118,7 @@ class SkillCurator:
             logger.info(f"Skill '{skill_id}' archivada.")
             return {"skill_id": skill_id, "action": "archive"}
 
-    async def _ask_llm_to_improve(self, skill: dict) -> Optional[list]:
+    async def _ask_llm_to_improve(self, skill: dict) -> list | None:
         """Consulta Claude Haiku para mejorar los pasos de una skill degradada.
         Retorna lista de pasos mejorados, [] para mantener sin cambios, None para archivar.
         En caso de error de API, retorna [] para no archivar por fallo de red.
@@ -239,7 +236,7 @@ class SkillCurator:
         # Sentinel: ZSyncRequest — new wisdom rules ready for potential federation
         if added > 0:
             try:
-                from sentinel.event_bus import get_bus, ZanaEvent, EventType
+                from sentinel.event_bus import EventType, ZanaEvent, get_bus
                 await get_bus().emit(
                     ZanaEvent(
                         type=EventType.ZSYNC_REQUEST,

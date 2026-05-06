@@ -5,9 +5,15 @@ Refined with advanced Agentic AI patterns (ToT, ReAct, Reflection, CoT).
 """
 
 import os
-from smolagents import ToolCallingAgent, LiteLLMModel
-from .rust_tools import CalculateEmlTool, KalmanFilterSurpriseTool, AuditSecurityPayloadTool
-from .web_tools import WebSearchTool, BrowseUrlTool
+
+from smolagents import LiteLLMModel, ToolCallingAgent
+
+from .rust_tools import (
+    AuditSecurityPayloadTool,
+    CalculateEmlTool,
+    KalmanFilterSurpriseTool,
+)
+from .web_tools import BrowseUrlTool, WebSearchTool
 
 MODEL_ID = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022")
 

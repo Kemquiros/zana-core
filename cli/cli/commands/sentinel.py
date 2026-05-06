@@ -8,8 +8,8 @@ zana sentinel — Sentinel Event Bus CLI.
 
 from __future__ import annotations
 
-import json
 import httpx
+
 from cli.tui.theme import console
 
 GATEWAY_URL = "http://localhost:54446"

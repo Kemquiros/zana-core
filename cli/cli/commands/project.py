@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 from cli.tui.theme import console
 
@@ -7,7 +6,7 @@ ZANA_PROJECTS_DIR = Path.home() / ".zana" / "projects"
 CURRENT_PROJECT_LINK = Path.home() / ".zana" / "current_project"
 
 
-def _get_active_project() -> Optional[str]:
+def _get_active_project() -> str | None:
     if CURRENT_PROJECT_LINK.exists() and CURRENT_PROJECT_LINK.is_symlink():
         return CURRENT_PROJECT_LINK.resolve().name
     return None

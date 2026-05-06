@@ -3,8 +3,8 @@ Tool integration with the Rust Steel Core.
 Uses smolagents Tool classes to register functions that the LLM can call.
 """
 
+
 from smolagents import Tool
-from typing import Dict, List
 
 try:
     import zana_steel_core
@@ -30,7 +30,7 @@ class CalculateEmlTool(Tool):
     }
     output_type = "number"
 
-    def forward(self, expression: str, variables: Dict[str, float]) -> float:
+    def forward(self, expression: str, variables: dict[str, float]) -> float:
         if RUST_CORE_AVAILABLE:
             return zana_steel_core.eml_compute(expression, variables)
         print(f"⚙️ [RUST-MOCK] Calculating EML: {expression}")
@@ -52,7 +52,7 @@ class KalmanFilterSurpriseTool(Tool):
     }
     output_type = "number"
 
-    def forward(self, new_data_embedding: List[float], state_embedding: List[float]) -> float:
+    def forward(self, new_data_embedding: list[float], state_embedding: list[float]) -> float:
         if RUST_CORE_AVAILABLE:
             return zana_steel_core.kalman_surprise(new_data_embedding, state_embedding)
         print("⚙️ [RUST-MOCK] Evaluating Bayesian Surprise...")

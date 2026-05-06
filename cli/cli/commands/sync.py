@@ -1,10 +1,12 @@
 import os
 from pathlib import Path
+
 import typer
-from cli.tui.theme import console
 from autonomy.crypto import AegisCrypto
-from autonomy.sync_engine import SyncEngine
 from autonomy.storage_adapters import S3StorageAdapter
+from autonomy.sync_engine import SyncEngine
+
+from cli.tui.theme import console
 
 app = typer.Typer(help="🔐 ZANA Aegis Sync: Secure memory synchronization.")
 

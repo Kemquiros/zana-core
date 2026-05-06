@@ -1,12 +1,13 @@
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
 import numpy as np
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from world_model.eml import exp_eml, log_eml
 from procedural_memory.manager import SkillRegistry
+from world_model.eml import exp_eml, log_eml
 
 
 class EMLMathAgent:
@@ -34,7 +35,7 @@ class EMLMathAgent:
             domain="math",
         )
 
-    def execute_math_task(self, skill_id: str, x: float) -> Dict[str, Any]:
+    def execute_math_task(self, skill_id: str, x: float) -> dict[str, Any]:
         """
         Executes a math task and evaluates performance.
         """

@@ -1,12 +1,14 @@
 import sys
 from pathlib import Path
+from typing import Any
+
 import numpy as np
-from typing import List, Dict, Any
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from swarm.dna import ZanaDNA
 from autonomy.reward_engine import RewardEngine
+
+from swarm.dna import ZanaDNA
 
 
 class MetaEvolutionaryModule:
@@ -17,12 +19,12 @@ class MetaEvolutionaryModule:
 
     def __init__(self, epsilon: float = 0.2):
         self.epsilon = epsilon  # Exploration rate
-        self.dna_history: List[ZanaDNA] = [ZanaDNA()]
-        self.performance_history: List[float] = []
+        self.dna_history: list[ZanaDNA] = [ZanaDNA()]
+        self.performance_history: list[float] = []
         self.current_dna = self.dna_history[0]
         self.reward_engine = RewardEngine()
 
-    def step(self, task_outcome: Dict[str, Any]):
+    def step(self, task_outcome: dict[str, Any]):
         """
         Evaluate current DNA performance and decide whether to mutate.
         """

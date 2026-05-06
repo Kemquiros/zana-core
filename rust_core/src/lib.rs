@@ -115,6 +115,17 @@ impl PyKalmanFilter {
         self.inner.state.fill(0.0);
         self.inner.uncertainty.fill(1.0);
     }
+
+    fn set_mode(&mut self, mode: &str) -> PyResult<()> {
+        self.inner.mode = match mode.to_lowercase().as_str() {
+            "precision" => kalman::FilterMode::Precision,
+            "adaptability" => kalman::FilterMode::Adaptability,
+            "temporal" => kalman::FilterMode::Temporal,
+            "hybrid" => kalman::FilterMode::Hybrid,
+            _ => return Err(pyo3::exceptions::PyValueError::new_err("Invalid mode")),
+        };
+        Ok(())
+    }
 }
 
 #[cfg(feature = "python")]

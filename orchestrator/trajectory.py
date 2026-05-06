@@ -15,7 +15,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from langchain_core.messages import BaseMessage
 
@@ -36,7 +36,7 @@ class TrajectoryCapture:
     # Public API
     # ------------------------------------------------------------------
 
-    def capture(self, state: Dict[str, Any]) -> str:
+    def capture(self, state: dict[str, Any]) -> str:
         """Capture a completed session. Returns the trajectory ID."""
         session_id = str(uuid.uuid4())
         today = datetime.now().strftime("%Y-%m-%d")
@@ -59,7 +59,7 @@ class TrajectoryCapture:
     # Format converters
     # ------------------------------------------------------------------
 
-    def _to_native(self, state: Dict[str, Any], session_id: str) -> dict:
+    def _to_native(self, state: dict[str, Any], session_id: str) -> dict:
         messages = state.get("messages", [])
         return {
             "id": session_id,
@@ -77,10 +77,10 @@ class TrajectoryCapture:
             },
         }
 
-    def _to_sharegpt(self, state: Dict[str, Any], session_id: str) -> dict:
+    def _to_sharegpt(self, state: dict[str, Any], session_id: str) -> dict:
         """ShareGPT format: conversations list with from/value pairs."""
         messages = state.get("messages", [])
-        conversations: List[dict] = []
+        conversations: list[dict] = []
 
         # System preamble: plan + task as context
         task = state.get("task", self._extract_task(messages))
@@ -127,21 +127,21 @@ class TrajectoryCapture:
             return "system", content
         return "gpt", content
 
-    def _serialize_messages(self, messages: List[BaseMessage]) -> List[dict]:
+    def _serialize_messages(self, messages: list[BaseMessage]) -> list[dict]:
         return [
             {"role": role, "content": content}
             for role, content in (self._classify_message(m) for m in messages)
         ]
 
     @staticmethod
-    def _resolve_outcome(state: Dict[str, Any]) -> str:
+    def _resolve_outcome(state: dict[str, Any]) -> str:
         if state.get("budget_exhausted"):
             return "budget_exhausted"
         if state.get("task_completed"):
             return "success"
         return "partial"
 
-    def _extract_task(self, messages: List[BaseMessage]) -> str:
+    def _extract_task(self, messages: list[BaseMessage]) -> str:
         for msg in messages:
             if getattr(msg, "type", "") == "human":
                 return str(msg.content)
@@ -155,7 +155,8 @@ class TrajectoryCapture:
 
 if __name__ == "__main__":
     import tempfile
-    from langchain_core.messages import HumanMessage, AIMessage
+
+    from langchain_core.messages import AIMessage, HumanMessage
 
     with tempfile.TemporaryDirectory() as tmp:
         cap = TrajectoryCapture(data_root=Path(tmp))

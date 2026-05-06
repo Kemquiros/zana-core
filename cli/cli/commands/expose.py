@@ -1,12 +1,12 @@
 import os
-import sys
-import stat
 import platform
-import urllib.request
-import subprocess
 import re
+import stat
+import subprocess
 import time
+import urllib.request
 from pathlib import Path
+
 from cli.tui.theme import console
 
 ZANA_CONFIG_DIR = Path.home() / ".config" / "zana"
@@ -44,7 +44,7 @@ def install_cloudflared():
         
     url = get_cloudflared_url()
     if not url:
-        console.print(f"[error]Unsupported OS or architecture for automatic cloudflared installation.[/error]")
+        console.print("[error]Unsupported OS or architecture for automatic cloudflared installation.[/error]")
         return False
 
     with console.status("[primary]Downloading cloudflared...[/primary]"):
@@ -58,7 +58,7 @@ def install_cloudflared():
             return False
 
 def cmd_expose(port: int = 54448):
-    console.print(f"\n[primary]ZANA Sovereign Bridge[/primary] [muted]v2.9[/muted]")
+    console.print("\n[primary]ZANA Sovereign Bridge[/primary] [muted]v2.9[/muted]")
     
     system = platform.system().lower()
     cf_bin = str(CLOUDFLARED_PATH)
@@ -97,7 +97,7 @@ def cmd_expose(port: int = 54448):
             time.sleep(0.5)
             
         if url:
-            console.print(f"\n[success]Sovereign Bridge Established![/success]")
+            console.print("\n[success]Sovereign Bridge Established![/success]")
             console.print(f"[accent]Remote Access URL:[/accent] [bold white]{url}[/bold white]\n")
             console.print("[muted]Press Ctrl+C to collapse the bridge and revoke access.[/muted]")
             

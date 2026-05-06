@@ -1,9 +1,9 @@
 """ZANA Sensory Layer — multimodal input processing."""
 
-from .perception_event import PerceptionEvent, AudioFeatures, VisionFeatures
 from .audio_processor import AudioProcessor
-from .vision_processor import VisionProcessor
+from .perception_event import AudioFeatures, PerceptionEvent, VisionFeatures
 from .tts_engine import TTSEngine
+from .vision_processor import VisionProcessor
 
 __all__ = [
     "PerceptionEvent",

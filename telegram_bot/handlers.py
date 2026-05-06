@@ -42,7 +42,7 @@ from telegram.constants import ChatAction, ParseMode
 from telegram.ext import ContextTypes
 
 from telegram_bot import gateway_client as gw
-from telegram_bot.gateway_client import GatewayDown, GatewayTimeout, GatewayRejected
+from telegram_bot.gateway_client import GatewayDown, GatewayRejected, GatewayTimeout
 from telegram_bot.rate_limiter import RateLimiter
 
 logger = logging.getLogger("zana.telegram")
@@ -381,8 +381,8 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
                 text += "\n".join(f"  {i+1}. {s}" for i, s in enumerate(p["steps"][:3]))
 
             keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(f"✅ Aprobar", callback_data=f"wisdom:approve:{p['id']}"),
-                InlineKeyboardButton(f"🗑️ Rechazar", callback_data=f"wisdom:reject:{p['id']}"),
+                InlineKeyboardButton("✅ Aprobar", callback_data=f"wisdom:approve:{p['id']}"),
+                InlineKeyboardButton("🗑️ Rechazar", callback_data=f"wisdom:reject:{p['id']}"),
             ]])
             await update.message.reply_text(
                 _truncate(text), parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
@@ -611,7 +611,7 @@ async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
         try:
             await gw.wisdom_reject(wisdom_id)
             await query.edit_message_text(
-                f"🗑️ Propuesta rechazada.", parse_mode=ParseMode.MARKDOWN
+                "🗑️ Propuesta rechazada.", parse_mode=ParseMode.MARKDOWN
             )
         except Exception as e:
             await query.edit_message_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)

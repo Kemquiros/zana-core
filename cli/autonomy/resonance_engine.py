@@ -1,10 +1,11 @@
 import json
-from pathlib import Path
-from typing import Dict, Any, List
-from datetime import datetime
-from autonomy.genome import KORU_GENOME_V4
 import math
-import random
+from datetime import datetime
+from pathlib import Path
+from typing import Any
+
+from autonomy.genome import KORU_GENOME_V4
+
 
 class ResonanceEngine:
     """
@@ -17,7 +18,7 @@ class ResonanceEngine:
         self.resonance_path = Path(resonance_path)
         self.resonance_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def _determine_element(self, traits: Dict[str, float]) -> str:
+    def _determine_element(self, traits: dict[str, float]) -> str:
         elements = {
             "cognitive_sovereignty": "Quantum",
             "emotional_resilience": "Plasma",
@@ -28,7 +29,7 @@ class ResonanceEngine:
         dominant_trait = max(traits, key=traits.get)
         return elements.get(dominant_trait, "Cyber")
 
-    def _determine_job_class(self, traits: Dict[str, float]) -> str:
+    def _determine_job_class(self, traits: dict[str, float]) -> str:
         """FFT style job classes based on trait combinations."""
         cog = traits["cognitive_sovereignty"]
         emo = traits["emotional_resilience"]
@@ -47,7 +48,7 @@ class ResonanceEngine:
         if slf > 0.9: return "Ninja"
         return "Squire"
 
-    def _calculate_rpg_stats(self, traits: Dict[str, float]) -> Dict[str, int]:
+    def _calculate_rpg_stats(self, traits: dict[str, float]) -> dict[str, int]:
         """Convert 0-1 traits into 1-99 RPG stats."""
         base = 20
         return {
@@ -58,7 +59,7 @@ class ResonanceEngine:
             "AGI": min(99, math.floor(base + (traits["self_knowledge"] * 79))),
         }
 
-    def process_ritual(self, answers: Dict[str, Any], user_name: str = None, user_visual_genes: Dict[str, Any] = None) -> Dict[str, Any]:
+    def process_ritual(self, answers: dict[str, Any], user_name: str = None, user_visual_genes: dict[str, Any] = None) -> dict[str, Any]:
         """
         Processes the 20 questions of the Resonance Ritual to forge the Aeon's identity.
         """

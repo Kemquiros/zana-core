@@ -1,11 +1,11 @@
 import os
-import asyncpg # type: ignore
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Optional
-
 import sys
 from pathlib import Path
+
+import asyncpg  # type: ignore
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+
 try:
     # Add root to pythonpath for rust module
     sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -23,7 +23,7 @@ DB_PORT = os.getenv("POSTGRES_PORT", "55433") # Default local proxy port
 
 class ProjectCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str | None = None
 
 @router.post("")
 async def create_project(project: ProjectCreate):

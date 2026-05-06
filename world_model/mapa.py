@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
-from __future__ import division
 import numpy as np
-import random
-import math
+
 
 # Stub dependencies
 def dilate(mapa, rows, cols, factor): return mapa

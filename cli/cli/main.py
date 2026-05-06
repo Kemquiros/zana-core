@@ -1,8 +1,10 @@
-from typing import Annotated, Optional
+from pathlib import Path
+from typing import Annotated
 
 import typer
-from cli.tui.theme import console, BANNER
-from cli.tui.onboarding import run_onboarding, run_init_wizard, is_first_run
+
+from cli.tui.onboarding import is_first_run, run_init_wizard, run_onboarding
+from cli.tui.theme import BANNER, console
 
 app = typer.Typer(
     name="zana",
@@ -44,6 +46,17 @@ swarm_app = typer.Typer(
 )
 app.add_typer(swarm_app, name="swarm")
 
+coliseum_app = typer.Typer(
+    name="coliseum",
+    help="AEON MULTIVERSE — The First Artificial Life Coliseum.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+from cli.commands.coliseum import app as coliseum_typer
+
+coliseum_app.add_typer(coliseum_typer, name="")
+app.add_typer(coliseum_app, name="coliseum")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -61,7 +74,7 @@ def _version_callback(value: bool) -> None:
 def main(
     ctx: typer.Context,
     version: Annotated[
-        Optional[bool],
+        bool | None,
         typer.Option(
             "--version",
             "-v",
@@ -72,8 +85,9 @@ def main(
     ] = None,
 ) -> None:
     if ctx.invoked_subcommand:
-        from cli.sentinel_hooks import fire_pre_tool_use, fire_post_tool_use
         import time as _time
+
+        from cli.sentinel_hooks import fire_post_tool_use, fire_pre_tool_use
         _t0 = _time.perf_counter()
         fire_pre_tool_use(ctx.invoked_subcommand)
         def _on_close():
@@ -136,7 +150,7 @@ def login(
         bool, typer.Option("--reauth", help="Force re-authentication.")
     ] = False,
 ) -> None:
-    from cli.commands.login import cmd_login, CREDENTIALS_FILE
+    from cli.commands.login import CREDENTIALS_FILE, cmd_login
 
     if reauth and CREDENTIALS_FILE.exists():
         CREDENTIALS_FILE.unlink()
@@ -160,7 +174,7 @@ def chat() -> None:
 @app.command(help="Embed documents from your vault into ChromaDB.")
 def embed(
     vault: Annotated[
-        Optional[str], typer.Argument(help="Path to vault directory.")
+        str | None, typer.Argument(help="Path to vault directory.")
     ] = None,
     reset: Annotated[
         bool, typer.Option("--reset", help="Clear existing embeddings first.")
@@ -315,7 +329,7 @@ def aeon_use(
 @aeon_app.command("recommend", help="Let ZANA recommend the best Aeon for a task.")
 def aeon_recommend(
     context: Annotated[
-        Optional[str], typer.Argument(help="Describe what you need.")
+        str | None, typer.Argument(help="Describe what you need.")
     ] = None,
 ) -> None:
     from cli.commands.aeon import cmd_recommend
@@ -329,6 +343,24 @@ def aeon_status() -> None:
 
     cmd_status()
 
+@aeon_app.command("resonance", help="Forges an Aeon using the KORU-GENOME v4.0 protocol.")
+def aeon_resonance() -> None:
+    from cli.commands.aeon import cmd_resonance
+    cmd_resonance()
+
+@aeon_app.command("export", help="Export your Aeon DNA to a .aeon file.")
+def aeon_export(
+    path: Annotated[Path | None, typer.Argument(help="Output path.")] = None
+) -> None:
+    from cli.commands.aeon import cmd_export
+    cmd_export(path)
+
+@aeon_app.command("summon", help="Summon an external Aeon from a .aeon file.")
+def aeon_summon(
+    path: Annotated[Path, typer.Argument(help="Path to .aeon file.")]
+) -> None:
+    from cli.commands.aeon import cmd_summon
+    cmd_summon(path)
 
 @aeon_app.command("sigil", help="Animated Aeon sigil — living visual representation.")
 def aeon_sigil(
@@ -484,7 +516,19 @@ def swarm_query(
 
 
 from cli.commands.sync import app as sync_app
+
 app.add_typer(sync_app, name="sync")
+
+world_app = typer.Typer(
+    name="world",
+    help="ZANA — World Layer interface for artifact management.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+from cli.commands.world import app as world_typer
+
+world_app.add_typer(world_typer, name="")
+app.add_typer(world_app, name="world")
 
 sentinel_app = typer.Typer(
     name="sentinel",
@@ -504,7 +548,7 @@ def sentinel_status() -> None:
 @sentinel_app.command("events", help="Recent events from the in-memory ring buffer.")
 def sentinel_events(
     limit: Annotated[int, typer.Option("--limit", "-n", help="Number of events.")] = 20,
-    event_type: Annotated[Optional[str], typer.Option("--type", "-t", help="Filter by event type.")] = None,
+    event_type: Annotated[str | None, typer.Option("--type", "-t", help="Filter by event type.")] = None,
 ) -> None:
     from cli.commands.sentinel import cmd_sentinel_events
     cmd_sentinel_events(limit=limit, event_type=event_type)

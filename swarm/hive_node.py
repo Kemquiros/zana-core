@@ -1,7 +1,7 @@
-import sys
 import json
+import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -18,7 +18,7 @@ class HiveNode:
         self.node_id = node_id
         self.dna = ZanaDNA(author=node_id)
 
-    def generate_spec_card(self) -> Dict[str, Any]:
+    def generate_spec_card(self) -> dict[str, Any]:
         """Generates a shareable 'Architecture Card' (The NFT metadata)."""
         return {
             "node_id": self.node_id,
@@ -32,7 +32,7 @@ class HiveNode:
             "swarm_synced": True,
         }
 
-    def sync_from_swarm(self, peer_spec: Dict[str, Any]):
+    def sync_from_swarm(self, peer_spec: dict[str, Any]):
         """Clones a peer's architecture (A2A Handshake)."""
         print(f"📡 [A2A] Syncing with Peer {peer_spec['node_id']}...")
         self.dna = ZanaDNA.from_json(json.dumps(peer_spec["dna"]))

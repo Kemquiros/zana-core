@@ -29,8 +29,8 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 import discord  # noqa: E402
-from discord import app_commands  # noqa: E402
 import httpx  # noqa: E402
+from discord import app_commands  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger("zana.discord.bot")

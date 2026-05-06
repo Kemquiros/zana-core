@@ -13,10 +13,10 @@ import json
 import os
 
 import httpx
-from rich.panel import Panel
-from rich.tree import Tree
 from rich import box
+from rich.panel import Panel
 from rich.table import Table
+from rich.tree import Tree
 
 from cli.tui.theme import console
 

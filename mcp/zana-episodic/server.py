@@ -1,10 +1,10 @@
+import json
 import os
 import sys
-import httpx
-import json
-import numpy as np
 from pathlib import Path
-from typing import Optional, List
+
+import httpx
+import numpy as np
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
@@ -31,7 +31,7 @@ def get_kalman():
 
 
 @mcp.tool()
-def calculate_session_surprise(embedding_values: List[float]) -> str:
+def calculate_session_surprise(embedding_values: list[float]) -> str:
     """
     Calculate the Bayesian Surprise for a given state embedding.
     Uses an Adaptive Kalman Filter to manage intra-episodic memory.
@@ -62,9 +62,9 @@ async def store_episode(
     outcome: str,
     event_type: str = "task",
     outcome_type: str = "success",
-    project: Optional[str] = None,
-    context: Optional[dict] = None,
-    tags: Optional[List[str]] = None,
+    project: str | None = None,
+    context: dict | None = None,
+    tags: list[str] | None = None,
     session_id: str = "default",
 ) -> str:
     """
@@ -105,7 +105,7 @@ async def store_episode(
 
 @mcp.tool()
 async def recall_similar(
-    query: str, project: Optional[str] = None, limit: int = 3
+    query: str, project: str | None = None, limit: int = 3
 ) -> str:
     """
     Recall similar past episodes from memory using semantic search.

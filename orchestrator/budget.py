@@ -13,12 +13,10 @@ Configuration via environment variables:
 """
 import os
 from dataclasses import dataclass, field
-from typing import FrozenSet
-
 
 # Operations that are too cheap to count against the budget.
 # Add op names here as new tools are introduced.
-REFUNDABLE_OPS: FrozenSet[str] = frozenset({
+REFUNDABLE_OPS: frozenset[str] = frozenset({
     "memory_read",
     "semantic_search",
     "context_recall",
@@ -32,7 +30,7 @@ class BudgetConfig:
     orchestrator: int = 10
     swarm_aeon: int = 5
     warn_ratio: float = 0.8       # log WARNING at this fraction of budget
-    refundable: FrozenSet[str] = field(default_factory=lambda: REFUNDABLE_OPS)
+    refundable: frozenset[str] = field(default_factory=lambda: REFUNDABLE_OPS)
 
     # ------------------------------------------------------------------
     # Factory

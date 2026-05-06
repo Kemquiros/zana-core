@@ -152,9 +152,20 @@ async def _health_monitor(app: Application) -> None:
 
 def build_app() -> Application:
     from telegram_bot.handlers import (
-        cmd_start, cmd_help, cmd_clear, cmd_status,
-        cmd_recall, cmd_reason, cmd_swarm, cmd_aeon, cmd_wisdom,
-        handle_text, handle_voice, handle_photo, handle_document, handle_callback,
+        cmd_aeon,
+        cmd_clear,
+        cmd_help,
+        cmd_reason,
+        cmd_recall,
+        cmd_start,
+        cmd_status,
+        cmd_swarm,
+        cmd_wisdom,
+        handle_callback,
+        handle_document,
+        handle_photo,
+        handle_text,
+        handle_voice,
     )
 
     app = (

@@ -1,7 +1,9 @@
-import pytest
 import os
-import shutil
+
+import pytest
+
 from world_model.map_bridge import MapBridge
+
 
 @pytest.fixture
 def mock_vault(tmp_path):

@@ -1,11 +1,8 @@
 import logging
-import os
-import sys
 from pathlib import Path
-from typing import List, Tuple
 
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, AIMessage
+from langchain_core.messages import AIMessage, BaseMessage
 
 from orchestrator.transport import transport_from_env
 
@@ -30,7 +27,7 @@ class ContextCompressor:
     # Public API
     # ------------------------------------------------------------------
 
-    def should_compress(self, messages: List[BaseMessage]) -> bool:
+    def should_compress(self, messages: list[BaseMessage]) -> bool:
         if len(messages) < _KEEP_RECENT + 2:
             return False
         # Anti-thrashing guard
@@ -40,8 +37,8 @@ class ContextCompressor:
         return total > _COMPRESS_THRESHOLD
 
     def compress(
-        self, messages: List[BaseMessage], observations: List[str]
-    ) -> Tuple[List[BaseMessage], List[str]]:
+        self, messages: list[BaseMessage], observations: list[str]
+    ) -> tuple[list[BaseMessage], list[str]]:
         """Summarize older messages into a single AIMessage.
         Returns (new_messages, new_observations) with observations cleared into summary.
         On LLM error, returns original inputs unchanged.
@@ -79,7 +76,7 @@ class ContextCompressor:
         return "English"
 
     def _summarize(
-        self, messages: List[BaseMessage], observations: List[str], language: str
+        self, messages: list[BaseMessage], observations: list[str], language: str
     ) -> str | None:
         text_parts = [
             f"{m.__class__.__name__}: {m.content}" for m in messages
@@ -101,7 +98,8 @@ class ContextCompressor:
 
 
 if __name__ == "__main__":
-    from langchain_core.messages import HumanMessage as HM, AIMessage as AM
+    from langchain_core.messages import AIMessage as AM
+    from langchain_core.messages import HumanMessage as HM
 
     dummy_messages = (
         [HM(content="Hola ZANA, necesito desplegar la app.")]

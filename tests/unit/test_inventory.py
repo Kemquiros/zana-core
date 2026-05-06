@@ -1,13 +1,13 @@
+import datetime
 import os
 import sys
-import datetime
-import pytest
 
 # Add zana-core to sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from economy.models import Weapon
 from economy.inventory import InventoryService
+from economy.models import Weapon
+
 
 def test_durability_decay():
     service = InventoryService()

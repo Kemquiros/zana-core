@@ -6,6 +6,7 @@ import typer
 
 from cli.tui.theme import console
 
+
 # Smart STACK_ROOT resolution
 def _resolve_stack_root() -> Path:
     # 1. Check environment variable

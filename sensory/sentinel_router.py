@@ -12,7 +12,6 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -29,7 +28,7 @@ _LEDGER_PATH = Path.home() / ".zana" / "civic_ledger.jsonl"
 async def sentinel_status():
     """Sentinel Event Bus health and event statistics."""
     try:
-        from sentinel.event_bus import get_bus, EventType
+        from sentinel.event_bus import EventType, get_bus
         bus = get_bus()
         counts = bus.stats()
         return {
@@ -46,7 +45,7 @@ async def sentinel_status():
 @router.get("/events")
 async def sentinel_events(
     limit: int = Query(default=50, ge=1, le=500),
-    event_type: Optional[str] = Query(default=None, description="Filter by event type"),
+    event_type: str | None = Query(default=None, description="Filter by event type"),
 ):
     """Recent events from the in-memory ring buffer."""
     try:
@@ -63,8 +62,8 @@ async def sentinel_events(
 @router.get("/ledger")
 async def sentinel_ledger(
     limit: int = Query(default=100, ge=1, le=1000),
-    event_type: Optional[str] = Query(default=None),
-    session_id: Optional[str] = Query(default=None),
+    event_type: str | None = Query(default=None),
+    session_id: str | None = Query(default=None),
 ):
     """Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl)."""
     if not _LEDGER_PATH.exists():
@@ -104,7 +103,7 @@ class EmitRequest(BaseModel):
 async def sentinel_emit(req: EmitRequest):
     """Manually emit an event for testing/debugging."""
     try:
-        from sentinel.event_bus import get_bus, ZanaEvent, EventType
+        from sentinel.event_bus import EventType, ZanaEvent, get_bus
         event_type = EventType(req.event_type)
         bus = get_bus()
         await bus.emit(

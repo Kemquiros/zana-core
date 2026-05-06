@@ -10,9 +10,9 @@ import os
 from datetime import datetime
 
 import httpx
-from rich.table import Table
-from rich.panel import Panel
 from rich import box
+from rich.panel import Panel
+from rich.table import Table
 
 from cli.tui.theme import console
 

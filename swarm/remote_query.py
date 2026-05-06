@@ -15,7 +15,6 @@ Flow:
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import requests
 
@@ -37,8 +36,8 @@ class RemoteRule:
 @dataclass
 class QueryResult:
     found: bool
-    rule: Optional[RemoteRule] = None
-    error: Optional[str] = None
+    rule: RemoteRule | None = None
+    error: str | None = None
 
 
 class RemoteQuery:

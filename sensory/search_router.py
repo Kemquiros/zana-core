@@ -24,8 +24,7 @@ _root = Path(__file__).parent.parent
 if str(_root) not in sys.path:
     sys.path.insert(0, str(_root))
 
-from swarm.apex.web_tools import web_search, browse_url, active_provider
-
+from swarm.apex.web_tools import active_provider, browse_url, web_search
 
 # ── Request models ────────────────────────────────────────────────────────────
 

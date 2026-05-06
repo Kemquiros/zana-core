@@ -137,7 +137,7 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
 
     # Step 2: reinstall the CLI from git
     if _do_upgrade():
-        console.print(f"[success]✅ ZANA Córtex actualizado exitosamente.[/success]")
+        console.print("[success]✅ ZANA Córtex actualizado exitosamente.[/success]")
         console.print("[muted]Reinicia tu terminal para aplicar cambios de PATH.[/muted]")
         console.print("[muted]Juntos hacemos temblar los cielos.[/muted]")
     else:

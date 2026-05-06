@@ -1,8 +1,9 @@
-import yaml
 import json
-from pathlib import Path
-import re
 import os
+import re
+from pathlib import Path
+
+import yaml
 
 # Configuration
 SOURCE_DIR = os.getenv(
@@ -13,7 +14,7 @@ OUTPUT_DIR = os.getenv("TRANSCODER_OUTPUT_DIR", str(Path(__file__).parent / "see
 
 def parse_md_content(file_path):
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         # 1. Try to extract YAML block

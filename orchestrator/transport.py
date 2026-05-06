@@ -22,12 +22,11 @@ import asyncio
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
 # Common message format shared by all transports
-Msg = Dict[str, str]  # {"role": "user"|"assistant"|"system", "content": str}
+Msg = dict[str, str]  # {"role": "user"|"assistant"|"system", "content": str}
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -42,10 +41,10 @@ class BaseTransport(ABC):
         self.max_tokens = max_tokens
 
     @abstractmethod
-    def invoke(self, messages: List[Msg], **kwargs) -> str:
+    def invoke(self, messages: list[Msg], **kwargs) -> str:
         """Synchronous inference. Returns plain text response."""
 
-    async def ainvoke(self, messages: List[Msg], **kwargs) -> str:
+    async def ainvoke(self, messages: list[Msg], **kwargs) -> str:
         """Async inference. Default: runs invoke in thread executor."""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, lambda: self.invoke(messages, **kwargs))
@@ -72,7 +71,7 @@ class AnthropicTransport(BaseTransport):
     def __init__(self, model: str = "claude-3-5-haiku-20241022", max_tokens: int = 1024):
         super().__init__(model, max_tokens)
         from langchain_anthropic import ChatAnthropic
-        from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+        from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
         self._llm = ChatAnthropic(
             model=model,
             api_key=os.getenv("ANTHROPIC_API_KEY", "sk-placeholder"),
@@ -84,15 +83,15 @@ class AnthropicTransport(BaseTransport):
             "system": SystemMessage,
         }
 
-    def _to_lc(self, messages: List[Msg]):
+    def _to_lc(self, messages: list[Msg]):
         return [self._msg_map.get(m["role"], self._msg_map["user"])(content=m["content"])
                 for m in messages]
 
-    def invoke(self, messages: List[Msg], **kwargs) -> str:
+    def invoke(self, messages: list[Msg], **kwargs) -> str:
         response = self._llm.invoke(self._to_lc(messages))
         return response.content
 
-    async def ainvoke(self, messages: List[Msg], **kwargs) -> str:
+    async def ainvoke(self, messages: list[Msg], **kwargs) -> str:
         response = await self._llm.ainvoke(self._to_lc(messages))
         return response.content
 
@@ -109,7 +108,7 @@ class OllamaTransport(BaseTransport):
         self._base_url = os.getenv("OLLAMA_URL",
                                    os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
 
-    def _payload(self, messages: List[Msg]) -> dict:
+    def _payload(self, messages: list[Msg]) -> dict:
         return {
             "model": self.model,
             "messages": messages,
@@ -117,14 +116,14 @@ class OllamaTransport(BaseTransport):
             "options": {"num_predict": self.max_tokens},
         }
 
-    def invoke(self, messages: List[Msg], **kwargs) -> str:
+    def invoke(self, messages: list[Msg], **kwargs) -> str:
         import httpx
         r = httpx.post(f"{self._base_url}/api/chat",
                        json=self._payload(messages), timeout=120)
         r.raise_for_status()
         return r.json()["message"]["content"]
 
-    async def ainvoke(self, messages: List[Msg], **kwargs) -> str:
+    async def ainvoke(self, messages: list[Msg], **kwargs) -> str:
         import httpx
         async with httpx.AsyncClient() as client:
             r = await client.post(f"{self._base_url}/api/chat",
@@ -149,7 +148,7 @@ class OpenAICompatTransport(BaseTransport):
     ):
         super().__init__(model, max_tokens)
         try:
-            from openai import OpenAI, AsyncOpenAI
+            from openai import AsyncOpenAI, OpenAI
             key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY") or "none"
             kw = dict(api_key=key)
             if base_url:
@@ -160,13 +159,13 @@ class OpenAICompatTransport(BaseTransport):
             raise ImportError("openai package required for OpenAICompatTransport. "
                               "pip install openai")
 
-    def invoke(self, messages: List[Msg], **kwargs) -> str:
+    def invoke(self, messages: list[Msg], **kwargs) -> str:
         resp = self._client.chat.completions.create(
             model=self.model, messages=messages, max_tokens=self.max_tokens
         )
         return resp.choices[0].message.content
 
-    async def ainvoke(self, messages: List[Msg], **kwargs) -> str:
+    async def ainvoke(self, messages: list[Msg], **kwargs) -> str:
         resp = await self._aclient.chat.completions.create(
             model=self.model, messages=messages, max_tokens=self.max_tokens
         )
@@ -177,14 +176,14 @@ class OpenAICompatTransport(BaseTransport):
 # Registry & factory
 # ──────────────────────────────────────────────────────────────────────
 
-_DEFAULT_MODELS: Dict[str, str] = {
+_DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-3-5-haiku-20241022",
     "ollama":    "gemma4",
     "openai":    "gpt-4o-mini",
     "groq":      "llama-3.1-8b-instant",
 }
 
-_REGISTRY: Dict[str, type] = {
+_REGISTRY: dict[str, type] = {
     "anthropic": AnthropicTransport,
     "ollama":    OllamaTransport,
     "openai":    OpenAICompatTransport,
@@ -234,7 +233,7 @@ def transport_from_env(role: str = "default") -> BaseTransport:
 if __name__ == "__main__":
     # ── Unit tests (no real API calls) ──────────────────────────────
     import unittest
-    from unittest.mock import MagicMock, patch
+    from unittest.mock import patch
 
     class TransportTests(unittest.TestCase):
 
@@ -242,7 +241,7 @@ if __name__ == "__main__":
             t = AnthropicTransport.__new__(AnthropicTransport)
             t.model = "test"
             t.max_tokens = 256
-            from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+            from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
             t._msg_map = {"user": HumanMessage, "assistant": AIMessage, "system": SystemMessage}
             msgs = [{"role": "user", "content": "hi"},
                     {"role": "assistant", "content": "hello"},

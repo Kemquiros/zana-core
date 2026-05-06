@@ -1,15 +1,14 @@
 import os
 import sys
 import uuid
-import psycopg
 from datetime import datetime
-from typing import List, Optional, Dict
 from pathlib import Path
 
+import psycopg
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
-from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(".."))
 from kalman import CognitiveKalmanFilter
@@ -32,7 +31,7 @@ _model = None
 
 # Global dictionary for Session Kalman Filters
 # In production, this should be stored in Redis or similar
-_kalman_filters: Dict[str, CognitiveKalmanFilter] = {}
+_kalman_filters: dict[str, CognitiveKalmanFilter] = {}
 SURPRISE_THRESHOLD = 1.5  # Tunable parameter for Bayesian Surprise
 
 
@@ -54,11 +53,11 @@ class EpisodeBase(BaseModel):
     session_id: str
     event_type: str
     subject: str
-    context: Optional[dict] = None
-    outcome: Optional[str] = None
-    outcome_type: Optional[str] = None
-    tags: Optional[List[str]] = None
-    project: Optional[str] = None
+    context: dict | None = None
+    outcome: str | None = None
+    outcome_type: str | None = None
+    tags: list[str] | None = None
+    project: str | None = None
 
 
 class EpisodeCreate(EpisodeBase):
@@ -68,7 +67,7 @@ class EpisodeCreate(EpisodeBase):
 class Episode(EpisodeBase):
     id: uuid.UUID
     timestamp: datetime
-    surprise: Optional[float] = None
+    surprise: float | None = None
     discarded: bool = False
 
 
@@ -136,8 +135,8 @@ async def create_episode(episode: EpisodeCreate):
             )
 
 
-@app.get("/episodes/similar", response_model=List[Episode])
-async def search_episodes(query: str, limit: int = 5, project: Optional[str] = None):
+@app.get("/episodes/similar", response_model=list[Episode])
+async def search_episodes(query: str, limit: int = 5, project: str | None = None):
     model = get_model()
     embedding = model.encode(query).tolist()
 

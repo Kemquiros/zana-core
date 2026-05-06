@@ -18,8 +18,8 @@ import numpy as np
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from sensory.perception_event import PerceptionEvent, AudioFeatures, VisionFeatures
 from sensory.audio_processor import AudioProcessor
+from sensory.perception_event import AudioFeatures, PerceptionEvent, VisionFeatures
 from sensory.tts_engine import TTSEngine
 
 

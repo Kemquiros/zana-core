@@ -1,12 +1,10 @@
 import asyncio
 import json
 import logging
-import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Optional
 
 import httpx
 from plyer import notification
@@ -35,7 +33,7 @@ class AeonHeartbeat:
         )
         self._last_update_check = 0
 
-    def _parse_changelog(self, body: str) -> Dict[str, List[str]]:
+    def _parse_changelog(self, body: str) -> dict[str, list[str]]:
         """Parse GitHub release body into modular sections."""
         sections = {
             "Core": [],
@@ -125,14 +123,14 @@ class AeonHeartbeat:
         except Exception as e:
             logger.error(f"Error al verificar actualizaciones: {e}")
 
-    async def scan_environment(self) -> List[str]:
+    async def scan_environment(self) -> list[str]:
         """Escanear servidores MCP, Shadow Observer y Wiki por nuevas tareas."""
         logger.info("Escaneando entorno (Shadow, Wiki, MCP)...")
         alerts = []
         
         # Consultar Shadow Observer por patrones de usuario recientes
         try:
-            import requests
+            pass
             # response = requests.get("http://localhost:54444/mcp/context")
             # user_activity = response.json()
             # if user_activity.get("alignment") < 40:
@@ -142,13 +140,13 @@ class AeonHeartbeat:
             
         return alerts
 
-    async def audit_internal_state(self) -> Dict:
+    async def audit_internal_state(self) -> dict:
         """Consultar el Reasoning Engine en Rust para salud del sistema."""
         logger.info("Auditoría de estado interno (Survival Rules)...")
         # Simulación de estado
         return {"status": "SOVEREIGN", "liquidity": "STABLE", "health": 1.0}
 
-    async def propose_actions(self, context: Dict) -> List[str]:
+    async def propose_actions(self, context: dict) -> list[str]:
         """Generar propuestas proactivas (ToT / Brainstorming)."""
         logger.info("Generando propuestas proactivas...")
         return ["Revisar logs de KoruOS", "Optimizar memoria episódica"]

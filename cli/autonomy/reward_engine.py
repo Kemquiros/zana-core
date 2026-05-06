@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any
 
 
 class RewardEngine:
@@ -10,7 +10,7 @@ class RewardEngine:
     def __init__(self, token_price: float = 0.000015):
         self.token_price = token_price
 
-    def calculate_reward(self, outcome: Dict[str, Any]) -> float:
+    def calculate_reward(self, outcome: dict[str, Any]) -> float:
         # 1. Success Score (Primary objective)
         success_score = 1.0 if outcome.get("success") else -1.0
 

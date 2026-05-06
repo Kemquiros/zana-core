@@ -1,5 +1,5 @@
+
 import numpy as np
-from typing import List
 import zana_steel_core
 
 
@@ -36,7 +36,7 @@ class CognitiveKalmanFilter:
         return self.inner.get_uncertainty_score()
 
 
-def segment_episode(surprises: List[float], threshold: float = 2.0) -> bool:
+def segment_episode(surprises: list[float], threshold: float = 2.0) -> bool:
     """
     Decide if a new episode boundary should be created based on surprise.
     """

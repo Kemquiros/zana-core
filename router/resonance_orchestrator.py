@@ -1,17 +1,18 @@
 import argparse
-import sys
 import json
-import numpy as np
+import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
+
+import numpy as np
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
-from router.phi_partition import PhiPartition
-from router.context_compressor import ContextCompressor
-from router.classify import Route, ClaudeModel, classify, select_claude_model
-from router.semantic_cache import SemanticCache
 from episodic.kalman import CognitiveKalmanFilter
+from router.classify import ClaudeModel, Route, classify, select_claude_model
+from router.context_compressor import ContextCompressor
+from router.phi_partition import PhiPartition
+from router.semantic_cache import SemanticCache
 
 
 class ResonanceOrchestrator:
@@ -31,9 +32,9 @@ class ResonanceOrchestrator:
         self,
         query: str,
         query_embedding: np.ndarray,
-        context_segments: List[Dict[str, Any]] = None,
-        context_embeddings: List[np.ndarray] = None,
-    ) -> Dict[str, Any]:
+        context_segments: list[dict[str, Any]] = None,
+        context_embeddings: list[np.ndarray] = None,
+    ) -> dict[str, Any]:
         """
         Main entry point for Phase 5 Routing.
         """

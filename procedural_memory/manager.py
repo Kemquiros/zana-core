@@ -2,7 +2,7 @@ import json
 import re
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 
 class SkillRegistry:
@@ -15,7 +15,7 @@ class SkillRegistry:
         self.storage_path = Path(__file__).parent / storage_path
         self.skills = self._load()
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         if self.storage_path.exists():
             return json.loads(self.storage_path.read_text())
         return {}
@@ -24,7 +24,7 @@ class SkillRegistry:
         self.storage_path.write_text(json.dumps(self.skills, indent=2))
 
     def register_skill(
-        self, skill_id: str, name: str, steps: List[str], domain: str = "general"
+        self, skill_id: str, name: str, steps: list[str], domain: str = "general"
     ):
         if skill_id not in self.skills:
             self.skills[skill_id] = {
@@ -78,7 +78,7 @@ class SkillRegistry:
 
         self.save()
 
-    def get_best_skill(self, domain: str) -> Optional[str]:
+    def get_best_skill(self, domain: str) -> str | None:
         """Returns the skill_id with highest Q-value in a given domain."""
         domain_skills = [
             s_id for s_id, s in self.skills.items()
@@ -97,7 +97,8 @@ class SkillRegistry:
         # Sentinel: SkillActivation
         try:
             import asyncio
-            from sentinel.event_bus import get_bus, ZanaEvent, EventType
+
+            from sentinel.event_bus import EventType, ZanaEvent, get_bus
             skill = self.skills[skill_id]
             event = ZanaEvent(
                 type=EventType.SKILL_ACTIVATION,
@@ -117,7 +118,7 @@ class SkillRegistry:
         except Exception:
             pass
 
-    def get_stale_skills(self, days_inactive: int = 7, q_threshold: float = 0.5) -> List[str]:
+    def get_stale_skills(self, days_inactive: int = 7, q_threshold: float = 0.5) -> list[str]:
         """Retorna skill_ids activos que están degradados por inactividad o bajo rendimiento."""
         stale = []
         cutoff = datetime.now() - timedelta(days=days_inactive)
@@ -148,9 +149,9 @@ class SkillRegistry:
             self.skills[skill_id]["archive_reason"] = reason
             self.save()
 
-    def get_skills_summary(self) -> Dict[str, int]:
+    def get_skills_summary(self) -> dict[str, int]:
         """Retorna conteo de skills por lifecycle_state."""
-        summary: Dict[str, int] = {}
+        summary: dict[str, int] = {}
         for skill in self.skills.values():
             state = skill.get("lifecycle_state", "active")
             summary[state] = summary.get(state, 0) + 1
@@ -159,7 +160,7 @@ class SkillRegistry:
 
     # ── Z-Skill v1.0: SKILL.md I/O ────────────────────────────────────────────
 
-    def load_skill_from_skillmd(self, path: Path) -> Optional[str]:
+    def load_skill_from_skillmd(self, path: Path) -> str | None:
         """Parse a SKILL.md file (agentskills.io compatible + ZANA extensions).
 
         Expected frontmatter fields:

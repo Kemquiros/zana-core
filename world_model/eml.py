@@ -1,11 +1,11 @@
+
 import numpy as np
-from typing import Union
 import zana_steel_core
 
 
 def eml(
-    x: Union[float, np.ndarray], y: Union[float, np.ndarray]
-) -> Union[float, np.ndarray]:
+    x: float | np.ndarray, y: float | np.ndarray
+) -> float | np.ndarray:
     """
     ZANA Steel Core Wrapper for EML (Rust implementation).
     eml(x, y) = exp(x) - ln(y)
@@ -22,14 +22,14 @@ def eml_op(x: float, y: float) -> float:
     return zana_steel_core.eml_op(x, y)
 
 
-def exp_eml(x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+def exp_eml(x: float | np.ndarray) -> float | np.ndarray:
     if isinstance(x, np.ndarray):
         func = np.vectorize(zana_steel_core.exp_eml)
         return func(x)
     return zana_steel_core.exp_eml(x)
 
 
-def log_eml(x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+def log_eml(x: float | np.ndarray) -> float | np.ndarray:
     if isinstance(x, np.ndarray):
         func = np.vectorize(zana_steel_core.log_eml)
         return func(x)

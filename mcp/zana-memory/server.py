@@ -1,9 +1,8 @@
-import os
 import json
 from pathlib import Path
-from dotenv import load_dotenv
 
 import zana_steel_core
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
 # Load environment variables (from zana-core/.env)

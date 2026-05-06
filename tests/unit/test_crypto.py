@@ -1,6 +1,7 @@
 import pytest
 from autonomy.crypto import AegisCrypto
 
+
 def test_aegis_encryption_decryption():
     seed = "spirit jungle master control ritual void"
     data = b"Memory of the Empire: ZANA was born in Medellin."

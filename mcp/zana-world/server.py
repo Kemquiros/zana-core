@@ -1,13 +1,13 @@
+import json
 import os
 import sys
-import json
-import redis
-import numpy as np
 from pathlib import Path
-from typing import List
+
+import numpy as np
+import redis
 from dotenv import load_dotenv
-from neo4j import GraphDatabase
 from mcp.server.fastmcp import FastMCP
+from neo4j import GraphDatabase
 
 # Add project root to sys.path to find world_model
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -89,7 +89,7 @@ def add_entity(label: str, properties: dict) -> str:
     driver = get_driver()
 
     # Build SET clause dynamically safely
-    props_str = ", ".join([f"n.{k} = ${k}" for k in properties.keys()])
+    props_str = ", ".join([f"n.{k} = ${k}" for k in properties])
 
     cypher = f"MERGE (n:{label} {{id: $id}}) SET {props_str} RETURN n"
 
@@ -218,7 +218,7 @@ def update_session_state(state_update: dict, session_id: str = "default") -> str
 
 
 @mcp.tool()
-def symbolic_regression_eml(expression_str: str, x_values: List[float]) -> str:
+def symbolic_regression_eml(expression_str: str, x_values: list[float]) -> str:
     """
     Perform a symbolic evaluation using the EML (Exp-Minus-Log) operator.
     Currently supports simple reconstructions like exp, log.

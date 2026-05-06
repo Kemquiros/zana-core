@@ -1,4 +1,3 @@
-from typing import List, Dict, Any, Optional
 
 KORU_GENOME_V4 = {
     "test_id": "KORU-GENOME-v4.0",

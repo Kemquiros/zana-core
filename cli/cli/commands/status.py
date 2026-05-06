@@ -4,9 +4,9 @@ from dataclasses import dataclass
 from typing import Literal
 
 import httpx
-from rich.table import Table
 from rich.live import Live
 from rich.panel import Panel
+from rich.table import Table
 
 from cli.tui.theme import console
 

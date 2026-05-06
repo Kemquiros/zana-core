@@ -1,7 +1,6 @@
-import json
-from dataclasses import dataclass, asdict, field
-from typing import List
 import hashlib
+import json
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass
@@ -36,7 +35,7 @@ class ZanaDNA:
 
     # 🧬 Metadata
     author: str = "ZANA_ORIGIN"
-    tags: List[str] = field(default_factory=lambda: ["AGI", "Hive", "Resonance"])
+    tags: list[str] = field(default_factory=lambda: ["AGI", "Hive", "Resonance"])
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)

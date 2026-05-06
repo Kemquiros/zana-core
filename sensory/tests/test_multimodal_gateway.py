@@ -1,5 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
+
 from sensory.multimodal_gateway import app
 
 client = TestClient(app)

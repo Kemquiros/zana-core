@@ -22,7 +22,7 @@ _EXCLUDED = frozenset({"--help", "--version", "help", "completion"})
 def _sync_emit(event_type_value: str, payload: dict[str, Any]) -> None:
     """Fire a sentinel event from a synchronous context (best-effort, never raises)."""
     try:
-        from sentinel.event_bus import get_bus, ZanaEvent, EventType
+        from sentinel.event_bus import EventType, ZanaEvent, get_bus
         event = ZanaEvent(
             type=EventType(event_type_value),
             payload=payload,

@@ -2,14 +2,15 @@ import asyncio
 import json
 import os
 import shlex
+
 import typer
 
 from cli.tui.theme import console
 
 try:
     from prompt_toolkit import PromptSession
-    from prompt_toolkit.history import FileHistory
     from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+    from prompt_toolkit.history import FileHistory
     from prompt_toolkit.styles import Style
 except ImportError:
     PromptSession = None

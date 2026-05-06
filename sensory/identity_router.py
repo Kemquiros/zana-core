@@ -6,17 +6,15 @@ from __future__ import annotations
 
 import logging
 import os
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
 try:
-    from jose import jwt, jwk
+    from jose import jwk, jwt
     from passlib.context import CryptContext
 except ImportError:
     jwt = None

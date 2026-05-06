@@ -18,9 +18,9 @@ import time
 from pathlib import Path
 
 import httpx
+from rich import box
 from rich.panel import Panel
 from rich.table import Table
-from rich import box
 
 from cli.tui.theme import console
 

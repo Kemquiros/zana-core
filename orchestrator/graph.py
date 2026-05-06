@@ -1,12 +1,12 @@
 import logging
 import os
 from datetime import datetime
-from typing import Annotated, List, TypedDict
 from pathlib import Path
-from dotenv import load_dotenv
+from typing import Annotated, TypedDict
 
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langgraph.graph import StateGraph, END
+from dotenv import load_dotenv
+from langchain_core.messages import BaseMessage, HumanMessage
+from langgraph.graph import END, StateGraph
 
 from orchestrator.budget import BUDGET
 from orchestrator.compressor import ContextCompressor
@@ -27,11 +27,11 @@ EPISODIC_API_URL = os.getenv("EPISODIC_API_URL", "http://localhost:8002")
 
 # --- State Definition ---
 class AgentState(TypedDict):
-    messages: Annotated[List[BaseMessage], "The conversation history"]
+    messages: Annotated[list[BaseMessage], "The conversation history"]
     context: str
     task: str
-    plan: List[str]
-    observations: List[str]
+    plan: list[str]
+    observations: list[str]
     iterations: int
     task_completed: bool
     budget_exhausted: bool
@@ -69,7 +69,6 @@ def executor(state: AgentState):
     logger.info(f"⚙️ Executing Step: {current_step}")
     
     # Integration with KoruOS Nervous System (Forge)
-    import requests
     try:
         packet = {
             "id": f"trace-{state['iterations']}",

@@ -1,24 +1,23 @@
+import json
 import sys
 import time
-import json
 from pathlib import Path
 
-import zana_steel_core
 import click
+import zana_steel_core
+from chunker import chunk_file
+from config import (
+    EMBED_MODEL,
+    MAX_CHUNK_CHARS,
+    MEMORY_INDEX_PATH,
+    MIN_CHUNK_CHARS,
+    VAULT_PATH,
+)
 from rich.console import Console
 from sentence_transformers import SentenceTransformer
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
-from chunker import chunk_file
-from config import (
-    MEMORY_INDEX_PATH,
-    COLLECTION_NAME,
-    EMBED_MODEL,
-    MAX_CHUNK_CHARS,
-    MIN_CHUNK_CHARS,
-    VAULT_PATH,
-)
 from main import is_ignored, split_long_chunk
 
 console = Console()

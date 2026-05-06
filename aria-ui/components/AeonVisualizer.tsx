@@ -31,8 +31,13 @@ export default function AeonVisualizer() {
           </h3>
           <p className="text-slate-500 text-sm font-mono mt-1 tracking-tighter">ID: AEON_GENESIS_001</p>
         </div>
-        <div className="px-4 py-1.5 bg-resonance/10 text-resonance rounded-full text-xs font-bold border border-resonance/20">
-          AION PROTOCOL v1.0
+        <div className="flex flex-col items-end gap-2">
+          <div className="px-4 py-1.5 bg-resonance/10 text-resonance rounded-full text-xs font-bold border border-resonance/20">
+            AION PROTOCOL v1.0
+          </div>
+          <div className="px-4 py-1 bg-innovation/10 text-innovation rounded-full text-[10px] font-bold border border-innovation/20">
+            FILTRO KALMAN: HÍBRIDO (PRECISIÓN + ADAPTABILIDAD)
+          </div>
         </div>
       </div>
 

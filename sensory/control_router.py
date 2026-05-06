@@ -14,9 +14,9 @@ import logging
 import os
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from fastapi import APIRouter
@@ -48,7 +48,7 @@ def record_shadow_event(event_type: str, payload: dict | None = None) -> None:
     _shadow_state["events_captured"] += 1
     _shadow_state["last_event"] = {
         "type": event_type,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         **(payload or {}),
     }
     logger.debug(
@@ -62,7 +62,7 @@ def record_shadow_event(event_type: str, payload: dict | None = None) -> None:
 @router.post("/shadow/enable", summary="Activate Shadow Observer")
 async def shadow_enable():
     _shadow_state["active"] = True
-    _shadow_state["started_at"] = datetime.now(timezone.utc).isoformat()
+    _shadow_state["started_at"] = datetime.now(UTC).isoformat()
     logger.info("👁️  [SHADOW] Observer activated")
     return {"active": True, "started_at": _shadow_state["started_at"]}
 
@@ -170,7 +170,7 @@ class AssimilateRequest(BaseModel):
 
 class SwarmQueryRequest(BaseModel):
     fact_key: str
-    context: Optional[dict] = None
+    context: dict | None = None
 
 
 def _spawn_warriors(n: int) -> list[dict]:
@@ -249,7 +249,7 @@ async def swarm_init(req: SwarmInitRequest):
             "running": True,
             "warriors": fleet,
             "generations": 0,
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
         }
     )
 
@@ -316,7 +316,7 @@ async def swarm_assimilate(req: AssimilateRequest):
     Passes incoming rules through LLMGuard validation before assimilation.
     Validated rules are injected into the in-process reasoning engine.
     """
-    from sensory.reasoning_router import _engine, _Rule, _Condition
+    from sensory.reasoning_router import _Condition, _engine, _Rule
 
     assimilated = 0
     for rd in req.rules:

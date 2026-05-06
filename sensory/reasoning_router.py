@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
@@ -201,7 +201,7 @@ class _PyReasoningEngine:
                         "rule": rule.name,
                         "action": ", ".join(rule.effects),
                         "confidence": rule.confidence,
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                     }
                 )
                 all_effects.extend(rule.effects)
@@ -213,7 +213,7 @@ class _PyReasoningEngine:
             "effects": list(set(all_effects)),
             "trace": trace,
             "rules_evaluated": len(rules),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 

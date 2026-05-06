@@ -20,9 +20,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Coroutine, Any
+from typing import Any
 
 logger = logging.getLogger("zana.scheduler")
 
@@ -54,7 +54,7 @@ async def _run_mine() -> None:
         _emit_sentinel("CivicLedgerEntry", {
             "job": "mine_trajectories",
             "result": result,
-            "ran_at": datetime.now(timezone.utc).isoformat(),
+            "ran_at": datetime.now(UTC).isoformat(),
         })
     except Exception as e:
         logger.warning("[Scheduler] mine_trajectories failed: %s", e)
@@ -79,7 +79,7 @@ async def _run_curate() -> None:
         _emit_sentinel("CivicLedgerEntry", {
             "job": "review_cycle",
             "result": result,
-            "ran_at": datetime.now(timezone.utc).isoformat(),
+            "ran_at": datetime.now(UTC).isoformat(),
         })
     except Exception as e:
         logger.warning("[Scheduler] review_cycle failed: %s", e)
@@ -154,7 +154,7 @@ def scheduler_status() -> dict:
 def _emit_sentinel(event_type: str, payload: dict) -> None:
     """Fire a Sentinel event (best-effort)."""
     try:
-        from sentinel.event_bus import get_bus, ZanaEvent, EventType
+        from sentinel.event_bus import EventType, ZanaEvent, get_bus
         asyncio.create_task(
             get_bus().emit(
                 ZanaEvent(type=EventType(event_type), payload=payload, session_id="scheduler"),

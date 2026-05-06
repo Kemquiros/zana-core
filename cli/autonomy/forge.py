@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-from typing import List
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -19,7 +18,7 @@ class ZanaForge:
         self.forge_dir = Path(__file__).parent.parent / "rust_core/forge"
         self.forge_dir.mkdir(parents=True, exist_ok=True)
 
-    def scan_for_needs(self) -> List[str]:
+    def scan_for_needs(self) -> list[str]:
         """Scans procedural memory for skills flagged as NEEDS_REFACTOR."""
         needs = [
             s_id

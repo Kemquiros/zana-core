@@ -1,9 +1,9 @@
-import pytest
-from fastapi.testclient import TestClient
-from fastapi import FastAPI
-
 import sys
 from pathlib import Path
+
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 sys.path.append(str(Path(__file__).parent.parent))
 
 from projects_router import router

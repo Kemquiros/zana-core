@@ -1,9 +1,10 @@
-import sys
 import json
-import numpy as np
+import sys
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
+
+import numpy as np
 
 # Add project root to sys.path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -31,7 +32,7 @@ class AutonomousOrchestrator:
 
     def run_autonomous_step(
         self, context_embedding: np.ndarray, task_description: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         print(f"--- 🔱 ZANA AUTONOMOUS STEP: {task_description} ---")
 
         # 1. Consult World Model (Neo4j simulation placeholder)

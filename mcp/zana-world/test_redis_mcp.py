@@ -3,7 +3,7 @@ from pathlib import Path
 
 # Fix python path
 sys.path.append(str(Path(__file__).parent))
-from server import update_session_state, get_session_state
+from server import get_session_state, update_session_state
 
 print("1. Updating session state...")
 print(

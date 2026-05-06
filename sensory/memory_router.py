@@ -16,11 +16,9 @@ from __future__ import annotations
 import logging
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
-import httpx
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
@@ -85,8 +83,8 @@ async def _sqlite_ensure_schema() -> None:
 
 async def _sqlite_fetch(
     limit: int,
-    session_id: Optional[str] = None,
-    project_id: Optional[str] = None,
+    session_id: str | None = None,
+    project_id: str | None = None,
 ) -> list[dict]:
     await _sqlite_ensure_schema()
     try:
@@ -131,7 +129,7 @@ async def _sqlite_insert(rec) -> bool:
                     rec.modality,
                     rec.emotion,
                     rec.kalman_surprise,
-                    datetime.now(timezone.utc).isoformat(),
+                    datetime.now(UTC).isoformat(),
                 ),
             )
             await db.commit()
@@ -141,7 +139,7 @@ async def _sqlite_insert(rec) -> bool:
         return False
 
 
-async def _sqlite_count() -> Optional[int]:
+async def _sqlite_count() -> int | None:
     await _sqlite_ensure_schema()
     try:
         import aiosqlite
@@ -210,12 +208,12 @@ async def _pg_execute(query: str, *args) -> bool:
 
 class EpisodicRecord(BaseModel):
     session_id: str
-    project_id: Optional[str] = None
+    project_id: str | None = None
     role: str  # "user" | "aeon"
     content: str
     modality: str = "text"
-    emotion: Optional[str] = None
-    kalman_surprise: Optional[float] = None
+    emotion: str | None = None
+    kalman_surprise: float | None = None
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
@@ -224,8 +222,8 @@ class EpisodicRecord(BaseModel):
 @router.get("/episodic", summary="Last N episodic memories")
 async def get_episodic(
     limit: int = Query(default=10, ge=1, le=200, description="Number of records"),
-    session_id: Optional[str] = Query(default=None, description="Filter by session"),
-    project_id: Optional[str] = Query(default=None, description="Filter by project"),
+    session_id: str | None = Query(default=None, description="Filter by session"),
+    project_id: str | None = Query(default=None, description="Filter by project"),
 ):
     """Returns the most recent episodic memory records. Backend: SQLite (default) or PostgreSQL."""
     if EPISODIC_BACKEND == "sqlite":
@@ -269,17 +267,18 @@ async def store_episodic(rec: EpisodicRecord):
         rec.modality,
         rec.emotion,
         rec.kalman_surprise,
-        datetime.now(timezone.utc),
+        datetime.now(UTC),
     )
     _emit_memory_write(rec, ok, "postgres")
     return {"stored": ok, "session_id": rec.session_id, "backend": "postgres"}
 
 
-def _emit_memory_write(rec: "EpisodicRecord", success: bool, backend: str) -> None:
+def _emit_memory_write(rec: EpisodicRecord, success: bool, backend: str) -> None:
     """Fire MEMORY_WRITE sentinel event (best-effort, never raises)."""
     try:
-        from sentinel.event_bus import get_bus, ZanaEvent, EventType
         import asyncio
+
+        from sentinel.event_bus import EventType, ZanaEvent, get_bus
         event = ZanaEvent(
             type=EventType.MEMORY_WRITE,
             payload={
@@ -301,7 +300,7 @@ def _emit_memory_write(rec: "EpisodicRecord", success: bool, backend: str) -> No
 @router.get("/graph", summary="Knowledge graph — topics + entities extracted from episodic memory")
 async def memory_graph(
     limit: int = Query(default=150, ge=10, le=500, description="Records to analyse"),
-    project_id: Optional[str] = Query(default=None),
+    project_id: str | None = Query(default=None),
     top_topics: int = Query(default=24, ge=5, le=60, description="Max topic nodes"),
 ):
     """
@@ -324,14 +323,14 @@ async def memory_graph(
         "also","into","than","more","very","just","all","one","any","some","our",
         "its","out","has","had","how","who","you","their","there","these","those",
         "should","would","could","about","after","before","other","each","over",
-        "only","even","both","such","much","many","still","also","well","back",
+        "only","even","both","such","much","many","still","well","back",
         "being","doing","going","using","used","make","made","need","like","want",
         "here","where","while","now","get","got","let","may","per","set","use",
         # Spanish
         "que","una","los","las","del","por","con","para","como","pero","este",
-        "esta","esto","son","ser","fue","una","hay","sus","sin","más","sobre",
+        "esta","esto","son","ser","fue","hay","sus","sin","más","sobre",
         "entre","así","todo","todos","cada","cuando","porque","también","puede",
-        "hace","han","tiene","tienen","está","están","era","una","hacia","desde",
+        "hace","han","tiene","tienen","está","están","era","hacia","desde",
         "hasta","aunque","siempre","nunca","mismo","misma","otro","otra","bien",
         "gran","solo","sólo","pues","donde","menos","algo","nadie","nada",
     }
@@ -344,7 +343,7 @@ async def memory_graph(
                FROM episodic_memory
                WHERE 1=1 {filter}
                ORDER BY created_at DESC LIMIT $1""".replace(
-                "{filter}", f"AND project_id = $2" if project_id else ""
+                "{filter}", "AND project_id = $2" if project_id else ""
             ),
             *(([limit, project_id]) if project_id else [limit]),
         )
@@ -467,5 +466,5 @@ async def memory_stats():
                 "note": "aeons/registry.json + skills/",
             },
         },
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

@@ -16,7 +16,6 @@ import asyncio
 import io
 import logging
 import os
-from typing import Optional
 
 logger = logging.getLogger("zana.tts")
 
@@ -38,7 +37,7 @@ class TTSEngine:
     """
 
     def __init__(self) -> None:
-        self._backend: Optional[str] = None
+        self._backend: str | None = None
 
     def _detect_backend(self) -> str:
         if self._backend:
@@ -62,7 +61,7 @@ class TTSEngine:
 
     # ── Public API ───────────────────────────────────────────────────────────
 
-    def synthesize(self, text: str, voice: Optional[str] = None) -> bytes:
+    def synthesize(self, text: str, voice: str | None = None) -> bytes:
         """
         Synthesizes text to MP3 audio. Synchronous (calls async loop internally).
         Returns empty bytes if TTS is not available.
@@ -84,7 +83,7 @@ class TTSEngine:
             logger.error("❌ [TTS] Synthesis error: %s", e)
             return self._silent_mp3()
 
-    async def synthesize_async(self, text: str, voice: Optional[str] = None) -> bytes:
+    async def synthesize_async(self, text: str, voice: str | None = None) -> bytes:
         """Async version for use within FastAPI handlers."""
         if not text or not text.strip():
             return self._silent_mp3()
@@ -116,8 +115,8 @@ class TTSEngine:
         engine = pyttsx3.init()
         io.BytesIO()
         # pyttsx3 has no native buffer output — save to temp file
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             tmp_path = tmp.name

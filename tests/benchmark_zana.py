@@ -27,9 +27,8 @@ import re
 import sys
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 
@@ -703,7 +702,7 @@ def bench_a2a() -> PillarResult:
     ]
     re.compile("|".join(INJECTION_PATTERNS), re.IGNORECASE)
 
-    def resolve_skill_local(text: str, meta: Optional[dict] = None) -> str:
+    def resolve_skill_local(text: str, meta: dict | None = None) -> str:
         if meta and "skill_id" in meta:
             return meta["skill_id"]
         lo = text.lower()
@@ -991,8 +990,9 @@ def bench_armor() -> PillarResult:
 
     # ── 7.3 Armor latency (Python fallback must be < 1ms) ─────────
     try:
-        from sensory.armor_middleware import inspect_input
         import time
+
+        from sensory.armor_middleware import inspect_input
 
         t0 = time.perf_counter()
         for _ in range(1000):
@@ -1039,7 +1039,7 @@ def bench_armor() -> PillarResult:
 # ═══════════════════════════════════════════════════════════════
 
 
-def load_last_run() -> Optional[dict]:
+def load_last_run() -> dict | None:
     if not HISTORY_FILE.exists():
         return None
     lines = HISTORY_FILE.read_text().strip().splitlines()
@@ -1051,7 +1051,7 @@ def save_run(results: dict) -> None:
         f.write(json.dumps(results) + "\n")
 
 
-def print_delta(current: float, previous: Optional[float], label: str) -> str:
+def print_delta(current: float, previous: float | None, label: str) -> str:
     if previous is None:
         return ""
     delta = current - previous
@@ -1065,7 +1065,7 @@ def main():
 
     print("\n" + "═" * 62)
     print("  X A N A   B E N C H M A R K   S U I T E   v1.0")
-    print(f"  {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"  {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}")
     print("═" * 62)
 
     pillars = [
@@ -1090,7 +1090,7 @@ def main():
 
     # Build results record
     run_record = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "xfi": round(xfi, 2),
         "pillars": {
             pl.id: {"score": round(pl.score, 2), "name": pl.name} for pl in pillars

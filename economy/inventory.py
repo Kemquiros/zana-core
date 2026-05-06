@@ -1,5 +1,7 @@
 import datetime
+
 from economy.models import SemanticItem
+
 
 class InventoryService:
     def __init__(self, decay_rate: float = 1.0):

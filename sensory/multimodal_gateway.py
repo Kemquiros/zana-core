@@ -11,13 +11,21 @@ import logging
 import os
 import sys
 from contextlib import asynccontextmanager
+from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 import httpx
 import numpy as np
-from datetime import datetime
-from fastapi import FastAPI, File, Form, UploadFile, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import (
+    BackgroundTasks,
+    FastAPI,
+    File,
+    Form,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -66,14 +74,16 @@ sys.path.insert(0, str(root))
 sys.path.insert(0, str(root / "cli"))
 sys.path.insert(0, str(root / "sensory"))
 
+from armor_middleware import backend as armor_backend
+from armor_middleware import inspect_input
 from audio_processor import AudioProcessor
+from autonomy.resonance_engine import ResonanceEngine
 from local_llm import get_local_llm
 from perception_event import PerceptionEvent, VisionFeatures
 from tts_engine import TTSEngine
 from vision_processor import VisionProcessor
-from armor_middleware import inspect_input, inspect_output, backend as armor_backend
+
 from swarm.apex.orchestrator import ApexOrchestrator
-from autonomy.resonance_engine import ResonanceEngine
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(name)s  %(message)s")
 logger = logging.getLogger("zana.gateway")
@@ -82,7 +92,9 @@ logger = logging.getLogger("zana.gateway")
 try:
     import sys as _sys
     _sys.path.insert(0, str(root))
-    from sentinel.event_bus import get_bus as _get_sentinel_bus, ZanaEvent, EventType as _ET
+    from sentinel.event_bus import EventType as _ET
+    from sentinel.event_bus import ZanaEvent
+    from sentinel.event_bus import get_bus as _get_sentinel_bus
     _sentinel_available = True
 except Exception as _e:
     logger.warning("Sentinel Event Bus not available: %s", _e)
@@ -136,10 +148,10 @@ app.add_middleware(
 resonance_engine = ResonanceEngine()
 
 class RitualRequest(BaseModel):
-    answers: Dict[str, Any]
-    name: Optional[str] = None
-    visual_genes: Optional[Dict[str, Any]] = None
-    is_master: Optional[bool] = False
+    answers: dict[str, Any]
+    name: str | None = None
+    visual_genes: dict[str, Any] | None = None
+    is_master: bool | None = False
 
 @app.post("/resonance/forge")
 async def forge_identity(request: RitualRequest):
@@ -191,14 +203,14 @@ async def update_virtual_space(req: UpdateSpaceRequest):
 
 # ─── Power-user routers (v2.1 / v2.2) ─────────────────────────────────────────
 try:
-    from sensory.reasoning_router import router as _reason_router
-    from sensory.memory_router import router as _memory_router
     from sensory.control_router import router as _control_router
-    from sensory.projects_router import router as _projects_router
     from sensory.identity_router import router as _identity_router
+    from sensory.memory_router import router as _memory_router
+    from sensory.projects_router import router as _projects_router
+    from sensory.reasoning_router import router as _reason_router
     from sensory.search_router import router as _search_router
-    from sensory.wisdom_router import router as _wisdom_router
     from sensory.sentinel_router import router as _sentinel_router
+    from sensory.wisdom_router import router as _wisdom_router
 
     app.include_router(_reason_router)
     app.include_router(_memory_router)
@@ -250,7 +262,7 @@ class _NumpyKalmanGate:
         return surprise
 
 
-_kalman_registry: Dict[str, Any] = {}
+_kalman_registry: dict[str, Any] = {}
 
 def _get_kalman_filter(project_id: str):
     """Retrieves or creates a Kalman filter specific to a project context."""
@@ -415,13 +427,13 @@ def _build_aeon_response(event: PerceptionEvent, cortex_context: str) -> str:
 
 class TextSenseRequest(BaseModel):
     text: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
     respond_with_audio: bool = False
 
 
 class SpeakRequest(BaseModel):
     text: str
-    voice: Optional[str] = None
+    voice: str | None = None
 
 
 # ─── Endpoints ────────────────────────────────────────────────────────────────
@@ -435,7 +447,7 @@ apex_orchestrator = ApexOrchestrator()
 
 class OrchestratorRequest(BaseModel):
     query: str
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 @app.post(
@@ -461,9 +473,9 @@ async def apex_orchestrate(req: OrchestratorRequest):
 @app.post("/sense/audio", response_model=dict, summary="Audio → STT + TTS response")
 async def sense_audio(
     audio: UploadFile = File(..., description="Archivo de audio WAV/MP3/OGG/FLAC"),
-    session_id: Optional[str] = Form(None),
+    session_id: str | None = Form(None),
     respond_with_audio: bool = Form(True),
-    context_hint: Optional[str] = Form(None),
+    context_hint: str | None = Form(None),
 ):
     """
     Pipeline:
@@ -519,8 +531,8 @@ async def sense_vision(
     media: UploadFile = File(
         ..., description="Imagen (JPG/PNG/WebP) o video (MP4/WebM)"
     ),
-    session_id: Optional[str] = Form(None),
-    context_hint: Optional[str] = Form(None),
+    session_id: str | None = Form(None),
+    context_hint: str | None = Form(None),
     respond_with_audio: bool = Form(False),
 ):
     """
@@ -605,9 +617,9 @@ async def sense_text(req: TextSenseRequest):
     "/sense/multimodal", response_model=dict, summary="Audio + Imagen simultáneos"
 )
 async def sense_multimodal(
-    audio: Optional[UploadFile] = File(None),
-    image: Optional[UploadFile] = File(None),
-    session_id: Optional[str] = Form(None),
+    audio: UploadFile | None = File(None),
+    image: UploadFile | None = File(None),
+    session_id: str | None = Form(None),
     respond_with_audio: bool = Form(True),
 ):
     """
@@ -823,8 +835,8 @@ async def get_sync_status():
 async def trigger_sync(background_tasks: BackgroundTasks):
     """Trigger a manual memory sync in the background."""
     from autonomy.crypto import AegisCrypto
-    from autonomy.sync_engine import SyncEngine
     from autonomy.storage_adapters import S3StorageAdapter
+    from autonomy.sync_engine import SyncEngine
     
     seed = os.getenv("ZANA_SYNC_SEED")
     if not seed:

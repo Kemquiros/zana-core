@@ -6,8 +6,9 @@ from pathlib import Path
 import httpx
 import typer
 
-from cli.tui.theme import console
 from cli.tui.onboarding import ensure_env_configured
+from cli.tui.theme import console
+
 
 # Smart STACK_ROOT resolution
 def _resolve_stack_root() -> Path:
@@ -283,7 +284,7 @@ def _ensure_steel_core_built(root: Path) -> None:
     """Ensures that the .so files (The Steel Core) exist in the root."""
     needed = ["zana_steel_core.so", "zana_audio_dsp.so", "zana_armor.so"]
 
-    console.print(f"\n[bold cyan]🔍 VERIFICANDO THE STEEL CORE...[/bold cyan]")
+    console.print("\n[bold cyan]🔍 VERIFICANDO THE STEEL CORE...[/bold cyan]")
     console.print(f"[muted]Directorio base: {root}[/muted]")
 
     missing = []

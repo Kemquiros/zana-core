@@ -1,9 +1,9 @@
-import os
-import time
 import ast
 import re
+import time
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any
+
 
 class MapBridge:
     """
@@ -13,7 +13,7 @@ class MapBridge:
     def __init__(self, vault_path: str):
         self.vault_path = Path(vault_path)
 
-    def generate_params(self) -> Dict[str, Any]:
+    def generate_params(self) -> dict[str, Any]:
         """
         Scans the vault and aggregates signals into map parameters.
         """
