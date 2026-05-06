@@ -35,13 +35,18 @@ EPISODIC_DB = AEON_HOME / "episodic.db"
 # ── Archetype ─────────────────────────────────────────────────────────────────
 
 class AeonArchetype(str, Enum):
-    LLAMA   = "llama"    # Fuego / Visionary
-    ORACULO = "oraculo"  # Geometría sagrada / Analytical
-    FORJA   = "forja"    # Mecánico-orgánico / Builder
-    MAREA   = "marea"    # Fluido / Connector
-    RAIZ    = "raiz"     # Árbol fractal / Guardian
-    VACIO   = "vacio"    # Cosmos invertido / Explorer
-    UNKNOWN = "unknown"  # Pre-resonance
+    KETER    = "keter"
+    BINAH    = "binah"
+    CHOKHMAH = "chokhmah"
+    CHESED   = "chesed"
+    GEVURAH  = "gevurah"
+    TIFERET  = "tiferet"
+    NETZACH  = "netzach"
+    HOD      = "hod"
+    YESOD    = "yesod"
+    MALKHUT  = "malkhut"
+    DAAT     = "daat"
+    UNKNOWN  = "unknown"
 
 
 class AeonStage(str, Enum):
