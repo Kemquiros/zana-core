@@ -529,6 +529,7 @@ from cli.commands.world import app as world_typer
 
 world_app.add_typer(world_typer, name="")
 app.add_typer(world_app, name="world")
+app.add_typer(satellite_app, name="satellite")
 
 sentinel_app = typer.Typer(
     name="sentinel",
