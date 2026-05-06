@@ -50,6 +50,7 @@ def _sync_user_env_to_stack(stack_root: Path) -> None:
         "OLLAMA_BASE_URL",
         "ANTHROPIC_API_KEY",
         "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
         "GOOGLE_API_KEY",
         "GROQ_API_KEY",
         "ZANA_PRIMARY_PROVIDER",

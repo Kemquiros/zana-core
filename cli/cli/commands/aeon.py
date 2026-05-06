@@ -207,19 +207,122 @@ def _match_rules(ctx: str, rules: dict) -> tuple[str, str]:
     return rules.get("default", "herald"), "General task — conversational Aeon."
 
 
-def cmd_sigil(duration: float | None = None) -> None:
-    from cli.tui.aeon_sigil import AeonProfile, AeonState, animate
+def cmd_habitat(fps: int = 4) -> None:
+    from cli.tui.aeon_dna import AeonProfile
+    from cli.tui.aeon_habitat import run_habitat
     profile = AeonProfile.load()
+    run_habitat(profile, fps=fps)
+
+
+def cmd_dna() -> None:
+    from cli.tui.aeon_dna import AeonProfile
+    from rich.table import Table
+    from rich import box as rbox
+
+    profile = AeonProfile.load()
+    dna = profile.ensure_dna()
     pc = profile.primary_color
-    console.print(f"\n[{pc}]◈ {profile.name} · {profile.stage_label} · {profile.archetype_name}[/{pc}]\n")
-    animate(profile, state=AeonState.IDLE, duration=duration)
+    ac = profile.accent_color
+
+    table = Table(
+        show_header=True, header_style="bold white",
+        box=rbox.SIMPLE_HEAD, padding=(0, 1),
+        title=f"[{pc}]◈ {profile.name} — DNA Completo (21 genes)[/{pc}]",
+    )
+    table.add_column("Capa", style="dim", width=14)
+    table.add_column("Gen", style="bold white", width=22)
+    table.add_column("Valor", style=ac, width=8)
+    table.add_column("Significado", style="dim")
+
+    rows = [
+        # Phenotype
+        ("Fenotipo", "g0 branch_angle",   f"{dna.g0_branch_angle:.1f}°", "Ángulo de bifurcación — forma del cuerpo"),
+        ("Fenotipo", "g1 depth",          str(dna.g1_depth),             "Recursión máxima — complejidad visible"),
+        ("Fenotipo", "g2 trunk_length",   f"{dna.g2_trunk_length:.1f}",  "Longitud inicial del tronco"),
+        ("Fenotipo", "g3 attenuation",    f"{dna.g3_attenuation:.2f}",   "Decaimiento de longitud por nivel"),
+        ("Fenotipo", "g4 symmetry",       ["bilateral","espiral","radial","caótico"][dna.g4_symmetry], "Tipo de simetría"),
+        ("Fenotipo", "g5 fork",           str(dna.g5_fork),              "Sub-ramas por nodo (2 o 3)"),
+        ("Fenotipo", "g6 bend_drift",     f"{dna.g6_bend_drift:+.1f}°",  "Curvatura progresiva por nivel"),
+        ("Fenotipo", "g7 terminal_form",  str(dna.g7_terminal_form),     "Tipo de nodo terminal"),
+        ("Fenotipo", "g8 armor_density",  f"{dna.g8_armor_density:.2f}", "Densidad de aura y armadura"),
+        # Cognitive
+        ("Cognitivo", "g9  curiosity",     f"{dna.g9_curiosity:.1f}/9",    "Exploración de conexiones nuevas"),
+        ("Cognitivo", "g10 tenacity",      f"{dna.g10_tenacity:.1f}/9",    "Profundidad de análisis"),
+        ("Cognitivo", "g11 empathy",       f"{dna.g11_empathy:.1f}/9",     "Adaptación comunicativa"),
+        ("Cognitivo", "g12 creativity",    f"{dna.g12_creativity:.1f}/9",  "Preferencia por lo novel"),
+        ("Cognitivo", "g13 precision",     f"{dna.g13_precision:.1f}/9",   "Foco en detalle vs panorama"),
+        ("Cognitivo", "g14 resilience",    f"{dna.g14_resilience:.1f}/9",  "Recuperación ante vacíos"),
+        ("Cognitivo", "g15 sovereignty",   f"{dna.g15_sovereignty:.1f}/9", "Preferencia local-first"),
+        # Evolutionary
+        ("Evolutivo", "g16 growth_rate",      f"{dna.g16_growth_rate:.2f}×",  "Velocidad de evolución de stage"),
+        ("Evolutivo", "g17 memory_affinity",  f"{dna.g17_memory_affinity:.2f}","Episódica(0) ↔ Semántica(1)"),
+        ("Evolutivo", "g18 skill_absorption", f"{dna.g18_skill_absorption:.2f}","Integración de skills"),
+        ("Evolutivo", "g19 ledger_depth",     str(dna.g19_ledger_depth),       "Profundidad del Civic Ledger"),
+        ("Evolutivo", "g20 social_vector",    f"{dna.g20_social_vector:.2f}",  "Aislamiento(0) ↔ Z-Sync(1)"),
+    ]
+
+    last_layer = ""
+    for layer, gene, val, desc in rows:
+        show_layer = layer if layer != last_layer else ""
+        table.add_row(show_layer, gene, val, desc)
+        last_layer = layer
+
+    console.print()
+    console.print(table)
+    console.print(
+        f"\n  [{ac}]Entropía Shannon:[/{ac}] [white]{dna.entropy:.4f}[/white]   "
+        f"[{ac}]Generación:[/{ac}] [white]{dna.generation}[/white]   "
+        f"[{ac}]Birth hash:[/{ac}] [white]{dna.birth_hash}[/white]"
+    )
+    console.print(f"  [{pc}]{profile.cognitive_summary}[/{pc}]\n")
+
+
+def cmd_sigil(duration: float | None = None) -> None:
+    from cli.tui.aeon_dna import AeonProfile
+    from cli.tui.aeon_habitat import run_habitat
+    profile = AeonProfile.load()
+    run_habitat(profile, fps=3)
 
 
 def cmd_card(export: bool = False) -> None:
-    from cli.tui.aeon_sigil import AeonProfile, render_card
+    from cli.tui.aeon_dna import AeonProfile
+    from cli.tui.aeon_biomorph import render_biomorph, GRID_W
+    from rich.panel import Panel as RPanel
+
     profile = AeonProfile.load()
-    card_text = render_card(profile)
-    console.print(f"\n[{profile.primary_color}]{card_text}[/{profile.primary_color}]")
+    pc = profile.primary_color
+    ac = profile.accent_color
+    dna = profile.ensure_dna()
+
+    # Render biomorph art (frame 0)
+    bio_lines = render_biomorph(profile, frame=0)
+    max_w = max(len(l) for l in bio_lines)
+    border = "═" * (max_w + 4)
+
+    lines = [
+        f"╔{border}╗",
+        f"║  {'ZANA AEON':^{max_w}}  ║",
+        f"╠{border}╣",
+    ]
+    for l in bio_lines:
+        lines.append(f"║  {l:<{max_w}}  ║")
+    lines += [
+        f"╠{border}╣",
+        f"║  {'Nombre:  ' + profile.name:<{max_w}}  ║",
+        f"║  {'Arquetipo: ' + profile.archetype_name:<{max_w}}  ║",
+        f"║  {'Etapa:   ' + profile.stage_label:<{max_w}}  ║",
+        f"║  {'Días:    ' + str(profile.days_alive):<{max_w}}  ║",
+        f"║  {'Memorias: ' + str(profile.memory_count):<{max_w}}  ║",
+        f"║  {'DNA: ' + dna.birth_hash + '  H=' + str(dna.entropy):<{max_w}}  ║",
+        f"╚{border}╝",
+        f"  ⟡ {profile.archetype_tagline} ⟡",
+        f"  {profile.cognitive_summary}",
+        f"  pip install zana  ·  zana.vecanova.com",
+    ]
+    card_text = "\n".join(lines)
+
+    console.print(f"\n[{pc}]{card_text}[/{pc}]")
+
     if export:
         card_path = Path.home() / ".zana" / "aeon_card.txt"
         card_path.write_text(card_text)
@@ -228,19 +331,20 @@ def cmd_card(export: bool = False) -> None:
 
 
 def cmd_resonance() -> None:
-    from cli.tui.aeon_sigil import AeonProfile
+    from cli.tui.aeon_dna import AeonProfile, derive_dna
     from cli.tui.resonance import run_resonance_test
-    import json as _json
 
     profile = AeonProfile.load()
     archetype = run_resonance_test(profile)
     profile.archetype = archetype
+    # Re-derive DNA with new archetype (constraints change)
+    profile.dna = derive_dna(profile.name, profile.init_at, archetype)
     profile.save()
     console.print(
-        f"\n[success]✓[/success] Arquetipo [bold]{profile.archetype_name}[/bold] "
-        f"guardado en [accent]~/.zana/aeon_profile.json[/accent]"
+        f"\n[success]✓[/success] Arquetipo [bold]{profile.archetype_name}[/bold] + DNA derivado "
+        f"— guardados en [accent]~/.zana/[/accent]"
     )
-    console.print("[muted]  Usa [accent]zana aeon sigil[/accent] para ver tu Aeón vivo.[/muted]\n")
+    console.print("[muted]  Usa [accent]zana aeon habitat[/accent] para ver tu Aeón vivo.[/muted]\n")
 
 
 def cmd_status() -> None:

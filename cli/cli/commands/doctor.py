@@ -59,40 +59,54 @@ def _cmd_version(cmd: list[str]) -> str | None:
 
 def _env_check() -> list[tuple[str, str, str]]:
     env_file = Path(".env")
-    required = ["ANTHROPIC_API_KEY"]
-    optional = ["OPENAI_API_KEY", "GOOGLE_API_KEY", "GROQ_API_KEY", "OLLAMA_BASE_URL"]
+    # ZANA is LLM-agnostic: any one provider is sufficient
+    llm_providers = [
+        ("ANTHROPIC_API_KEY",  "Anthropic Claude"),
+        ("OPENAI_API_KEY",     "OpenAI GPT"),
+        ("GEMINI_API_KEY",     "Google Gemini"),
+        ("GROQ_API_KEY",       "Groq"),
+        ("OLLAMA_BASE_URL",    "Ollama (local)"),
+    ]
+    optional = ["GOOGLE_API_KEY", "ZANA_PRIMARY_MODEL", "VAULT_PATH"]
     rows = []
     if env_file.exists():
         rows.append((".env file", "[success]✓ Present[/success]", ""))
         content = env_file.read_text()
-        for key in required:
+
+        # Check: at least one LLM provider configured
+        active_providers = []
+        for key, label in llm_providers:
             val = os.getenv(key, "")
             present = bool(val) or key in content
-            rows.append(
-                (
-                    f"  {key}",
-                    (
-                        "[success]✓ Set[/success]"
-                        if present
-                        else "[error]✗ Missing[/error]"
-                    ),
-                    "required",
-                )
-            )
+            if present:
+                active_providers.append(label)
+            rows.append((
+                f"  {key}",
+                "[success]✓ Set[/success]" if present else "[muted]— not set[/muted]",
+                f"provider: {label}",
+            ))
+
+        if not active_providers:
+            rows.insert(1, (
+                "  LLM Provider",
+                "[error]✗ None configured[/error]",
+                "zana init OR set any provider key → ZSM mode active",
+            ))
+        else:
+            rows.insert(1, (
+                "  LLM Provider",
+                f"[success]✓ {active_providers[0]}[/success]",
+                f"{len(active_providers)} provider(s) available",
+            ))
+
         for key in optional:
             val = os.getenv(key, "")
             present = bool(val) or key in content
-            rows.append(
-                (
-                    f"  {key}",
-                    (
-                        "[success]✓ Set[/success]"
-                        if present
-                        else "[muted]— not set[/muted]"
-                    ),
-                    "optional",
-                )
-            )
+            rows.append((
+                f"  {key}",
+                "[success]✓ Set[/success]" if present else "[muted]— not set[/muted]",
+                "optional",
+            ))
     else:
         rows.append((".env file", "[error]✗ Missing[/error]", "run: zana setup"))
     return rows

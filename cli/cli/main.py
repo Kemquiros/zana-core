@@ -356,6 +356,22 @@ def aeon_resonance() -> None:
     cmd_resonance()
 
 
+@aeon_app.command("habitat", help="Your Aeon in its 2.5D world — living environment animation.")
+def aeon_habitat(
+    fps: Annotated[
+        int, typer.Option("--fps", help="Animation frames per second (default 4).")
+    ] = 4,
+) -> None:
+    from cli.commands.aeon import cmd_habitat
+    cmd_habitat(fps=fps)
+
+
+@aeon_app.command("dna", help="Show your Aeon's full 21-gene DNA vector.")
+def aeon_dna() -> None:
+    from cli.commands.aeon import cmd_dna
+    cmd_dna()
+
+
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 
