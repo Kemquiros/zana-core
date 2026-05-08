@@ -1,5 +1,5 @@
 import pytest
-from cli.commands.world import forge
+from plugins.world.world import forge
 from cli.tui.aeon_dna import derive_dna, AeonArchetype
 
 def test_full_archon_lifecycle():
