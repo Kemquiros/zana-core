@@ -70,5 +70,5 @@ if __name__ == "__main__":
 
         mem.step(mock_outcome)
         print(
-            f"Step {i+1}: Phi={current_phi:.4f}, Reward={mem.performance_history[-1]:.4f}"
+            f"Step {i + 1}: Phi={current_phi:.4f}, Reward={mem.performance_history[-1]:.4f}"
         )

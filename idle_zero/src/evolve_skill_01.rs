@@ -36,7 +36,7 @@ fn main() {
         for i in 0..laboratory.active_population.len() {
             let mut warrior = laboratory.active_population[i].clone();
             laboratory.mutate(&mut warrior);
-            
+
             // Función de Fitness específica para Negocios:
             // Debe premiar la correlación con la viabilidad teórica de business_data.
             laboratory.evaluate(&mut warrior, &business_data);
@@ -65,7 +65,7 @@ fn main() {
     println!("Fitness en Simulación Financiera: {:.6}", champion.fitness);
     println!("ADN Cristalizado. Listo para migración a Red ZANA Grid.");
     println!("=======================================================");
-    
+
     let now = Local::now().format("%Y-%m-%d %H:%M:%S");
     println!("[{}] Evolución del Módulo #01 completada con honor.", now);
 }

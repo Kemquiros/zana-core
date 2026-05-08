@@ -4,23 +4,36 @@ Vault Cartographer — User-controlled discovery of knowledge sources.
 The human decides where their knowledge lives.
 ZANA is the map-maker, not the explorer.
 """
+
 from __future__ import annotations
 
 import os
 from pathlib import Path
 
 from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+)
 from rich.text import Text
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
 
-from cli.tui.theme import console
-from cli.core.vault.domain.models import VaultSource, SourceKind, VaultDocument, VaultIndex
-from cli.core.vault.infrastructure.readers.markdown_reader import iter_documents
+from cli.core.vault.domain.models import (
+    SourceKind,
+    VaultDocument,
+    VaultIndex,
+    VaultSource,
+)
 from cli.core.vault.infrastructure.index.fts_index import FTSIndex
+from cli.core.vault.infrastructure.readers.markdown_reader import iter_documents
+from cli.tui.theme import console
 
 VAULT_DB_PATH = Path.home() / ".zana" / "vault.db"
 
 # ── Source discovery ───────────────────────────────────────────────────────────
+
 
 def _count_files(path: Path, extensions: set[str]) -> tuple[int, float]:
     """Count matching files and total size in MB."""
@@ -33,7 +46,7 @@ def _count_files(path: Path, extensions: set[str]) -> tuple[int, float]:
                 fp = Path(dirpath) / f
                 if fp.suffix.lower() in extensions:
                     count += 1
-                    try:
+                    try:  # noqa: SIM105
                         size += fp.stat().st_size
                     except Exception:
                         pass
@@ -75,18 +88,21 @@ def _detect_sources() -> list[VaultSource]:
         # Skip Desktop if > 5000 files (not a note vault, likely clutter)
         if kind == SourceKind.FOLDER and path.name == "Desktop" and count > 500:
             continue
-        sources.append(VaultSource(
-            path=path,
-            kind=kind,
-            label=label,
-            file_count=count,
-            size_mb=size,
-        ))
+        sources.append(
+            VaultSource(
+                path=path,
+                kind=kind,
+                label=label,
+                file_count=count,
+                size_mb=size,
+            )
+        )
 
     return sources
 
 
 # ── Interactive selection ──────────────────────────────────────────────────────
+
 
 def _render_selection(sources: list[VaultSource], cursor: int, mode: str) -> Panel:
     content = Text()
@@ -94,24 +110,32 @@ def _render_selection(sources: list[VaultSource], cursor: int, mode: str) -> Pan
     if mode == "sources" and sources:
         content.append("Selecciona tus fuentes de conocimiento:\n\n", style="dim")
         for i, src in enumerate(sources):
-            is_cursor = (i == cursor)
+            is_cursor = i == cursor
             is_selected = src.selected
 
             prefix = "▸ " if is_cursor else "  "
-            check  = "[✓]" if is_selected else "[ ]"
-            style  = "bold white" if is_cursor else ("dim" if not is_selected else "white")
+            check = "[✓]" if is_selected else "[ ]"
+            style = (
+                "bold white" if is_cursor else ("dim" if not is_selected else "white")
+            )
 
             line = f"{prefix}{check} {src.display}"
             content.append(line + "\n", style=style)
 
         content.append("\n[ ] Ruta personalizada...\n", style="dim")
-        content.append("[ ] Empezar vacío — el vault crece con conversaciones\n", style="dim")
-        content.append("\n[dim]Espacio: seleccionar · Enter: continuar · ↑↓: mover[/dim]")
+        content.append(
+            "[ ] Empezar vacío — el vault crece con conversaciones\n", style="dim"
+        )
+        content.append(
+            "\n[dim]Espacio: seleccionar · Enter: continuar · ↑↓: mover[/dim]"
+        )
     else:
         content.append("No encontré vaults existentes.\n\n", style="dim")
         content.append("Opciones:\n\n", style="dim")
         content.append("  [1] Ingresar ruta de carpeta\n", style="white")
-        content.append("  [2] Empezar vacío — el vault crece con conversaciones\n", style="white")
+        content.append(
+            "  [2] Empezar vacío — el vault crece con conversaciones\n", style="white"
+        )
         content.append("\n[dim]Elige 1 o 2:[/dim]")
 
     return Panel(
@@ -136,15 +160,17 @@ def run_vault_cartography() -> list[Path]:
 
 
 def _manual_selection() -> list[Path]:
-    console.print(Panel(
-        "No encontré vaults existentes en las rutas comunes.\n\n"
-        "  [1] Ingresar ruta de carpeta manualmente\n"
-        "  [2] Empezar vacío — el vault crece con conversaciones\n\n"
-        "[dim]Elige 1 o 2:[/dim]",
-        title="[bold magenta] ◈ CARTOGRAFÍA DEL VAULT ◈ [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            "No encontré vaults existentes en las rutas comunes.\n\n"
+            "  [1] Ingresar ruta de carpeta manualmente\n"
+            "  [2] Empezar vacío — el vault crece con conversaciones\n\n"
+            "[dim]Elige 1 o 2:[/dim]",
+            title="[bold magenta] ◈ CARTOGRAFÍA DEL VAULT ◈ [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 2),
+        )
+    )
 
     while True:
         choice = console.input("  → ").strip()
@@ -161,23 +187,27 @@ def _manual_selection() -> list[Path]:
 
 def _interactive_selection(sources: list[VaultSource]) -> list[Path]:
     """Simplified interactive selection without curses dependency."""
-    console.print(Panel(
-        "ZANA encontró estas fuentes de conocimiento en tu sistema:",
-        title="[bold magenta] ◈ CARTOGRAFÍA DEL VAULT ◈ [/bold magenta]",
-        border_style="magenta",
-        padding=(0, 2),
-    ))
+    console.print(
+        Panel(
+            "ZANA encontró estas fuentes de conocimiento en tu sistema:",
+            title="[bold magenta] ◈ CARTOGRAFÍA DEL VAULT ◈ [/bold magenta]",
+            border_style="magenta",
+            padding=(0, 2),
+        )
+    )
 
     for i, src in enumerate(sources, 1):
         console.print(f"  [dim]{i}.[/dim] {src.display}")
 
     console.print()
-    console.print(f"  [dim]{len(sources)+1}.[/dim] Ingresar ruta personalizada")
-    console.print(f"  [dim]{len(sources)+2}.[/dim] Empezar vacío — el vault crece con conversaciones")
+    console.print(f"  [dim]{len(sources) + 1}.[/dim] Ingresar ruta personalizada")
+    console.print(
+        f"  [dim]{len(sources) + 2}.[/dim] Empezar vacío — el vault crece con conversaciones"
+    )
     console.print()
 
     raw = console.input(
-        f"  [dim]→[/dim] Elige fuentes [ej: 1,3 o {len(sources)+1} o {len(sources)+2}]: "
+        f"  [dim]→[/dim] Elige fuentes [ej: 1,3 o {len(sources) + 1} o {len(sources) + 2}]: "
     ).strip()
 
     if not raw or raw == str(len(sources) + 2):
@@ -204,6 +234,7 @@ def _interactive_selection(sources: list[VaultSource]) -> list[Path]:
 
 
 # ── Indexing ───────────────────────────────────────────────────────────────────
+
 
 def index_sources(source_paths: list[Path]) -> VaultIndex:
     """Index all documents from selected sources. Returns VaultIndex."""
@@ -266,6 +297,7 @@ def index_sources(source_paths: list[Path]) -> VaultIndex:
 def _show_memory_echo(echo: dict) -> None:
     """The Memory Echo — shows the user a note from their past that resonates."""
     from datetime import datetime
+
     excerpt = echo.get("excerpt", "").strip()
     path = echo.get("path", "")
     modified_at = echo.get("modified_at", 0)
@@ -286,15 +318,17 @@ def _show_memory_echo(echo: dict) -> None:
     content.append(f"— {short_path}, {date_str}", style="dim")
 
     console.print()
-    console.print(Panel(
-        content,
-        title="[bold magenta] ◈ ECO DE MEMORIA ◈ [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 3),
-    ))
+    console.print(
+        Panel(
+            content,
+            title="[bold magenta] ◈ ECO DE MEMORIA ◈ [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 3),
+        )
+    )
     console.print("  [dim]Es exactamente para esto que fui construido.[/dim]\n")
 
-    try:
+    try:  # noqa: SIM105
         input("  [Enter para continuar]")
     except (EOFError, KeyboardInterrupt):
         pass

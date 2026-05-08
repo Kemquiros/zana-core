@@ -125,12 +125,12 @@ export default function CockpitPage() {
 
   return (
     <main className={`min-h-screen text-white selection:bg-indigo-500/30 transition-all duration-700 ${shadowMode ? 'bg-transparent' : 'bg-black'}`}>
-      
+
       {!shadowMode && (
           <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
               <div className={`absolute inset-0 bg-gradient-to-br ${themeColors[currentTheme]} via-black to-black transition-all duration-1000`} />
               <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-50" />
-              
+
               {/* Dynamic Aura Glow */}
               <div className="absolute top-1/4 -right-1/4 w-[800px] h-[800px] bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
               <div className="absolute -bottom-1/4 -left-1/4 w-[600px] h-[600px] bg-purple-500/5 rounded-full blur-[100px]" />
@@ -138,12 +138,12 @@ export default function CockpitPage() {
       )}
 
       <div className={`max-w-7xl mx-auto px-8 py-20 space-y-24 transition-opacity duration-700 relative z-20 ${shadowMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        
+
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
             <div className="space-y-12 relative z-30">
                 <div className="space-y-6">
                     <div className="flex items-center gap-4">
-                      <button 
+                      <button
                         onClick={openKoruDashboard}
                         className={`px-4 py-2 rounded-xl border flex items-center gap-2 transition-all ${
                           koruStatus === 'connected' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'
@@ -161,7 +161,7 @@ export default function CockpitPage() {
                         <span className="text-indigo-500">Sovereignty</span>
                     </h1>
                 </div>
-                
+
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">Canal de Comunicación</span>
@@ -255,7 +255,7 @@ export default function CockpitPage() {
                     Configurar Flota
                 </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {AEONS.map(aeon => (
                     <AeonCard key={aeon.id} aeon={aeon} active={profile?.optimized_aeon_fleet?.includes(aeon.id)} />
@@ -275,7 +275,7 @@ export default function CockpitPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {['zen', 'cyber', 'void', 'nebula', 'crystal', 'forest', 'forge', 'shrine', 'oasis', 'abyss'].map(theme => (
-                    <button 
+                    <button
                         key={theme}
                         onClick={() => updateTheme(theme)}
                         className={`p-6 rounded-3xl border transition-all uppercase text-[8px] font-black tracking-[0.2em] ${profile?.virtual_space?.theme === theme ? 'bg-indigo-500 border-white text-white' : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/20'}`}
@@ -288,7 +288,7 @@ export default function CockpitPage() {
 
       </div>
 
-      <button 
+      <button
         onClick={() => setShowSettings(true)}
         className="fixed bottom-12 left-12 p-6 rounded-[2rem] bg-white/5 border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all z-[100] backdrop-blur-xl shadow-2xl"
       >
@@ -298,7 +298,7 @@ export default function CockpitPage() {
       <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
 
       {shadowMode && (
-        <div 
+        <div
           className="fixed inset-0 flex flex-col items-center justify-center z-[300] bg-black/60 backdrop-blur-md cursor-pointer"
           onClick={() => {
             setShadowMode(false);

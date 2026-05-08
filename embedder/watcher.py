@@ -103,7 +103,7 @@ class VaultEventHandler(FileSystemEventHandler):
                 meta[f"fm_{k}"] = str(v)
 
             self.index.add(chunk.doc_id, embedding, json.dumps(meta))
-        
+
         # Save index to disk
         self.index.save(str(MEMORY_INDEX_PATH))
         console.print(f"  [green]➔ Indexed {len(all_chunks)} chunks.[/green]")
@@ -121,11 +121,11 @@ class VaultEventHandler(FileSystemEventHandler):
             rel_path = str(path)
 
         # We delete all chunks that belong to this file path
-        # Note: VectorIndex delete is by ID, so we'd need to track IDs per file path 
-        # or implement a more complex delete in Rust. 
+        # Note: VectorIndex delete is by ID, so we'd need to track IDs per file path
+        # or implement a more complex delete in Rust.
         # For v2 simplification, we'll recreate the index or use a simple prefix delete if we had it.
         # Actually, let's keep it simple for now: add a placeholder for future path-based delete.
-        # self.index.delete_by_path(rel_path) 
+        # self.index.delete_by_path(rel_path)
         pass
 
 
@@ -146,7 +146,9 @@ def watch():
 
     # Initialize Rust Index
     if MEMORY_INDEX_PATH.exists():
-        console.print(f"[yellow]Loading existing index from {MEMORY_INDEX_PATH}...[/yellow]")
+        console.print(
+            f"[yellow]Loading existing index from {MEMORY_INDEX_PATH}...[/yellow]"
+        )
         index = zana_steel_core.PyVectorIndex.load(str(MEMORY_INDEX_PATH))
     else:
         console.print("[yellow]Creating new memory index...[/yellow]")

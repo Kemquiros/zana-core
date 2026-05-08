@@ -17,7 +17,7 @@ class _Bucket:
     capacity: float
     tokens: float
     last_refill: float = field(default_factory=time.monotonic)
-    rate: float = 0.0           # tokens per second
+    rate: float = 0.0  # tokens per second
 
     def consume(self) -> bool:
         now = time.monotonic()

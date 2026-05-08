@@ -25,7 +25,7 @@ impl IRLEngine {
     /// Infiere la intención del usuario a partir de una observación
     pub fn infer_reward(&self, signal: RewardSignal) -> f64 {
         // La magia de Andrew Ng: Traducir observación en valor.
-        // Si el usuario reacciona positivamente (user_reaction > 0) 
+        // Si el usuario reacciona positivamente (user_reaction > 0)
         // y el cambio en el sistema fue pequeño (alta elegancia), premiamos masivamente.
         let reward = (signal.user_reaction * self.weight_alignment) + (signal.observation_delta.abs() * self.weight_elegance);
         reward

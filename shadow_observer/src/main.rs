@@ -55,7 +55,7 @@ struct AppState {
 
 #[derive(Deserialize)]
 struct RewardRequest {
-    user_reaction: f64, 
+    user_reaction: f64,
     comment: Option<String>,
 }
 
@@ -85,8 +85,8 @@ async fn process_reward(
 
     let fuzzy = state.fuzzy.lock().await;
     let is_resonant = fuzzy.test_resonance(*score, payload.user_reaction);
-    let mood = fuzzy.infer_mood(*score, 0.1, 0.2); 
-    let stage = fuzzy.calculate_stage(0.15); 
+    let mood = fuzzy.infer_mood(*score, 0.1, 0.2);
+    let stage = fuzzy.calculate_stage(0.15);
 
     let _ = state.tx.send(WsPayload {
         event_type: "alignment_update".into(),
@@ -113,7 +113,7 @@ async fn evaluate_proposal(
 ) -> Json<StrategicDecision> {
     let mut corp = state.corporate.lock().await;
     let decision = corp.evaluate_proposal(&payload.title, &payload.description, payload.cost, payload.potential_gain);
-    
+
     // Assert Fact
     {
         let mut reason = state.reasoning.lock().await;
@@ -141,7 +141,7 @@ async fn ingest_sensor(
 ) -> Json<MachineHealth> {
     let mut ind = state.industrial.lock().await;
     let health = ind.process_sensor(payload.clone());
-    
+
     // Assert Fact
     {
         let mut reason = state.reasoning.lock().await;
@@ -202,7 +202,7 @@ async fn sync_wisdom_task(state: Arc<AppState>) {
     loop {
         sleep(Duration::from_secs(60)).await; // Sincronizar cada minuto
         println!("📡 [WISDOM SYNC] Buscando nueva sabiduría en la red ZANA Grid...");
-        
+
         let client = Client::new();
         if let Ok(resp) = client.get("http://localhost:50000/wisdom/list").send().await {
             if let Ok(rules) = resp.json::<Vec<serde_json::Value>>().await {
@@ -310,7 +310,7 @@ async fn main() {
     let logger = SovereignLogger::new(LogMode::Total, "shadow_observer/logs");
     let mut curriculum = CurriculumManager::new();
     curriculum.add_skill(SkillNode { id: "base_00".into(), name: "Lógica Constitucional".into(), prerequisites: vec![], dna_path: "champions/agora_virtue.json".into(), level: 0 });
-    
+
     let state = Arc::new(AppState {
         tx, http_client: Client::new(), episodic_api_url: "http://localhost:58002".into(),
         is_unlocked: Mutex::new(false), master_key: Mutex::new(None), proxy_active: Mutex::new(false),

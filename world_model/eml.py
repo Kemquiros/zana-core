@@ -1,11 +1,8 @@
-
 import numpy as np
 import zana_steel_core
 
 
-def eml(
-    x: float | np.ndarray, y: float | np.ndarray
-) -> float | np.ndarray:
+def eml(x: float | np.ndarray, y: float | np.ndarray) -> float | np.ndarray:
     """
     ZANA Steel Core Wrapper for EML (Rust implementation).
     eml(x, y) = exp(x) - ln(y)

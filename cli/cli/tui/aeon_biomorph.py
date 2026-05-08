@@ -16,19 +16,19 @@ Rendering pipeline:
   4. compose()    → grid + warrior core body + aura → final art
   5. animate()    → alternate frames for breathing/state effects
 """
+
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Optional
 
-from cli.tui.aeon_dna import AeonDNA, AeonArchetype, AeonStage, AeonProfile
+from cli.tui.aeon_dna import AeonArchetype, AeonDNA, AeonProfile, AeonStage
 
 # Grid dimensions
 GRID_H = 22  # rows
 GRID_W = 34  # cols
 ORIGIN_X = GRID_W // 2
-ORIGIN_Y = GRID_H - 2   # near bottom
+ORIGIN_Y = GRID_H - 2  # near bottom
 
 
 # ── Terminal character vocabulary ─────────────────────────────────────────────
@@ -36,24 +36,24 @@ ORIGIN_Y = GRID_H - 2   # near bottom
 # Two chars per angle: [frame0, frame1] for breathing animation.
 
 _ANGLE_CHARS: list[tuple[str, str]] = [
-    ("│", "║"),   # 0°   vertical up
-    ("╽", "│"),   # 15°
-    ("╱", "╱"),   # 30°
-    ("╱", "∕"),   # 45°
-    ("/", "╱"),   # 60°
-    ("─", "─"),   # 75° near-horizontal
-    ("─", "━"),   # 90° horizontal
+    ("│", "║"),  # 0°   vertical up
+    ("╽", "│"),  # 15°
+    ("╱", "╱"),  # 30°
+    ("╱", "∕"),  # 45°
+    ("/", "╱"),  # 60°
+    ("─", "─"),  # 75° near-horizontal
+    ("─", "━"),  # 90° horizontal
 ]
 
 # Terminal node decorations: indexed by g7_terminal_form (0-5)
 # Each archetype uses different forms via gene constraints
 _TERMINALS: list[list[str]] = [
-    ["▲", "✦", "★", "·"],       # 0: fire (Llama)
-    ["◈", "·", "◇", "◈"],       # 1: spark
-    ["⊕", "◎", "◉", "⊕"],       # 2: geometric (Oráculo)
-    ["◉", "─", "◈", "◉"],       # 3: mechanical (Forja)
-    ["★", "·", "·", "★"],       # 4: cosmic (Vacío)
-    ["✦", "◇", "·", "✦"],       # 5: botanical (Raíz)
+    ["▲", "✦", "★", "·"],  # 0: fire (Llama)
+    ["◈", "·", "◇", "◈"],  # 1: spark
+    ["⊕", "◎", "◉", "⊕"],  # 2: geometric (Oráculo)
+    ["◉", "─", "◈", "◉"],  # 3: mechanical (Forja)
+    ["★", "·", "·", "★"],  # 4: cosmic (Vacío)
+    ["✦", "◇", "·", "✦"],  # 5: botanical (Raíz)
 ]
 
 # Archetype warrior core bodies: [stage_rookie, stage_champion, stage_ultimate+]
@@ -61,105 +61,49 @@ _TERMINALS: list[list[str]] = [
 _CORE_W = 7
 _CORES: dict[AeonArchetype, list[list[str]]] = {
     AeonArchetype.LLAMA: [
-        ["  ▲▲▲  ",
-         " ╔═══╗ ",
-         " ║▲▲▲║ ",
-         " ╚═══╝ "],
-        ["⟡ ▲▲▲ ⟡",
-         "╔═╔═══╗═╗",
-         "║ ║▲█▲║ ║",
-         "╚═╚═══╝═╝"],
-        ["✦⟡ ▲ ⟡✦",
-         "╔══╔═══╗══╗",
-         "║◆ ║▲█▲║ ◆║",
-         "╚══╚═══╝══╝",
-         " ✦ ✦ ✦ ✦ "],
+        ["  ▲▲▲  ", " ╔═══╗ ", " ║▲▲▲║ ", " ╚═══╝ "],
+        ["⟡ ▲▲▲ ⟡", "╔═╔═══╗═╗", "║ ║▲█▲║ ║", "╚═╚═══╝═╝"],
+        ["✦⟡ ▲ ⟡✦", "╔══╔═══╗══╗", "║◆ ║▲█▲║ ◆║", "╚══╚═══╝══╝", " ✦ ✦ ✦ ✦ "],
     ],
     AeonArchetype.ORACULO: [
-        ["  ◈◉◈  ",
-         " ╔═══╗ ",
-         " ║◎◉◎║ ",
-         " ╚═══╝ "],
-        ["⊕ ◈◉◈ ⊕",
-         "╔═╔═══╗═╗",
-         "║ ║◎◉◎║ ║",
-         "╚═╚═══╝═╝"],
-        ["◈━━◈━━◈",
-         "╔══╔═══╗══╗",
-         "║⊕ ║◎◉◎║ ⊕║",
-         "╚══╚═══╝══╝",
-         " ◈ ◉ ◈ ◉ "],
+        ["  ◈◉◈  ", " ╔═══╗ ", " ║◎◉◎║ ", " ╚═══╝ "],
+        ["⊕ ◈◉◈ ⊕", "╔═╔═══╗═╗", "║ ║◎◉◎║ ║", "╚═╚═══╝═╝"],
+        ["◈━━◈━━◈", "╔══╔═══╗══╗", "║⊕ ║◎◉◎║ ⊕║", "╚══╚═══╝══╝", " ◈ ◉ ◈ ◉ "],
     ],
     AeonArchetype.FORJA: [
-        ["  ◉─◉  ",
-         " ╔═══╗ ",
-         " ║◈F◈║ ",
-         " ╚═══╝ "],
-        ["◉━◈━◉",
-         "╔═╔═══╗═╗",
-         "╠═║◈F◈║═╣",
-         "╚═╚═══╝═╝"],
-        ["◉━━◈━━◉",
-         "╔══╔═══╗══╗",
-         "╠══║◈ F║══╣",
-         "╚══╚═══╝══╝",
-         " ◉ ◈ ◉ ◈ "],
+        ["  ◉─◉  ", " ╔═══╗ ", " ║◈F◈║ ", " ╚═══╝ "],
+        ["◉━◈━◉", "╔═╔═══╗═╗", "╠═║◈F◈║═╣", "╚═╚═══╝═╝"],
+        ["◉━━◈━━◉", "╔══╔═══╗══╗", "╠══║◈ F║══╣", "╚══╚═══╝══╝", " ◉ ◈ ◉ ◈ "],
     ],
     AeonArchetype.MAREA: [
-        ["  ∿∿∿  ",
-         " ╔═══╗ ",
-         " ║∿M∿║ ",
-         " ╚═══╝ "],
-        ["≋ ∿∿∿ ≋",
-         "╔═╔═══╗═╗",
-         "║≋║∿M∿║≋║",
-         "╚═╚═══╝═╝"],
-        ["≋∿≋ ∿ ≋∿≋",
-         "╔══╔═══╗══╗",
-         "║∿≋║∿M∿║≋∿║",
-         "╚══╚═══╝══╝",
-         " ≋ ∿ ≋ ∿ "],
+        ["  ∿∿∿  ", " ╔═══╗ ", " ║∿M∿║ ", " ╚═══╝ "],
+        ["≋ ∿∿∿ ≋", "╔═╔═══╗═╗", "║≋║∿M∿║≋║", "╚═╚═══╝═╝"],
+        ["≋∿≋ ∿ ≋∿≋", "╔══╔═══╗══╗", "║∿≋║∿M∿║≋∿║", "╚══╚═══╝══╝", " ≋ ∿ ≋ ∿ "],
     ],
     AeonArchetype.RAIZ: [
-        ["  ✦│✦  ",
-         " ╔═══╗ ",
-         " ║◇R◇║ ",
-         " ╚═══╝ "],
-        ["✦ ╱│╲ ✦",
-         "╔═╔═══╗═╗",
-         "║ ║◇R◇║ ║",
-         "╚═╚═══╝═╝"],
-        ["✦ ╱│╲ ╱│╲ ✦",
-         "╔══╔═════╗══╗",
-         "║◇ ║ ◇R◇ ║ ◇║",
-         "╚══╚═════╝══╝",
-         " ✦ ◇ ✦ ◇ "],
+        ["  ✦│✦  ", " ╔═══╗ ", " ║◇R◇║ ", " ╚═══╝ "],
+        ["✦ ╱│╲ ✦", "╔═╔═══╗═╗", "║ ║◇R◇║ ║", "╚═╚═══╝═╝"],
+        ["✦ ╱│╲ ╱│╲ ✦", "╔══╔═════╗══╗", "║◇ ║ ◇R◇ ║ ◇║", "╚══╚═════╝══╝", " ✦ ◇ ✦ ◇ "],
     ],
     AeonArchetype.VACIO: [
-        ["  · ★ ·  ",
-         " ╔═════╗ ",
-         " ║·◉·◎·║ ",
-         " ╚═════╝ "],
-        ["· ★ · ★ ·",
-         "╔═╔═════╗═╗",
-         "║·║·◉·◎·║·║",
-         "╚═╚═════╝═╝"],
-        ["·  ★  ·  ★  ·",
-         "╔══╔═══════╗══╗",
-         "║ ·║·◉·◎·◉·║· ║",
-         "╚══╚═══════╝══╝",
-         " ·  ★  ·  ·  "],
+        ["  · ★ ·  ", " ╔═════╗ ", " ║·◉·◎·║ ", " ╚═════╝ "],
+        ["· ★ · ★ ·", "╔═╔═════╗═╗", "║·║·◉·◎·║·║", "╚═╚═════╝═╝"],
+        [
+            "·  ★  ·  ★  ·",
+            "╔══╔═══════╗══╗",
+            "║ ·║·◉·◎·◉·║· ║",
+            "╚══╚═══════╝══╝",
+            " ·  ★  ·  ·  ",
+        ],
     ],
     AeonArchetype.UNKNOWN: [
-        ["  ·?·  ",
-         " ╔═══╗ ",
-         " ║ ? ║ ",
-         " ╚═══╝ "],
+        ["  ·?·  ", " ╔═══╗ ", " ║ ? ║ ", " ╚═══╝ "],
     ],
 }
 
 
 # ── Segment data ──────────────────────────────────────────────────────────────
+
 
 @dataclass
 class Segment:
@@ -173,16 +117,18 @@ class Segment:
 
 # ── Biomorph tree grower ──────────────────────────────────────────────────────
 
+
 def _angle_to_chars(angle_deg: float) -> tuple[str, str]:
     """Map segment direction angle to two animation chars."""
-    a = angle_deg % 180   # fold to [0, 180)
+    a = angle_deg % 180  # fold to [0, 180)
     idx = min(6, int(a / 180 * 7))
     return _ANGLE_CHARS[idx]
 
 
 def _grow_branch(
     segments: list[Segment],
-    x: float, y: float,
+    x: float,
+    y: float,
     angle: float,
     length: float,
     depth: int,
@@ -196,19 +142,22 @@ def _grow_branch(
         if 0 <= int(y) < GRID_H and 0 <= int(x) < GRID_W:
             tf = dna.g7_terminal_form
             t_chars = _TERMINALS[tf % len(_TERMINALS)]
-            segments.append(Segment(
-                x=x, y=y,
-                char0=t_chars[level % len(t_chars)],
-                char1=t_chars[(level + 1) % len(t_chars)],
-                depth=depth,
-                is_terminal=True,
-            ))
+            segments.append(
+                Segment(
+                    x=x,
+                    y=y,
+                    char0=t_chars[level % len(t_chars)],
+                    char1=t_chars[(level + 1) % len(t_chars)],
+                    depth=depth,
+                    is_terminal=True,
+                )
+            )
         return
 
     # Compute end point of this segment
     rad = math.radians(angle)
     dx = math.sin(rad) * length
-    dy = -math.cos(rad) * length   # negative: up is negative Y in grid
+    dy = -math.cos(rad) * length  # negative: up is negative Y in grid
 
     nx = x + dx
     ny = y + dy
@@ -225,29 +174,61 @@ def _grow_branch(
     delta = dna.g0_branch_angle
 
     # Symmetry modifier
-    if dna.g4_symmetry == 1:   # spiral: one branch bends more
+    if dna.g4_symmetry == 1:  # spiral: one branch bends more
         delta_l, delta_r = delta * 0.5, delta * 1.5
-    elif dna.g4_symmetry == 2: # radial: alternate branching angle
+    elif dna.g4_symmetry == 2:  # radial: alternate branching angle
         delta_l, delta_r = delta, delta * 0.7 if level % 2 == 0 else delta * 1.3
-    elif dna.g4_symmetry == 3: # chaotic: asymmetric drift
+    elif dna.g4_symmetry == 3:  # chaotic: asymmetric drift
         seed_offset = int(abs(x * 7 + y * 13)) % 5
         delta_l = delta + seed_offset * 3
         delta_r = delta - seed_offset * 2
-    else:                      # bilateral: symmetric
+    else:  # bilateral: symmetric
         delta_l = delta_r = delta
 
-    _grow_branch(segments, nx, ny, drifted_angle + delta_l, new_length, new_depth, max_depth, dna, level+1)
-    _grow_branch(segments, nx, ny, drifted_angle - delta_r, new_length, new_depth, max_depth, dna, level+1)
+    _grow_branch(
+        segments,
+        nx,
+        ny,
+        drifted_angle + delta_l,
+        new_length,
+        new_depth,
+        max_depth,
+        dna,
+        level + 1,
+    )
+    _grow_branch(
+        segments,
+        nx,
+        ny,
+        drifted_angle - delta_r,
+        new_length,
+        new_depth,
+        max_depth,
+        dna,
+        level + 1,
+    )
 
     # Triple fork
     if dna.g5_fork == 3:
-        _grow_branch(segments, nx, ny, drifted_angle, new_length * 0.65, new_depth, max_depth, dna, level+1)
+        _grow_branch(
+            segments,
+            nx,
+            ny,
+            drifted_angle,
+            new_length * 0.65,
+            new_depth,
+            max_depth,
+            dna,
+            level + 1,
+        )
 
 
 def _bresenham_segment(
     segments: list[Segment],
-    x0: float, y0: float,
-    x1: float, y1: float,
+    x0: float,
+    y0: float,
+    x1: float,
+    y1: float,
     angle: float,
     depth: int,
 ) -> None:
@@ -284,19 +265,20 @@ def _bresenham_segment(
 
 # ── Core body compositor ──────────────────────────────────────────────────────
 
+
 def _get_core(archetype: AeonArchetype, stage: AeonStage) -> list[str]:
     cores = _CORES.get(archetype, _CORES[AeonArchetype.UNKNOWN])
     if stage in (AeonStage.HUEVO, AeonStage.FRESH, AeonStage.ROOKIE):
         return cores[0]
     if stage in (AeonStage.CHAMPION, AeonStage.ULTIMATE):
-        return cores[min(1, len(cores)-1)]
-    return cores[min(2, len(cores)-1)]
+        return cores[min(1, len(cores) - 1)]
+    return cores[min(2, len(cores) - 1)]
 
 
 def _place_core(grid: list[list[str]], core_lines: list[str]) -> None:
     """Center the warrior core body in the grid, above the trunk origin."""
     core_h = len(core_lines)
-    core_w = max(len(l) for l in core_lines)
+    core_w = max(len(l) for l in core_lines)  # noqa: E741
     start_y = ORIGIN_Y - int(GRID_H * 0.25) - core_h
     start_x = ORIGIN_X - core_w // 2
 
@@ -310,6 +292,7 @@ def _place_core(grid: list[list[str]], core_lines: list[str]) -> None:
 
 
 # ── Full biomorph render ───────────────────────────────────────────────────────
+
 
 def render_biomorph(profile: AeonProfile, frame: int = 0) -> list[str]:
     """
@@ -325,8 +308,9 @@ def render_biomorph(profile: AeonProfile, frame: int = 0) -> list[str]:
     segments: list[Segment] = []
     _grow_branch(
         segments,
-        x=float(ORIGIN_X), y=float(ORIGIN_Y),
-        angle=0.0,               # start growing straight up
+        x=float(ORIGIN_X),
+        y=float(ORIGIN_Y),
+        angle=0.0,  # start growing straight up
         length=dna.g2_trunk_length,
         depth=dna.g1_depth,
         max_depth=dna.g1_depth,
@@ -372,11 +356,13 @@ def _add_aura(
                 continue
             # Count occupied neighbors
             neighbors = sum(
-                1 for dy in (-1, 0, 1) for dx in (-1, 0, 1)
+                1
+                for dy in (-1, 0, 1)
+                for dx in (-1, 0, 1)
                 if (dy, dx) != (0, 0)
-                and 0 <= y+dy < GRID_H
-                and 0 <= x+dx < GRID_W
-                and grid0[y+dy][x+dx] != " "
+                and 0 <= y + dy < GRID_H
+                and 0 <= x + dx < GRID_W
+                and grid0[y + dy][x + dx] != " "
             )
             if neighbors >= threshold:
                 ch = aura_chars[neighbors % len(aura_chars)]
@@ -386,24 +372,25 @@ def _add_aura(
 
 # ── Mini inline sigil (5 chars wide, for chat header) ────────────────────────
 
+
 def render_mini(profile: AeonProfile, processing: bool = False) -> str:
     archetype_mini = {
-        AeonArchetype.LLAMA:   "▲",
+        AeonArchetype.LLAMA: "▲",
         AeonArchetype.ORACULO: "◉",
-        AeonArchetype.FORJA:   "◈",
-        AeonArchetype.MAREA:   "∿",
-        AeonArchetype.RAIZ:    "✦",
-        AeonArchetype.VACIO:   "★",
+        AeonArchetype.FORJA: "◈",
+        AeonArchetype.MAREA: "∿",
+        AeonArchetype.RAIZ: "✦",
+        AeonArchetype.VACIO: "★",
         AeonArchetype.UNKNOWN: "?",
     }
     stage_mini = {
-        AeonStage.HUEVO:    "○",
-        AeonStage.FRESH:    "◇",
-        AeonStage.ROOKIE:   "▷",
+        AeonStage.HUEVO: "○",
+        AeonStage.FRESH: "◇",
+        AeonStage.ROOKIE: "▷",
         AeonStage.CHAMPION: "◆",
         AeonStage.ULTIMATE: "❖",
-        AeonStage.MEGA:     "✦",
-        AeonStage.SOVEREIGN:"⟡",
+        AeonStage.MEGA: "✦",
+        AeonStage.SOVEREIGN: "⟡",
     }
     pulse = "◉" if processing else "·"
     core = archetype_mini.get(profile.archetype, "?")

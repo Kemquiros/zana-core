@@ -59,7 +59,9 @@ def _render_trace(trace: list[dict]) -> None:
             conf_color = (
                 "success"
                 if confidence >= 0.8
-                else "warning" if confidence >= 0.5 else "error"
+                else "warning"
+                if confidence >= 0.5
+                else "error"
             )
             label += f"  [{conf_color}]{confidence:.2f}[/{conf_color}]"
         branch = tree.add(label)

@@ -51,13 +51,13 @@ impl FuzzyHeart {
         // SI Alineamiento es ALTO y Sorpresa es BAJA -> RESONANTE
         // SI Alineamiento es BAJO y Sorpresa es ALTA -> CONFUNDIDO
         // SI Progreso es MUY ALTO -> ENTUSIASTA
-        
+
         if alignment > 90.0 { return AeonMood::Apex; }
         if alignment > 75.0 { return AeonMood::Resonant; }
         if surprise > 0.8 { return AeonMood::Confused; }
         if progress > 0.7 { return AeonMood::Enthusiastic; }
         if alignment < 30.0 { return AeonMood::Concerned; }
-        
+
         AeonMood::Curious
     }
 

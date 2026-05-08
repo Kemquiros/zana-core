@@ -24,7 +24,7 @@ from swarm.remote_query import RemoteQuery
 
 
 def separator(title: str) -> None:
-    print(f"\n{'─'*60}")
+    print(f"\n{'─' * 60}")
     print(f"  {title}")
     print("─" * 60)
 

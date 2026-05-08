@@ -6,8 +6,9 @@ from pathlib import Path
 import numpy as np
 import redis
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
 from neo4j import GraphDatabase
+
+from mcp.server.fastmcp import FastMCP
 
 # Add project root to sys.path to find world_model
 sys.path.append(str(Path(__file__).parent.parent.parent))

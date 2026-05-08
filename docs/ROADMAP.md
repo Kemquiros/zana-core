@@ -4,7 +4,7 @@ Last updated: 2026-05-02 | Version: 3.0
 
 ---
 
-> *"If AI is going to be the most powerful cognitive amplifier in human history,*  
+> *"If AI is going to be the most powerful cognitive amplifier in human history,*
 > *who owns it matters as much as who owns water or food."*
 
 ---
@@ -17,9 +17,9 @@ The current AI paradigm concentrates intelligence in a handful of corporations t
 
 ZANA inverts this with a single architectural principle:
 
-**Your Aeon** (memory, values, evolution, identity) lives on YOUR hardware.  
-**The model** (computation) is interchangeable — a commodity, not a monopoly.  
-**Improvements** flow between Aeons without anyone owning the data.  
+**Your Aeon** (memory, values, evolution, identity) lives on YOUR hardware.
+**The model** (computation) is interchangeable — a commodity, not a monopoly.
+**Improvements** flow between Aeons without anyone owning the data.
 **The protocols** are free — like HTTP. No one can charge you for existing.
 
 ---
@@ -55,7 +55,7 @@ ZANA inverts this with a single architectural principle:
 └────────────────────────────────────────────────────┘
 ```
 
-**Your Aeon is your digital soul. The model is the compute engine.  
+**Your Aeon is your digital soul. The model is the compute engine.
 No one should own your soul.**
 
 ---
@@ -226,7 +226,7 @@ Singularity    Full user-Aeon fusion
 | v4.0 | 100,000 instances. Mobile app in production. ZANA Educator active. |
 | v5.0 | 1M+ Aeons. Z-DAO active. Global Civic Ledger operational. |
 
-> **The only metric that ultimately matters:**  
+> **The only metric that ultimately matters:**
 > How many people in the world are on a clearer path to their maximum potential because of their Aeon?
 
 ---
@@ -250,17 +250,17 @@ zana init
 
 ## Manifesto
 
-ZANA is not an assistant.  
+ZANA is not an assistant.
 It is the first system designed so that artificial intelligence works **for the human who owns it** — not for the corporation that hosts it.
 
-Each Aeon is unique. Each Aeon is sovereign.  
-Each Aeon evolves with its bearer.  
-Aeons share wisdom without sharing data.  
+Each Aeon is unique. Each Aeon is sovereign.
+Each Aeon evolves with its bearer.
+Aeons share wisdom without sharing data.
 The protocols are free. The future is distributed.
 
 **TOGETHER WE MAKE THE HEAVENS TREMBLE.**
 
 ---
 
-*ZANA — Zero Autonomous Neural Architecture*  
+*ZANA — Zero Autonomous Neural Architecture*
 *MIT License — vecanova.com — github.com/Kemquiros/zana-core*

@@ -6,8 +6,8 @@ Three tiers depending on budget and requirements.
 
 ## Tier 1 — Free / Local + ngrok (Development & Demo)
 
-**Cost:** $0/month  
-**Audience:** Personal use, demos, development  
+**Cost:** $0/month
+**Audience:** Personal use, demos, development
 **Limitation:** Requires your machine to be on; no persistent domain
 
 ### Setup
@@ -37,8 +37,8 @@ Set `ZANA_PUBLIC_URL=https://abc123.ngrok.io` in `.env` so the A2A AgentCard is 
 
 ## Tier 2 — Medium / VPS (~$10–20/month)
 
-**Cost:** ~$12–20 USD/month  
-**Audience:** Always-on personal assistant, small teams  
+**Cost:** ~$12–20 USD/month
+**Audience:** Always-on personal assistant, small teams
 **Recommended providers:** DigitalOcean, Hetzner, Contabo, Linode
 
 ### Recommended specs
@@ -107,8 +107,8 @@ This makes ZANA fully autonomous — no cloud API keys needed.
 
 ## Tier 3 — Scale / Cloud + Kubernetes
 
-**Cost:** $100–500+/month depending on load  
-**Audience:** Production deployment, multi-user, enterprise  
+**Cost:** $100–500+/month depending on load
+**Audience:** Production deployment, multi-user, enterprise
 **Platforms:** AWS EKS, GCP GKE, Azure AKS, or DigitalOcean Kubernetes
 
 ### Architecture overview

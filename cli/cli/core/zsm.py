@@ -14,9 +14,9 @@ Philosophy:
 
 This is not a degraded experience. It is a transparent one.
 """
+
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from rich.panel import Panel
@@ -24,44 +24,50 @@ from rich.text import Text
 
 from cli.tui.theme import console
 
-
 # ── Capability registry ────────────────────────────────────────────────────────
 
 SOVEREIGN_CAPABILITIES = [
     ("zana memory search <query>", "Busca en tus memorias episódicas (SQLite local)"),
-    ("zana vault search <query>",  "Busca en tu vault de notas (FTS5 local)"),
-    ("zana aeon status",           "Muestra el estado y DNA de tu Aeón"),
-    ("zana aeon card",             "Genera tu tarjeta de identidad del Aeón"),
-    ("zana aeon resonance",        "Test de resonancia → calibra el arquetipo"),
-    ("zana aeon habitat",          "Tu Aeón en su mundo 2.5D"),
-    ("zana sentinel report",       "Civic Ledger — auditoría SHA-256 de decisiones"),
-    ("zana skill list",            "Lista tus skills procedurales activos"),
+    ("zana vault search <query>", "Busca en tu vault de notas (FTS5 local)"),
+    ("zana aeon status", "Muestra el estado y DNA de tu Aeón"),
+    ("zana aeon card", "Genera tu tarjeta de identidad del Aeón"),
+    ("zana aeon resonance", "Test de resonancia → calibra el arquetipo"),
+    ("zana aeon habitat", "Tu Aeón en su mundo 2.5D"),
+    ("zana sentinel report", "Civic Ledger — auditoría SHA-256 de decisiones"),
+    ("zana skill list", "Lista tus skills procedurales activos"),
 ]
 
 LLM_UNLOCKS = [
-    ("Razonamiento natural",     "Conversar, sintetizar, responder preguntas abiertas"),
-    ("Síntesis de vault",        "Citar y conectar tus notas automáticamente"),
-    ("WisdomRules automáticas",  "El Aeón genera reglas de sabiduría desde tus conversaciones"),
-    ("Skill Extraction",         "Extraer skills de tus flujos de trabajo"),
-    ("Analyst / Z-Think",        "Razonamiento simbólico distribuido"),
+    ("Razonamiento natural", "Conversar, sintetizar, responder preguntas abiertas"),
+    ("Síntesis de vault", "Citar y conectar tus notas automáticamente"),
+    (
+        "WisdomRules automáticas",
+        "El Aeón genera reglas de sabiduría desde tus conversaciones",
+    ),
+    ("Skill Extraction", "Extraer skills de tus flujos de trabajo"),
+    ("Analyst / Z-Think", "Razonamiento simbólico distribuido"),
 ]
 
 PROVIDERS = {
     "Ollama (local, gratis, soberano)": "OLLAMA_BASE_URL=http://localhost:11434\nZANA_PRIMARY_MODEL=gemma3:4b",
-    "Anthropic Claude":  "ANTHROPIC_API_KEY=sk-ant-...\nZANA_PRIMARY_MODEL=claude-haiku-4-5-20251001",
-    "Google Gemini":     "GEMINI_API_KEY=AIza...\nZANA_PRIMARY_MODEL=gemini-2.0-flash",
-    "OpenAI GPT":        "OPENAI_API_KEY=sk-...\nZANA_PRIMARY_MODEL=gpt-4o-mini",
-    "Groq (rápido)":     "GROQ_API_KEY=gsk_...\nZANA_PRIMARY_MODEL=llama-3.1-8b-instant",
+    "Anthropic Claude": "ANTHROPIC_API_KEY=sk-ant-...\nZANA_PRIMARY_MODEL=claude-haiku-4-5-20251001",
+    "Google Gemini": "GEMINI_API_KEY=AIza...\nZANA_PRIMARY_MODEL=gemini-2.0-flash",
+    "OpenAI GPT": "OPENAI_API_KEY=sk-...\nZANA_PRIMARY_MODEL=gpt-4o-mini",
+    "Groq (rápido)": "GROQ_API_KEY=gsk_...\nZANA_PRIMARY_MODEL=llama-3.1-8b-instant",
 }
 
 
 # ── Intent detection ───────────────────────────────────────────────────────────
 
+
 def _detect_intent(query: str) -> str:
     """Map user input to the closest sovereign capability."""
     q = query.lower()
 
-    if any(w in q for w in ["recuerda", "recuerdo", "ayer", "antes", "última", "pasada", "cuando"]):
+    if any(
+        w in q
+        for w in ["recuerda", "recuerdo", "ayer", "antes", "última", "pasada", "cuando"]
+    ):
         return "memory"
     if any(w in q for w in ["nota", "vault", "archivo", "doc", "obsidian", "busca"]):
         return "vault"
@@ -75,6 +81,7 @@ def _detect_intent(query: str) -> str:
 
 
 # ── ZSM response engine ────────────────────────────────────────────────────────
+
 
 def respond(query: str) -> None:
     """Process a query in sovereign mode (no LLM)."""
@@ -96,12 +103,12 @@ def respond(query: str) -> None:
 
 def _respond_memory(query: str) -> None:
     """Attempt episodic memory search, explain LLM gap."""
-    from cli.core.vault.infrastructure.index.fts_index import FTSIndex
     db = Path.home() / ".zana" / "episodic.db"
 
     if db.exists():
         try:
             import sqlite3
+
             conn = sqlite3.connect(db)
             cur = conn.cursor()
             cur.execute("SELECT COUNT(*) FROM memories")
@@ -110,8 +117,8 @@ def _respond_memory(query: str) -> None:
             _sovereign_result(
                 title="Memoria Episódica",
                 body=f"Tienes {count:,} memorias almacenadas.\n\n"
-                     f"[dim]Ejecuta:[/dim] [cyan]zana memory search {query[:30]}[/cyan]\n"
-                     f"[dim]para buscar en ellas directamente.[/dim]",
+                f"[dim]Ejecuta:[/dim] [cyan]zana memory search {query[:30]}[/cyan]\n"
+                f"[dim]para buscar en ellas directamente.[/dim]",
             )
         except Exception:
             pass
@@ -119,7 +126,7 @@ def _respond_memory(query: str) -> None:
         _sovereign_result(
             title="Memoria Episódica",
             body="Aún no tienes memorias almacenadas.\n\n"
-                 "[dim]Conecta un LLM para que el Aeón comience a recordar tus conversaciones.[/dim]",
+            "[dim]Conecta un LLM para que el Aeón comience a recordar tus conversaciones.[/dim]",
         )
     _show_llm_unlock("WisdomRules automáticas")
 
@@ -136,6 +143,7 @@ def _respond_vault(query: str) -> None:
 
     try:
         from cli.core.vault.infrastructure.index.fts_index import FTSIndex
+
         fts = FTSIndex(vault_db)
         terms = " ".join(w for w in query.split() if len(w) > 2)
         results = fts.search(terms, limit=3)
@@ -160,6 +168,7 @@ def _respond_skill() -> None:
     skills_path = Path.home() / ".zana" / "skills_registry.json"
     if skills_path.exists():
         import json
+
         try:
             data = json.loads(skills_path.read_text())
             skills = data.get("skills", [])
@@ -175,7 +184,9 @@ def _respond_skill() -> None:
 
 
 def _respond_aeon() -> None:
-    console.print("[dim]→[/dim] Ejecuta [cyan]zana aeon status[/cyan] para ver tu Aeón completo.")
+    console.print(
+        "[dim]→[/dim] Ejecuta [cyan]zana aeon status[/cyan] para ver tu Aeón completo."
+    )
 
 
 def _respond_ledger() -> None:
@@ -187,7 +198,10 @@ def _respond_ledger() -> None:
             body=f"{len(lines)} entradas registradas.\n\n[dim]Cada decisión de tu Aeón está firmada SHA-256 en tu disco.[/dim]",
         )
     else:
-        _sovereign_result(title="Civic Ledger", body="El ledger se activa cuando el Aeón razona con un LLM.")
+        _sovereign_result(
+            title="Civic Ledger",
+            body="El ledger se activa cuando el Aeón razona con un LLM.",
+        )
 
 
 def _respond_general(query: str) -> None:
@@ -228,21 +242,25 @@ def _respond_general(query: str) -> None:
         style="italic dim",
     )
 
-    console.print(Panel(
-        content,
-        title="[bold magenta] ◈ ZANA MODO SOBERANO ◈ [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            content,
+            title="[bold magenta] ◈ ZANA MODO SOBERANO ◈ [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 2),
+        )
+    )
 
 
 def _sovereign_result(title: str, body: str) -> None:
-    console.print(Panel(
-        body,
-        title=f"[bold magenta] ◈ {title} ◈ [/bold magenta]",
-        border_style="magenta",
-        padding=(1, 2),
-    ))
+    console.print(
+        Panel(
+            body,
+            title=f"[bold magenta] ◈ {title} ◈ [/bold magenta]",
+            border_style="magenta",
+            padding=(1, 2),
+        )
+    )
 
 
 def _show_llm_unlock(feature: str) -> None:
@@ -255,12 +273,17 @@ def _show_llm_unlock(feature: str) -> None:
 
 # ── Provider detection ─────────────────────────────────────────────────────────
 
+
 def has_llm_provider() -> bool:
     """Return True if at least one LLM provider is configured."""
     import os
+
     keys = [
-        "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY",
-        "GROQ_API_KEY", "OLLAMA_BASE_URL",
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "GROQ_API_KEY",
+        "OLLAMA_BASE_URL",
     ]
     # Check env vars
     for k in keys:
@@ -272,9 +295,15 @@ def has_llm_provider() -> bool:
         content = env_file.read_text()
         for k in keys:
             if k in content:
-                line = next((l for l in content.splitlines() if l.startswith(k)), "")
+                line = next((l for l in content.splitlines() if l.startswith(k)), "")  # noqa: E741
                 val = line.split("=", 1)[-1].strip()
-                if val and val not in ("", "your_key_here", "sk-...", "AIza...", "gsk_..."):
+                if val and val not in (
+                    "",
+                    "your_key_here",
+                    "sk-...",
+                    "AIza...",
+                    "gsk_...",
+                ):
                     return True
     return False
 
@@ -282,6 +311,7 @@ def has_llm_provider() -> bool:
 def load_env_file() -> None:
     """Load ~/.zana/.env into os.environ if not already loaded."""
     import os
+
     env_file = Path.home() / ".zana" / ".env"
     if not env_file.exists():
         return

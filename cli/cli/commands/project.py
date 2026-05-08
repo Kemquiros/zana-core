@@ -26,7 +26,9 @@ def cmd_project_init(name: str) -> None:
         f"ZANA_PROJECT_NAME={name}\nZANA_COLLECTION_PREFIX={name}_memory\n"
     )
 
-    console.print(f"[success]Cognitive context for project '{name}' initialized.[/success]")
+    console.print(
+        f"[success]Cognitive context for project '{name}' initialized.[/success]"
+    )
     cmd_project_switch(name)
 
 

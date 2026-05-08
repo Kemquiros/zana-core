@@ -28,7 +28,7 @@ const COLORS = [
 ];
 
 const AEON_NAMES = [
-  'Aura', 'Nexus', 'Kairos', 'Echo', 'Vesper', 
+  'Aura', 'Nexus', 'Kairos', 'Echo', 'Vesper',
   'Lumina', 'Zenith', 'Osiris', 'Aether', 'Sybil'
 ];
 
@@ -36,7 +36,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentPhaseIdx, setCurrentPhaseIdx] = useState(-1); // -1: Intro, 0-4: Phases, 5: Visual Config, 6: Forge, 7: Interpretation
   const [results, setResults] = useState<any>(null);
-  
+
   const [dna, setDna] = useState<AeonDNA>({
     name: 'Aura',
     personality_archetype: 'Digital Symbiont',
@@ -71,7 +71,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
 
   const handleForge = async () => {
     setCurrentPhaseIdx(6);
-    
+
     // Generate unique Visual DNA
     const uniqueVisualDna: AeonVisualDNA = {
         base_model_index: Math.floor(Math.random() * 1000),
@@ -132,7 +132,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
       {/* Progress Bar */}
       {currentPhaseIdx >= 0 && currentPhaseIdx <= 5 && (
         <div className="fixed top-0 left-0 w-full h-1 bg-zinc-900 z-50">
-            <motion.div 
+            <motion.div
                 className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
@@ -160,7 +160,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
                 No hay dos Aeons iguales en el multiverso digital. Tus respuestas mutarán el ADN de una nueva forma de vida artificial.
             </p>
             <div className="pt-8">
-                <button 
+                <button
                     onClick={handleNext}
                     className="group relative px-12 py-6 bg-white text-black font-black uppercase tracking-[0.2em] text-xs rounded-full hover:bg-indigo-500 hover:text-white transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]"
                 >
@@ -202,8 +202,8 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
                                     <button
                                         key={opt.valor}
                                         onClick={() => setAnswer(q.id, opt.valor)}
-                                        className={`p-5 rounded-2xl border text-left text-sm transition-all duration-300 ${answers[q.id] === opt.valor 
-                                            ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] translate-x-2' 
+                                        className={`p-5 rounded-2xl border text-left text-sm transition-all duration-300 ${answers[q.id] === opt.valor
+                                            ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.1)] translate-x-2'
                                             : 'bg-white/[0.02] border-white/5 text-gray-400 hover:border-white/10 hover:bg-white/[0.04]'}`}
                                     >
                                         {opt.etiqueta}
@@ -211,7 +211,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
                                 ))}
                             </div>
                         ) : (
-                            <textarea 
+                            <textarea
                                 className="w-full bg-white/[0.02] border border-white/10 rounded-3xl p-6 text-lg font-light focus:outline-none focus:border-indigo-500 transition-all min-h-[160px]"
                                 value={answers[q.id] || ''}
                                 onChange={(e) => setAnswer(q.id, e.target.value)}
@@ -223,8 +223,8 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
 
             <div className="pt-12 flex justify-between items-center border-t border-white/5">
                 <button onClick={handleBack} className="text-gray-500 hover:text-white uppercase font-mono text-[10px]">Volver</button>
-                <button 
-                    onClick={handleNext} 
+                <button
+                    onClick={handleNext}
                     disabled={currentPhase.preguntas.some(q => !answers[q.id])}
                     className="px-10 py-4 bg-indigo-500 text-white font-black uppercase text-[10px] rounded-full"
                 >
@@ -253,12 +253,12 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
 
                 <div className="space-y-12">
                     <h1 className="text-6xl font-black italic uppercase tracking-tighter leading-none">Estética <br/><span className="text-indigo-500">Ancestral</span></h1>
-                    
+
                     <div className="space-y-8">
                         <div className="space-y-4">
                             <label className="text-[10px] font-mono uppercase text-gray-500">Nombre del Vínculo</label>
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={dna.name}
                                 onChange={(e) => setDna({...dna, name: e.target.value})}
                                 className="w-full bg-white/[0.03] border border-white/10 rounded-2xl p-5 text-2xl font-bold italic focus:border-indigo-500 uppercase"
@@ -297,7 +297,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleForge}
                         className="w-full py-6 bg-indigo-500 text-white font-black uppercase tracking-[0.2em] text-xs rounded-full hover:bg-indigo-400 shadow-[0_0_50px_rgba(99,102,241,0.3)] flex items-center justify-center gap-3"
                     >
@@ -349,7 +349,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
                 </p>
                 <Sparkles className="text-indigo-500 w-6 h-6 self-end" />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-10 pt-10 border-t border-white/5">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center text-[8px] font-mono text-gray-500 uppercase tracking-widest">
@@ -382,7 +382,7 @@ export default function ResonanceRitual({ onComplete }: { onComplete: (data: unk
             </div>
 
             <div className="pt-8">
-              <button 
+              <button
                 onClick={() => onComplete(results)}
                 className="px-20 py-7 bg-white text-black font-black uppercase tracking-[0.3em] text-xs rounded-full hover:bg-indigo-500 hover:text-white transition-all shadow-[0_0_80px_rgba(99,102,241,0.2)] flex items-center justify-center gap-4 mx-auto"
               >

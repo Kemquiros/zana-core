@@ -71,8 +71,8 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
   return (
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-8 relative overflow-hidden">
       <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,#0a0a1a_0%,#000000_100%)] pointer-events-none" />
-      
-      <motion.div 
+
+      <motion.div
         key={step}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -100,7 +100,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
 
           {step === 1 && (
             <div className="space-y-6">
-              <button 
+              <button
                 onClick={handleSelectVault}
                 className="w-full p-6 border border-dashed border-white/20 rounded-2xl hover:border-indigo-500 hover:bg-indigo-500/5 transition-all text-left flex flex-col gap-2"
               >
@@ -117,7 +117,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
               {Object.keys(keys).map((key) => (
                 <div key={key}>
                   <label className="block text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">{key.replace('_API_KEY', '')}</label>
-                  <input 
+                  <input
                     type="password"
                     placeholder="sk-..."
                     className="w-full bg-black/50 border border-white/10 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 transition-all"
@@ -137,16 +137,16 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
               <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-indigo-500' : 'w-1.5 bg-white/20'}`} />
             ))}
           </div>
-          
+
           {step < steps.length - 1 ? (
-            <button 
+            <button
               onClick={() => setStep(s => s + 1)}
               className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-full font-bold text-xs uppercase tracking-widest hover:bg-indigo-500 hover:text-white transition-all"
             >
               Siguiente <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
-            <button 
+            <button
               onClick={handleSave}
               disabled={saving}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-500 text-white rounded-full font-bold text-xs uppercase tracking-widest hover:bg-indigo-400 transition-all disabled:opacity-50"

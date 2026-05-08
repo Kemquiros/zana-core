@@ -30,9 +30,9 @@ describe('CockpitPage', () => {
   it('renders loading state initially', async () => {
     // Setup fetch to hang
     (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
-    
+
     render(<CockpitPage />);
-    
+
     // Check if the black screen is rendered (loading state)
     const loadingDiv = document.querySelector('.min-h-screen.bg-black');
     expect(loadingDiv).toBeInTheDocument();
@@ -79,7 +79,7 @@ describe('CockpitPage', () => {
 
     // Should remove shadow mode overlay
     expect(screen.queryByText(/Click para despertar/i)).not.toBeInTheDocument();
-    
+
     // Main UI should become visible
     expect(mainSection).toHaveClass('opacity-100');
     expect(mainSection).not.toHaveClass('opacity-0');

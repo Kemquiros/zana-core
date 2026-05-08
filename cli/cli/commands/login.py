@@ -34,7 +34,9 @@ def cmd_login() -> None:
     creds = _load_credentials()
     if creds:
         console.print("[success]Already authenticated.[/success]")
-        console.print("[muted]Run `zana login --reauth` to get a new token.[/muted]")
+        console.print(
+            "[muted]Run `zana login --reauth` to refresh credentials.[/muted]"
+        )
         return
 
     console.print("[primary]Initiating device authorization flow...[/primary]")
@@ -64,7 +66,7 @@ def cmd_login() -> None:
     console.print(f"\n  Open [code]{verification_uri}[/code]")
     console.print(f"  Enter code: [accent]{user_code}[/accent]\n")
 
-    try:
+    try:  # noqa: SIM105
         webbrowser.open(verification_uri)
     except Exception:
         pass

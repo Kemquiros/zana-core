@@ -76,22 +76,22 @@ impl SovereignLogger {
 
         // Scan for heavy or layer-specific log files
         let layers = ["raw_sense.log", "cognitive_cortex.log", "evolutionary_idle.log", "network.log"];
-        
+
         for layer in layers {
             let path = self.storage_path.join(layer);
             if path.exists() {
                 println!("📦 [Glacier] Comprimiendo capa: {}", layer);
                 // Aquí iría la lógica de compresión (gzip/zstd) y cifrado GCM-256
-                
+
                 println!("🚀 [Glacier] Trasladando a servidores de VECANOVA (Simulado)...");
                 // Simulación de delay de red
                 tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
-                
+
                 // Una vez trasladado, el archivo local se limpia o se borra
                 // std::fs::remove_file(&path).ok();
             }
         }
-        
+
         println!("✅ [Glacier] Sincronización de memoria fría completada.");
         Ok(())
     }

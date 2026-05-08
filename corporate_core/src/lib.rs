@@ -45,10 +45,10 @@ impl CorporateCore {
     /// Evalúa una propuesta de negocio y determina si el CxO-Aeon la recomienda
     pub fn evaluate_proposal(&mut self, title: &str, desc: &str, cost: f64, potential_gain: f64) -> StrategicDecision {
         let roi = (potential_gain - cost) / cost;
-        
+
         // El CxO-Aeon prefiere proyectos con alto ROI y riesgo moderado
         let risk = if roi > 2.0 { 0.8 } else { 0.3 };
-        
+
         // Simulación de alineamiento con la visión (usando lógica difusa interna)
         let alignment = if desc.to_lowercase().contains("soberanía") || desc.to_lowercase().contains("simbiosis") {
             0.95

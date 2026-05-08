@@ -49,7 +49,7 @@ remove_cli_tools() {
             echo -e "${GREEN}✓ CLI 'zana' eliminado.${RESET}"
         fi
     fi
-    
+
     # Clean up environment variables in .bashrc or .zshrc
     echo -e "${CYAN}▶ Limpiando variables de entorno en perfiles de shell...${RESET}"
     local shell_rc=""
@@ -57,7 +57,7 @@ remove_cli_tools() {
         */zsh)  shell_rc="$HOME/.zshrc" ;;
         *)      shell_rc="$HOME/.bashrc" ;;
     esac
-    
+
     if [ -f "$shell_rc" ]; then
         if grep -q "ZANA_CORE_DIR" "$shell_rc"; then
             sed -i '/ZANA_CORE_DIR/d' "$shell_rc"
@@ -68,21 +68,21 @@ remove_cli_tools() {
 
 remove_user_data() {
     echo -e "${RED}▶ ADVERTENCIA: Eliminando bóveda de conocimientos y base de datos local...${RESET}"
-    
+
     # Tauri / Desktop App SQLite Data
     local data_dir="$HOME/.local/share/ZANA"
     if [ -d "$data_dir" ]; then
         rm -rf "$data_dir"
         echo -e "${GREEN}✓ Bóveda SQLite de Tauri eliminada ($data_dir).${RESET}"
     fi
-    
+
     # CLI Data
     local cli_dir="$HOME/.zana"
     if [ -d "$cli_dir" ]; then
         rm -rf "$cli_dir"
         echo -e "${GREEN}✓ Datos de CLI y repositorios cacheados eliminados ($cli_dir).${RESET}"
     fi
-    
+
     echo -e "${GREEN}✓ Toda tu memoria y configuración ha sido erradicada.${RESET}"
 }
 
@@ -107,17 +107,17 @@ case "$option" in
         ;;
     2)
         echo -e "\n${RED}Iniciando Protocolo Omega (Destrucción Total)...${RESET}"
-        
+
         read -p "¿Estás ABSOLUTAMENTE seguro de borrar todos tus datos? Escribe 'ZANA' para confirmar: " confirm
         if [ "$confirm" != "ZANA" ]; then
             echo -e "${CYAN}Abortando erradicación de datos. ZANA sobrevive.${RESET}"
             exit 1
         fi
-        
+
         remove_system_package
         remove_cli_tools
         remove_user_data
-        
+
         echo -e "\n${BOLD}${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
         echo -e "${BOLD}  ZANA HA SIDO ERRADICADA.${RESET}"
         echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"

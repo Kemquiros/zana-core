@@ -29,8 +29,12 @@ _USER_AGENT = "ZANA/2.9 (sovereign AI agent; +https://github.com/Kemquiros/zana-
 
 
 def _strip_html(raw: str, max_chars: int = 4000) -> str:
-    text = re.sub(r"<script[^>]*>.*?</script>", " ", raw, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(
+        r"<script[^>]*>.*?</script>", " ", raw, flags=re.DOTALL | re.IGNORECASE
+    )
+    text = re.sub(
+        r"<style[^>]*>.*?</style>", " ", text, flags=re.DOTALL | re.IGNORECASE
+    )
     text = re.sub(r"<[^>]+>", " ", text)
     text = re.sub(r"\s{2,}", " ", text).strip()
     text = _html_module.unescape(text)
@@ -57,13 +61,17 @@ def _search_tavily(query: str, num_results: int) -> list[dict]:
         data = resp.json()
         results: list[dict] = []
         if data.get("answer"):
-            results.append({"title": "Direct Answer", "url": "", "snippet": data["answer"]})
+            results.append(
+                {"title": "Direct Answer", "url": "", "snippet": data["answer"]}
+            )
         for r in data.get("results", [])[:num_results]:
-            results.append({
-                "title": r.get("title", ""),
-                "url": r.get("url", ""),
-                "snippet": r.get("content", "")[:600],
-            })
+            results.append(
+                {
+                    "title": r.get("title", ""),
+                    "url": r.get("url", ""),
+                    "snippet": r.get("content", "")[:600],
+                }
+            )
         return results
     except Exception as exc:
         logger.warning("Tavily search failed: %s", exc)
@@ -74,7 +82,12 @@ def _search_searxng(query: str, num_results: int) -> list[dict]:
     try:
         resp = httpx.get(
             f"{SEARXNG_URL}/search",
-            params={"q": query, "format": "json", "language": "auto", "safesearch": "0"},
+            params={
+                "q": query,
+                "format": "json",
+                "language": "auto",
+                "safesearch": "0",
+            },
             headers={"User-Agent": _USER_AGENT},
             timeout=8,
         )
@@ -106,20 +119,24 @@ def _search_ddg(query: str, num_results: int) -> list[dict]:
         data = resp.json()
         results: list[dict] = []
         if data.get("AbstractText"):
-            results.append({
-                "title": data.get("Heading", "DuckDuckGo"),
-                "url": data.get("AbstractURL", ""),
-                "snippet": data["AbstractText"][:600],
-            })
+            results.append(
+                {
+                    "title": data.get("Heading", "DuckDuckGo"),
+                    "url": data.get("AbstractURL", ""),
+                    "snippet": data["AbstractText"][:600],
+                }
+            )
         for topic in data.get("RelatedTopics", []):
             if len(results) >= num_results:
                 break
             if isinstance(topic, dict) and topic.get("Text"):
-                results.append({
-                    "title": topic["Text"][:80],
-                    "url": topic.get("FirstURL", ""),
-                    "snippet": topic["Text"][:600],
-                })
+                results.append(
+                    {
+                        "title": topic["Text"][:80],
+                        "url": topic.get("FirstURL", ""),
+                        "snippet": topic["Text"][:600],
+                    }
+                )
         return results
     except Exception as exc:
         logger.warning("DuckDuckGo search failed: %s", exc)

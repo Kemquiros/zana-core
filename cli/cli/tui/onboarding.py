@@ -1,13 +1,13 @@
 import os
+import secrets
 import shutil
+import string
 import subprocess
 import sys
-from pathlib import Path
 import time
-import secrets
-import string
+from pathlib import Path
 
-from cli.tui.theme import console, BANNER
+from cli.tui.theme import BANNER, console
 
 # questionary / prompt_toolkit send \e[6n (cursor position query) on import,
 # which leaks ";1R" to the shell when there is no TTY (curl | bash).
@@ -15,6 +15,7 @@ from cli.tui.theme import console, BANNER
 
 
 # ── Environment detection ──────────────────────────────────────────────────
+
 
 def _is_wsl() -> bool:
     """Detect Windows Subsystem for Linux by checking /proc/version."""
@@ -34,14 +35,18 @@ def _is_interactive() -> bool:
        pseudo-terminal that isatty() incorrectly reports as interactive.
     """
     import os
-    if (os.environ.get("CI")
-            or os.environ.get("DEBIAN_FRONTEND") == "noninteractive"
-            or os.environ.get("ZANA_NON_INTERACTIVE")):
+
+    if (
+        os.environ.get("CI")
+        or os.environ.get("DEBIAN_FRONTEND") == "noninteractive"
+        or os.environ.get("ZANA_NON_INTERACTIVE")
+    ):
         return False
     if not sys.stdin.isatty():
         return False
     try:
         import termios
+
         termios.tcgetattr(sys.stdin.fileno())
         return True
     except Exception:
@@ -53,7 +58,8 @@ def _get_windows_username() -> str:
     try:
         skip = {"Public", "Default", "Default User", "All Users", "desktop.ini"}
         candidates = [
-            p.name for p in Path("/mnt/c/Users").iterdir()
+            p.name
+            for p in Path("/mnt/c/Users").iterdir()
             if p.is_dir() and p.name not in skip
         ]
         if candidates:
@@ -75,15 +81,18 @@ def _default_vault_path() -> str:
         return f"/mnt/c/Users/{win_user}/Documents/ZANA_Vault"
     return str(Path.home() / "Documents" / "ZANA_Vault")
 
+
 ZANA_CONFIG_DIR = Path.home() / ".config" / "zana"
 # Local config for keys, not touching the repo's .env directly for global installs
 # But since this is a sovereign node, we'll store it in ~/.zana/.env
 ZANA_ENV_DIR = Path.home() / ".zana"
 ENV_FILE = ZANA_ENV_DIR / ".env"
 
+
 def _q_style():
     """Lazy-load questionary.Style to avoid importing prompt_toolkit in non-TTY mode."""
     from questionary import Style
+
     return Style(
         [
             ("qmark", "fg:#e879f9 bold"),
@@ -98,15 +107,17 @@ def _q_style():
         ]
     )
 
+
 def _generate_secret(length: int = 32) -> str:
     alphabet = string.ascii_letters + string.digits
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+    return "".join(secrets.choice(alphabet) for _ in range(length))
+
 
 def ensure_env_configured(stack_root: Path) -> None:
     """Ensure that the local .env file in stack_root has critical variables securely populated."""
     env_path = stack_root / ".env"
     env_example = stack_root / ".env.example"
-    
+
     if not env_path.exists():
         if env_example.exists():
             shutil.copy(env_example, env_path)
@@ -117,31 +128,36 @@ def ensure_env_configured(stack_root: Path) -> None:
     content = env_path.read_text()
     lines = content.splitlines()
     env_dict = {}
-    
+
     for line in lines:
         line = line.strip()
-        if line and not line.startswith('#') and '=' in line:
-            key, val = line.split('=', 1)
+        if line and not line.startswith("#") and "=" in line:
+            key, val = line.split("=", 1)
             env_dict[key.strip()] = val.strip()
-            
+
     updates_made = False
-    
+
     # Define critical secrets that need strong auto-generated passwords if missing or default
     critical_secrets = [
         "POSTGRES_PASSWORD",
         "NEO4J_PASSWORD",
         "N8N_PASSWORD",
-        "TELEGRAM_WEBHOOK_SECRET"
+        "TELEGRAM_WEBHOOK_SECRET",
     ]
-    
+
     for secret_key in critical_secrets:
         # Generate if missing or if it matches the placeholder text in .env.example
         current_val = env_dict.get(secret_key, "")
-        if not current_val or current_val in ["change_me_strong_password", "zana_pass", "zana_neo4j", "zana_n8n_secure"]:
+        if not current_val or current_val in [
+            "change_me_strong_password",
+            "zana_pass",
+            "zana_neo4j",
+            "zana_n8n_secure",
+        ]:
             new_secret = _generate_secret()
             env_dict[secret_key] = new_secret
             updates_made = True
-            
+
     if "N8N_USER" not in env_dict or not env_dict["N8N_USER"]:
         env_dict["N8N_USER"] = "zana_admin"
         updates_made = True
@@ -150,10 +166,10 @@ def ensure_env_configured(stack_root: Path) -> None:
         # Reconstruct the file preserving comments and structure as much as possible
         new_lines = []
         updated_keys = set()
-        
+
         for line in lines:
-            if '=' in line and not line.strip().startswith('#'):
-                key = line.split('=', 1)[0].strip()
+            if "=" in line and not line.strip().startswith("#"):
+                key = line.split("=", 1)[0].strip()
                 if key in env_dict:
                     new_lines.append(f"{key}={env_dict[key]}")
                     updated_keys.add(key)
@@ -161,20 +177,25 @@ def ensure_env_configured(stack_root: Path) -> None:
                     new_lines.append(line)
             else:
                 new_lines.append(line)
-                
+
         # Add any keys that weren't in the original file
         for key, val in env_dict.items():
             if key not in updated_keys:
                 new_lines.append(f"{key}={val}")
-                
+
         env_path.write_text("\n".join(new_lines) + "\n")
-        console.print("[success]Securely auto-configured missing secrets in .env[/success]")
+        console.print(
+            "[success]Securely auto-configured missing secrets in .env[/success]"
+        )
+
 
 # ── llmfit — hardware-aware model recommender ─────────────────────────────
+
 
 def _find_llmfit() -> str | None:
     """Return path to llmfit binary, or None if not installed."""
     import shutil
+
     found = shutil.which("llmfit")
     if found:
         return found
@@ -189,8 +210,7 @@ def _install_llmfit() -> bool:
     """Attempt to install llmfit via the official curl installer. Returns True on success."""
     console.print("  [muted]Instalando llmfit (binario Rust, ~5 MB)...[/muted]")
     result = subprocess.run(
-        "curl -fsSL https://llmfit.org/install.sh | sh",
-        shell=True, capture_output=True
+        "curl -fsSL https://llmfit.org/install.sh | sh", shell=True, capture_output=True
     )
     if result.returncode == 0:
         # update PATH so the new binary is visible in this process
@@ -206,29 +226,30 @@ def _install_llmfit() -> bool:
 
 # Map common llmfit name fragments → Ollama tag format
 _LLMFIT_TO_OLLAMA: list[tuple[str, str]] = [
-    ("gemma 3 4",    "gemma3:4b"),
-    ("gemma3 4",     "gemma3:4b"),
-    ("gemma3:4",     "gemma3:4b"),
-    ("gemma 3 12",   "gemma3:12b"),
-    ("gemma3 12",    "gemma3:12b"),
-    ("gemma 3 27",   "gemma3:27b"),
-    ("gemma3 27",    "gemma3:27b"),
-    ("gemma4",       "gemma4"),
-    ("llama 3.2 3",  "llama3.2:3b"),
-    ("llama3.2 3",   "llama3.2:3b"),
-    ("llama 3.1 8",  "llama3.1:8b"),
-    ("llama3.1 8",   "llama3.1:8b"),
+    ("gemma 3 4", "gemma3:4b"),
+    ("gemma3 4", "gemma3:4b"),
+    ("gemma3:4", "gemma3:4b"),
+    ("gemma 3 12", "gemma3:12b"),
+    ("gemma3 12", "gemma3:12b"),
+    ("gemma 3 27", "gemma3:27b"),
+    ("gemma3 27", "gemma3:27b"),
+    ("gemma4", "gemma4"),
+    ("llama 3.2 3", "llama3.2:3b"),
+    ("llama3.2 3", "llama3.2:3b"),
+    ("llama 3.1 8", "llama3.1:8b"),
+    ("llama3.1 8", "llama3.1:8b"),
     ("llama 3.1 70", "llama3.1:70b"),
     ("llama 3.3 70", "llama3.3:70b"),
-    ("mistral 7",    "mistral:7b"),
-    ("mistral:7",    "mistral:7b"),
-    ("phi 4",        "phi4"),
-    ("phi4",         "phi4"),
-    ("phi 3",        "phi3"),
-    ("qwen2.5 7",    "qwen2.5:7b"),
-    ("qwen2.5 14",   "qwen2.5:14b"),
-    ("deepseek",     "deepseek-r1:7b"),
+    ("mistral 7", "mistral:7b"),
+    ("mistral:7", "mistral:7b"),
+    ("phi 4", "phi4"),
+    ("phi4", "phi4"),
+    ("phi 3", "phi3"),
+    ("qwen2.5 7", "qwen2.5:7b"),
+    ("qwen2.5 14", "qwen2.5:14b"),
+    ("deepseek", "deepseek-r1:7b"),
 ]
+
 
 def _normalize_llmfit_name(raw: str) -> str:
     """Best-effort conversion from llmfit display name to Ollama tag."""
@@ -238,6 +259,7 @@ def _normalize_llmfit_name(raw: str) -> str:
             return ollama_tag
     # Generic fallback: lowercase + colon before final number group
     import re
+
     cleaned = re.sub(r"\s+", "", normalized)
     cleaned = re.sub(r"(\d+b)$", r":\1", cleaned)
     return cleaned
@@ -252,21 +274,28 @@ def _get_llmfit_data(llmfit_bin: str) -> dict:
     }
     Returns {"hardware": "", "recommended": []} on any failure.
     """
-    import json, re
+    import json
 
-    empty = {"hardware": "", "recommended": []}
+    empty = {"hardware": "", "recommended": []}  # noqa: F841
 
     # 1. Hardware summary
     hw_summary = ""
     try:
         r = subprocess.run(
-            [llmfit_bin, "system", "--json"],
-            capture_output=True, text=True, timeout=10
+            [llmfit_bin, "system", "--json"], capture_output=True, text=True, timeout=10
         )
         if r.returncode == 0:
             data = json.loads(r.stdout)
-            ram  = data.get("total_memory_gb") or data.get("ram_gb") or data.get("memory", "?")
-            gpu  = data.get("gpu_name") or data.get("gpu") or data.get("accelerator", "CPU only")
+            ram = (
+                data.get("total_memory_gb")
+                or data.get("ram_gb")
+                or data.get("memory", "?")
+            )
+            gpu = (
+                data.get("gpu_name")
+                or data.get("gpu")
+                or data.get("accelerator", "CPU only")
+            )
             hw_summary = f"RAM {ram} GB · GPU {gpu}"
     except Exception:
         pass
@@ -276,13 +305,17 @@ def _get_llmfit_data(llmfit_bin: str) -> dict:
     try:
         r = subprocess.run(
             [llmfit_bin, "recommend", "--json"],
-            capture_output=True, text=True, timeout=15
+            capture_output=True,
+            text=True,
+            timeout=15,
         )
         if r.returncode != 0:
             # Try alternate subcommand
             r = subprocess.run(
                 [llmfit_bin, "fit", "--json"],
-                capture_output=True, text=True, timeout=15
+                capture_output=True,
+                text=True,
+                timeout=15,
             )
         if r.returncode == 0:
             raw = json.loads(r.stdout)
@@ -292,8 +325,12 @@ def _get_llmfit_data(llmfit_bin: str) -> dict:
                     if isinstance(item, str):
                         recommended.append(_normalize_llmfit_name(item))
                     elif isinstance(item, dict):
-                        name = (item.get("name") or item.get("model")
-                                or item.get("id") or "")
+                        name = (
+                            item.get("name")
+                            or item.get("model")
+                            or item.get("id")
+                            or ""
+                        )
                         if name:
                             recommended.append(_normalize_llmfit_name(name))
             elif isinstance(raw, dict):
@@ -310,8 +347,10 @@ def _get_llmfit_data(llmfit_bin: str) -> dict:
 
 # ── Ollama sovereign setup ────────────────────────────────────────────────
 
+
 def _check_ollama_running(base_url: str = "http://localhost:11434") -> bool:
     import httpx
+
     try:
         r = httpx.get(f"{base_url}/api/tags", timeout=3)
         return r.status_code == 200
@@ -321,6 +360,7 @@ def _check_ollama_running(base_url: str = "http://localhost:11434") -> bool:
 
 def _get_ollama_models(base_url: str = "http://localhost:11434") -> list:
     import httpx
+
     try:
         r = httpx.get(f"{base_url}/api/tags", timeout=3)
         r.raise_for_status()
@@ -329,8 +369,11 @@ def _get_ollama_models(base_url: str = "http://localhost:11434") -> list:
         return []
 
 
-def _test_ollama_inference(model: str, base_url: str = "http://localhost:11434") -> str | None:
+def _test_ollama_inference(
+    model: str, base_url: str = "http://localhost:11434"
+) -> str | None:
     import httpx
+
     try:
         r = httpx.post(
             f"{base_url}/api/generate",
@@ -348,12 +391,12 @@ def _test_ollama_inference(model: str, base_url: str = "http://localhost:11434")
 
 
 _RECOMMENDED_MODELS = [
-    ("gemma3:4b",    "Gemma 3 4B  — equilibrio ideal CPU/GPU  (~2.5 GB)"),
-    ("llama3.2:3b",  "Llama 3.2 3B — ultraligero, CPU puro   (~2.0 GB)"),
-    ("llama3.1:8b",  "Llama 3.1 8B — más capaz, requiere GPU (~5.0 GB)"),
-    ("mistral:7b",   "Mistral 7B   — razonamiento técnico     (~4.1 GB)"),
-    ("phi4",         "Phi-4        — Microsoft, muy eficiente (~8.0 GB)"),
-    ("gemma4",       "Gemma 4      — modelo soberano ZANA     (~5.0 GB)"),
+    ("gemma3:4b", "Gemma 3 4B  — equilibrio ideal CPU/GPU  (~2.5 GB)"),
+    ("llama3.2:3b", "Llama 3.2 3B — ultraligero, CPU puro   (~2.0 GB)"),
+    ("llama3.1:8b", "Llama 3.1 8B — más capaz, requiere GPU (~5.0 GB)"),
+    ("mistral:7b", "Mistral 7B   — razonamiento técnico     (~4.1 GB)"),
+    ("phi4", "Phi-4        — Microsoft, muy eficiente (~8.0 GB)"),
+    ("gemma4", "Gemma 4      — modelo soberano ZANA     (~5.0 GB)"),
 ]
 
 
@@ -375,9 +418,15 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
 
     import questionary
 
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print("[bold white]  Modo Soberano Local — Inferencia sin API Keys[/bold white]")
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        "[bold white]  Modo Soberano Local — Inferencia sin API Keys[/bold white]"
+    )
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
 
     if not skip_confirm:
         console.print(
@@ -391,29 +440,43 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
         ).ask()
 
         if not use_ollama:
-            console.print("\n  [muted]Sin problema. Configúralo cuando quieras con:[/muted] [accent]zana setup[/accent]\n")
+            console.print(
+                "\n  [muted]Sin problema. Configúralo cuando quieras con:[/muted] [accent]zana setup[/accent]\n"
+            )
             return {}
     else:
         console.print(
             "\n  Configurando [accent]Ollama[/accent] — inferencia soberana, 100% local, sin API keys.\n"
         )
 
-    base_url = os.getenv("OLLAMA_BASE_URL", os.getenv("OLLAMA_URL", "http://localhost:11434"))
+    base_url = os.getenv(
+        "OLLAMA_BASE_URL", os.getenv("OLLAMA_URL", "http://localhost:11434")
+    )
 
     # ── Paso 1: verificar conexión ─────────────────────────────────────────
-    console.print("\n  [bold cyan]Paso 1 / 3[/bold cyan] — Verificando conexión con Ollama...")
+    console.print(
+        "\n  [bold cyan]Paso 1 / 3[/bold cyan] — Verificando conexión con Ollama..."
+    )
 
     if not _check_ollama_running(base_url):
         console.print(f"\n  [yellow]⚠  Ollama no responde en {base_url}[/yellow]")
         console.print("\n  Necesitas tenerlo corriendo. Según tu sistema:\n")
         console.print("  [bold]Linux / WSL:[/bold]")
-        console.print("    1. Instala:  [accent]curl -fsSL https://ollama.com/install.sh | sh[/accent]")
-        console.print("    2. Inicia:   [accent]ollama serve[/accent]  (en otra terminal)\n")
+        console.print(
+            "    1. Instala:  [accent]curl -fsSL https://ollama.com/install.sh | sh[/accent]"
+        )
+        console.print(
+            "    2. Inicia:   [accent]ollama serve[/accent]  (en otra terminal)\n"
+        )
         console.print("  [bold]macOS:[/bold]")
-        console.print("    1. Descarga la app desde [accent]https://ollama.com/download[/accent]")
+        console.print(
+            "    1. Descarga la app desde [accent]https://ollama.com/download[/accent]"
+        )
         console.print("    2. Ábrela — el ícono de llama aparece en la barra de menú\n")
         console.print("  [bold]Windows (nativo):[/bold]")
-        console.print("    1. Descarga el instalador desde [accent]https://ollama.com/download[/accent]")
+        console.print(
+            "    1. Descarga el instalador desde [accent]https://ollama.com/download[/accent]"
+        )
         console.print("    2. Ejecútalo — Ollama queda disponible en localhost:11434\n")
 
         retry = questionary.confirm(
@@ -442,7 +505,9 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
         console.print("  [muted]Analizando hardware con llmfit...[/muted]")
         llmfit_data = _get_llmfit_data(llmfit_bin)
         if llmfit_data["hardware"]:
-            console.print(f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]")
+            console.print(
+                f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]"
+            )
     else:
         # Offer to install llmfit (optional — user can skip)
         console.print(
@@ -460,23 +525,31 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
                     console.print("  [success]✅ llmfit instalado.[/success]")
                     llmfit_data = _get_llmfit_data(llmfit_bin)
                     if llmfit_data["hardware"]:
-                        console.print(f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]")
+                        console.print(
+                            f"  [muted]Hardware detectado: {llmfit_data['hardware']}[/muted]"
+                        )
             else:
-                console.print("  [yellow]No se pudo instalar llmfit. Continuando con lista estándar.[/yellow]")
+                console.print(
+                    "  [yellow]No se pudo instalar llmfit. Continuando con lista estándar.[/yellow]"
+                )
 
     installed = _get_ollama_models(base_url)
-    llmfit_recommended = llmfit_data["recommended"]  # Ollama-compatible names, best-first
+    llmfit_recommended = llmfit_data[
+        "recommended"
+    ]  # Ollama-compatible names, best-first
 
     if not installed:
         # Suggest the best model: llmfit #1 if available, else our static default
-        pull_suggestion = (
-            llmfit_recommended[0] if llmfit_recommended else "gemma3:4b"
-        )
-        console.print(f"\n  [yellow]⚠  No tienes modelos instalados todavía.[/yellow]")
+        pull_suggestion = llmfit_recommended[0] if llmfit_recommended else "gemma3:4b"
+        console.print("\n  [yellow]⚠  No tienes modelos instalados todavía.[/yellow]")
         if llmfit_recommended:
-            console.print(f"  llmfit recomienda [bold]{pull_suggestion}[/bold] para tu hardware:\n")
+            console.print(
+                f"  llmfit recomienda [bold]{pull_suggestion}[/bold] para tu hardware:\n"
+            )
         else:
-            console.print(f"  Recomendamos [bold]{pull_suggestion}[/bold] — funciona bien en CPU sin GPU:\n")
+            console.print(
+                f"  Recomendamos [bold]{pull_suggestion}[/bold] — funciona bien en CPU sin GPU:\n"
+            )
         console.print("  Abre otra terminal y ejecuta:")
         console.print(f"  [accent]  ollama pull {pull_suggestion}[/accent]")
         console.print("  [muted]  (~2.5 GB de descarga, solo la primera vez)[/muted]\n")
@@ -504,15 +577,14 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
     #   3. installed but not recommended    → shown last, no badge
     static_rec_names = {name for name, _ in _RECOMMENDED_MODELS}
 
-    llmfit_installed     = [m for m in llmfit_recommended if m in installed]
+    llmfit_installed = [m for m in llmfit_recommended if m in installed]
     llmfit_not_installed = [m for m in llmfit_recommended if m not in installed]
-    other_installed      = [m for m in installed if m not in llmfit_recommended]
+    other_installed = [m for m in installed if m not in llmfit_recommended]
     # fallback when llmfit gave no data: sort by our static list
     if not llmfit_recommended:
-        other_installed = (
-            [name for name, _ in _RECOMMENDED_MODELS if name in installed]
-            + [m for m in installed if m not in static_rec_names]
-        )
+        other_installed = [
+            name for name, _ in _RECOMMENDED_MODELS if name in installed
+        ] + [m for m in installed if m not in static_rec_names]
 
     choices: list[str] = []
     if llmfit_installed:
@@ -532,7 +604,9 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
         console.print(f"\n  Único modelo disponible: [bold]{selected}[/bold]")
     else:
         if llmfit_recommended:
-            console.print("  [muted][llmfit ✓] = recomendado para tu hardware · [pull disponible] = no instalado[/muted]")
+            console.print(
+                "  [muted][llmfit ✓] = recomendado para tu hardware · [pull disponible] = no instalado[/muted]"
+            )
         raw_selected = questionary.select(
             "  Elige el modelo a usar:",
             choices=choices,
@@ -542,30 +616,38 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
 
         # If user picked a not-installed model, guide them to pull it first
         if raw_selected and "[pull disponible]" in raw_selected:
-            console.print(f"\n  [yellow]Este modelo no está instalado aún.[/yellow]")
-            console.print(f"  Ejecuta en otra terminal: [accent]ollama pull {selected}[/accent]")
+            console.print("\n  [yellow]Este modelo no está instalado aún.[/yellow]")
+            console.print(
+                f"  Ejecuta en otra terminal: [accent]ollama pull {selected}[/accent]"
+            )
             pull_done = questionary.confirm(
                 "  ¿Ya terminó la descarga?",
                 default=True,
                 style=_q_style(),
             ).ask()
             if not pull_done or selected not in _get_ollama_models(base_url):
-                console.print(f"  [warning]Modelo no disponible aún. Ejecuta zana setup después de descargarlo.[/warning]")
+                console.print(
+                    "  [warning]Modelo no disponible aún. Ejecuta zana setup después de descargarlo.[/warning]"
+                )
                 return {}
 
     if not selected:
         return {}
 
     # ── Paso 3: inferencia real ────────────────────────────────────────────
-    console.print(f"\n  [bold cyan]Paso 3 / 3[/bold cyan] — Probando inferencia con [bold]{selected}[/bold]...")
-    console.print("  [muted]La primera vez puede tardar ~15 s mientras el modelo carga en memoria...[/muted]")
+    console.print(
+        f"\n  [bold cyan]Paso 3 / 3[/bold cyan] — Probando inferencia con [bold]{selected}[/bold]..."
+    )
+    console.print(
+        "  [muted]La primera vez puede tardar ~15 s mientras el modelo carga en memoria...[/muted]"
+    )
 
     response = _test_ollama_inference(selected, base_url)
 
     if response:
-        console.print(f"\n  [success]✅ Respuesta recibida:[/success]")
-        console.print(f"  [bold white]  \"{response}\"[/bold white]\n")
-        console.print(f"  [success]Ollama configurado correctamente.[/success]")
+        console.print("\n  [success]✅ Respuesta recibida:[/success]")
+        console.print(f'  [bold white]  "{response}"[/bold white]\n')
+        console.print("  [success]Ollama configurado correctamente.[/success]")
         console.print(f"  [muted]  ZANA_PRIMARY_MODEL = ollama/{selected}[/muted]\n")
         return {"ZANA_PRIMARY_MODEL": f"ollama/{selected}", "OLLAMA_BASE_URL": base_url}
 
@@ -580,7 +662,9 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
     ).ask()
 
     if save_anyway:
-        console.print(f"  [muted]ZANA_PRIMARY_MODEL = ollama/{selected} — guardado.[/muted]\n")
+        console.print(
+            f"  [muted]ZANA_PRIMARY_MODEL = ollama/{selected} — guardado.[/muted]\n"
+        )
         return {"ZANA_PRIMARY_MODEL": f"ollama/{selected}", "OLLAMA_BASE_URL": base_url}
 
     return {}
@@ -589,6 +673,7 @@ def _setup_ollama(cloud_keys: dict, skip_confirm: bool = False) -> dict:
 def _check_docker() -> bool:
     return shutil.which("docker") is not None and _docker_running()
 
+
 def _docker_running() -> bool:
     try:
         result = subprocess.run(["docker", "info"], capture_output=True, timeout=5)
@@ -596,21 +681,29 @@ def _docker_running() -> bool:
     except Exception:
         return False
 
+
 def _setup_api_keys() -> dict:
     if not _is_interactive():
-        console.print("\n[muted]Modo no-interactivo: omitiendo configuración de API keys.[/muted]")
-        console.print("[muted]Edita ~/.zana/.env o ejecuta [accent]zana setup[/accent] en una terminal para añadirlas.[/muted]")
+        console.print(
+            "\n[muted]Modo no-interactivo: omitiendo configuración de API keys.[/muted]"
+        )
+        console.print(
+            "[muted]Edita ~/.zana/.env o ejecuta [accent]zana setup[/accent] en una terminal para añadirlas.[/muted]"
+        )
         return {}
 
     import questionary
-    console.print("\n[secondary]Configuración de APIs y BYOK (Bring Your Own Key)[/secondary] [muted](Enter para omitir)[/muted]")
+
+    console.print(
+        "\n[secondary]Configuración de APIs y BYOK (Bring Your Own Key)[/secondary] [muted](Enter para omitir)[/muted]"
+    )
 
     keys = {}
     providers = [
         ("ANTHROPIC_API_KEY", "Anthropic API key (Recomendado para Analyst)"),
         ("OPENAI_API_KEY", "OpenAI API key"),
         ("GEMINI_API_KEY", "Gemini API key"),
-        ("GROQ_API_KEY", "Groq API key (Para inferencia ultrarrápida)")
+        ("GROQ_API_KEY", "Groq API key (Para inferencia ultrarrápida)"),
     ]
 
     for env_var, label in providers:
@@ -620,10 +713,11 @@ def _setup_api_keys() -> dict:
 
     return keys
 
+
 def _write_env(keys: dict) -> None:
     ZANA_ENV_DIR.mkdir(parents=True, exist_ok=True)
     out_lines = []
-    
+
     if ENV_FILE.exists():
         out_lines = ENV_FILE.read_text().splitlines()
 
@@ -645,37 +739,47 @@ def _write_env(keys: dict) -> None:
 
     ENV_FILE.write_text("\n".join(new_lines) + "\n")
 
+
 def _detect_environment():
     console.print("\n[secondary]Detección de Entorno[/secondary]")
-    
-    import platform
+
     import multiprocessing
-    
+    import platform
+
     system = platform.system()
     cores = multiprocessing.cpu_count()
-    
+
     console.print(f"  [muted]Sistema:[/muted] [accent]{system}[/accent]")
     console.print(f"  [muted]Núcleos CPU:[/muted] [accent]{cores}[/accent]")
-    
+
     has_gpu = False
     if shutil.which("nvidia-smi"):
         has_gpu = True
         console.print("  [muted]GPU:[/muted] [success]NVIDIA Detectada[/success]")
     elif system == "Darwin" and platform.machine() == "arm64":
         has_gpu = True
-        console.print("  [muted]GPU:[/muted] [success]Apple Silicon (Metal) Detectado[/success]")
+        console.print(
+            "  [muted]GPU:[/muted] [success]Apple Silicon (Metal) Detectado[/success]"
+        )
     else:
-        console.print("  [muted]GPU:[/muted] [warning]No detectada (Ejecución CPU)[/warning]")
+        console.print(
+            "  [muted]GPU:[/muted] [warning]No detectada (Ejecución CPU)[/warning]"
+        )
 
     if has_gpu or cores >= 8:
-        console.print("\n  [success]Tu hardware es capaz de correr modelos locales (Ollama).[/success]")
+        console.print(
+            "\n  [success]Tu hardware es capaz de correr modelos locales (Ollama).[/success]"
+        )
     else:
-        console.print("\n  [warning]Hardware ligero detectado. Se recomienda usar APIs Cloud (BYOK).[/warning]")
+        console.print(
+            "\n  [warning]Hardware ligero detectado. Se recomienda usar APIs Cloud (BYOK).[/warning]"
+        )
+
 
 def _mock_download_brain():
     console.print("\n[secondary]Inicializando Memoria ZANA (The Brain)[/secondary]")
-    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
-    
+    from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+
     with Progress(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
@@ -683,15 +787,17 @@ def _mock_download_brain():
         TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
         console=console,
     ) as progress:
-        task1 = progress.add_task("[cyan]Descargando Postgres (Episodic DB)...", total=100)
-        
-        
+        task1 = progress.add_task(
+            "[cyan]Descargando Postgres (Episodic DB)...", total=100
+        )
+
         while not progress.finished:
             progress.update(task1, advance=2)
             # Removed undefined task2 update to fix potential crash
             time.sleep(0.05)
-            
+
     console.print("[success]Servicios de Memoria listos.[/success]")
+
 
 def run_onboarding() -> bool:
     """First-run wizard (TUI).
@@ -702,7 +808,9 @@ def run_onboarding() -> bool:
     """
     console.clear()
     console.print(BANNER)
-    console.print("[primary]ZANA en línea. Inicializando Protocolo de Soberanía...[/primary]\n")
+    console.print(
+        "[primary]ZANA en línea. Inicializando Protocolo de Soberanía...[/primary]\n"
+    )
 
     _detect_environment()
 
@@ -714,9 +822,12 @@ def run_onboarding() -> bool:
 
     if env_vault:
         vault_path = env_vault
-        console.print(f"  [muted]Bóveda desde ZANA_VAULT_PATH:[/muted] [accent]{vault_path}[/accent]")
+        console.print(
+            f"  [muted]Bóveda desde ZANA_VAULT_PATH:[/muted] [accent]{vault_path}[/accent]"
+        )
     elif _is_interactive():
         import questionary
+
         vault_path = questionary.path(
             "Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):",
             default=default_vault,
@@ -724,9 +835,11 @@ def run_onboarding() -> bool:
         ).ask()
     else:
         vault_path = default_vault
-        console.print(f"  [muted]Modo no-interactivo — usando ruta por defecto:[/muted]")
+        console.print("  [muted]Modo no-interactivo — usando ruta por defecto:[/muted]")
         console.print(f"  [accent]{vault_path}[/accent]")
-        console.print(f"  [muted]Cambia esto después con:[/muted] [accent]zana setup[/accent]")
+        console.print(
+            "  [muted]Cambia esto después con:[/muted] [accent]zana setup[/accent]"
+        )
         if _is_wsl():
             console.print(
                 "  [warning]WSL detectado:[/warning] la ruta apunta a "
@@ -745,21 +858,32 @@ def run_onboarding() -> bool:
     if _check_docker():
         _mock_download_brain()
     else:
-        console.print("\n[warning]Docker no detectado. Omitiendo descarga del 'Brain' local.[/warning]")
-        console.print("[muted]Instala Docker y ejecuta `zana start` más tarde para persistencia de memoria.[/muted]")
+        console.print(
+            "\n[warning]Docker no detectado. Omitiendo descarga del 'Brain' local.[/warning]"
+        )
+        console.print(
+            "[muted]Instala Docker y ejecuta `zana start` más tarde para persistencia de memoria.[/muted]"
+        )
 
     ZANA_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     (ZANA_CONFIG_DIR / ".onboarded").touch()
 
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
     console.print("[success]ZANA CORE ESTÁ LISTO PARA SERVIR.[/success]")
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
     console.print("\nComandos sugeridos para explorar:")
-    console.print("  [accent]zana chat[/accent]   - Abre el REPL para conversar con tu Aeon")
+    console.print(
+        "  [accent]zana chat[/accent]   - Abre el REPL para conversar con tu Aeon"
+    )
     console.print("  [accent]zana aeon[/accent]   - Administra tu enjambre de agentes")
     console.print("  [accent]zana memory[/accent] - Consulta tus recuerdos")
     console.print("\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
     return True
+
 
 def is_first_run() -> bool:
     return not (ZANA_CONFIG_DIR / ".onboarded").exists()
@@ -769,10 +893,10 @@ def is_first_run() -> bool:
 
 _PROVIDERS = {
     "anthropic": ("ANTHROPIC_API_KEY", "Anthropic Claude (recommended for Analyst)"),
-    "openai":    ("OPENAI_API_KEY",    "OpenAI GPT-4o"),
-    "gemini":    ("GEMINI_API_KEY",    "Google Gemini"),
-    "groq":      ("GROQ_API_KEY",      "Groq (ultra-fast inference)"),
-    "ollama":    (None,                "Ollama — local, free, 100% sovereign"),
+    "openai": ("OPENAI_API_KEY", "OpenAI GPT-4o"),
+    "gemini": ("GEMINI_API_KEY", "Google Gemini"),
+    "groq": ("GROQ_API_KEY", "Groq (ultra-fast inference)"),
+    "ollama": (None, "Ollama — local, free, 100% sovereign"),
 }
 
 _AEON_NAMES = [
@@ -797,15 +921,21 @@ def run_init_wizard() -> bool:
     """
     console.clear()
     console.print(BANNER)
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
     console.print("[bold white]  ZANA init — Tu Aeon despierta[/bold white]")
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
     console.print(
         "\n  [muted]5 preguntas. Menos de 3 minutos. Tu Aeon, tu hardware, tu soberanía.[/muted]\n"
     )
 
     if not _is_interactive():
-        console.print("[muted]Modo no-interactivo: ejecuta[/muted] [accent]zana init[/accent] [muted]en una terminal real.[/muted]")
+        console.print(
+            "[muted]Modo no-interactivo: ejecuta[/muted] [accent]zana init[/accent] [muted]en una terminal real.[/muted]"
+        )
         return False
 
     import questionary
@@ -819,23 +949,28 @@ def run_init_wizard() -> bool:
     ).ask()
 
     if name_choice == "Custom...":
-        aeon_name = questionary.text(
-            "  Escribe el nombre de tu Aeon:",
-            style=_q_style(),
-        ).ask() or "Aeon"
+        aeon_name = (
+            questionary.text(
+                "  Escribe el nombre de tu Aeon:",
+                style=_q_style(),
+            ).ask()
+            or "Aeon"
+        )
     else:
         aeon_name = name_choice or "Aeon"
 
-    console.print(f"\n  [success]✓[/success]  Aeon [bold]{aeon_name}[/bold] registrado.\n")
+    console.print(
+        f"\n  [success]✓[/success]  Aeon [bold]{aeon_name}[/bold] registrado.\n"
+    )
 
     # ── Q2: Provider ───────────────────────────────────────────────────────────
     console.print("[bold cyan]2 / 4[/bold cyan]  ¿Qué motor de inferencia usarás?")
     provider_labels = {
         "anthropic": "Anthropic Claude    [API key requerida]",
-        "openai":    "OpenAI GPT          [API key requerida]",
-        "gemini":    "Google Gemini       [API key requerida]",
-        "groq":      "Groq                [API key requerida, free tier disponible]",
-        "ollama":    "Ollama local        [gratis, soberano, sin API key] ← recomendado",
+        "openai": "OpenAI GPT          [API key requerida]",
+        "gemini": "Google Gemini       [API key requerida]",
+        "groq": "Groq                [API key requerida, free tier disponible]",
+        "ollama": "Ollama local        [gratis, soberano, sin API key] ← recomendado",
     }
     provider_key = questionary.select(
         "  Motor:",
@@ -854,12 +989,18 @@ def run_init_wizard() -> bool:
     # ── Q3 / Q4: credentials or Ollama setup ──────────────────────────────────
     if selected_provider == "ollama":
         # Ollama path — reuse existing 3-step wizard (connection + model + inference test)
-        console.print(f"\n[bold cyan]3 / 4[/bold cyan]  Configurando Ollama (motor soberano local)...")
-        ollama_env = _setup_ollama({}, skip_confirm=True)  # user already chose Ollama in Q2
+        console.print(
+            "\n[bold cyan]3 / 4[/bold cyan]  Configurando Ollama (motor soberano local)..."
+        )
+        ollama_env = _setup_ollama(
+            {}, skip_confirm=True
+        )  # user already chose Ollama in Q2
         env_keys.update(ollama_env)
     else:
         env_var_name, provider_label = _PROVIDERS[selected_provider]
-        console.print(f"\n[bold cyan]3 / 4[/bold cyan]  API key para {provider_label.split(' (')[0]}:")
+        console.print(
+            f"\n[bold cyan]3 / 4[/bold cyan]  API key para {provider_label.split(' (')[0]}:"
+        )
         api_key = questionary.password(
             f"  Pega tu {provider_var_name(selected_provider)}:",
             style=_q_style(),
@@ -869,17 +1010,23 @@ def run_init_wizard() -> bool:
             # Auto-set primary model based on provider
             model_defaults = {
                 "anthropic": "claude-haiku-4-5-20251001",
-                "openai":    "gpt-4o-mini",
-                "gemini":    "gemini-2.0-flash",
-                "groq":      "llama-3.1-8b-instant",
+                "openai": "gpt-4o-mini",
+                "gemini": "gemini-2.0-flash",
+                "groq": "llama-3.1-8b-instant",
             }
             env_keys["ZANA_PRIMARY_MODEL"] = model_defaults[selected_provider]
-            console.print(f"\n  [success]✓[/success]  API key guardada. Modelo: [accent]{env_keys['ZANA_PRIMARY_MODEL']}[/accent]\n")
+            console.print(
+                f"\n  [success]✓[/success]  API key guardada. Modelo: [accent]{env_keys['ZANA_PRIMARY_MODEL']}[/accent]\n"
+            )
         else:
-            console.print("\n  [warning]Sin API key. Puedes añadirla después con[/warning] [accent]zana setup[/accent].\n")
+            console.print(
+                "\n  [warning]Sin API key. Puedes añadirla después con[/warning] [accent]zana setup[/accent].\n"
+            )
 
     # ── Q4: vault path (silent default) ───────────────────────────────────────
-    console.print("[bold cyan]4 / 4[/bold cyan]  Bóveda de memoria (ruta donde ZANA almacena tus documentos)")
+    console.print(
+        "[bold cyan]4 / 4[/bold cyan]  Bóveda de memoria (ruta donde ZANA almacena tus documentos)"
+    )
     default_vault = _default_vault_path()
     env_vault = os.environ.get("ZANA_VAULT_PATH", "").strip()
     vault_path = env_vault or default_vault
@@ -891,11 +1038,14 @@ def run_init_wizard() -> bool:
     ).ask()
 
     if not use_default:
-        vault_path = questionary.path(
-            "  Ruta a tu bóveda:",
-            default=default_vault,
-            style=_q_style(),
-        ).ask() or default_vault
+        vault_path = (
+            questionary.path(
+                "  Ruta a tu bóveda:",
+                default=default_vault,
+                style=_q_style(),
+            ).ask()
+            or default_vault
+        )
 
     env_keys["VAULT_PATH"] = vault_path
 
@@ -910,6 +1060,7 @@ def run_init_wizard() -> bool:
     ZANA_ENV_DIR.mkdir(parents=True, exist_ok=True)
     import json as _json
     from datetime import datetime
+
     profile_data = {
         "name": aeon_name,
         "init_at": datetime.now().isoformat(),
@@ -918,8 +1069,12 @@ def run_init_wizard() -> bool:
     aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
 
     # ── Step 5: Vault Cartography (optional) ──────────────────────────────────
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print("[bold cyan]5 / 5[/bold cyan]  (Opcional) ¿Dónde vive tu conocimiento?")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        "[bold cyan]5 / 5[/bold cyan]  (Opcional) ¿Dónde vive tu conocimiento?"
+    )
     console.print(
         f"  [dim]ZANA puede indexar tus notas para que {aeon_name} las cite en tus conversaciones.[/dim]"
     )
@@ -933,7 +1088,11 @@ def run_init_wizard() -> bool:
     vault_index = None
     if do_vault:
         try:
-            from cli.core.vault.application.cartographer import run_vault_cartography, index_sources
+            from cli.core.vault.application.cartographer import (
+                index_sources,
+                run_vault_cartography,
+            )
+
             selected_paths = run_vault_cartography()
             if selected_paths:
                 console.print()
@@ -942,16 +1101,24 @@ def run_init_wizard() -> bool:
                     profile_data["vault_notes"] = vault_index.total_docs
                     aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
             else:
-                console.print(f"  [dim]{aeon_name} empezará con vault vacío — crece con cada conversación.[/dim]")
+                console.print(
+                    f"  [dim]{aeon_name} empezará con vault vacío — crece con cada conversación.[/dim]"
+                )
         except Exception as e:
             console.print(f"  [warning]Vault omitido: {e}[/warning]")
     else:
-        console.print(f"  [dim]Ok — {aeon_name} empezará vacío. Añade tu vault después con[/dim] [accent]zana vault add[/accent]")
+        console.print(
+            f"  [dim]Ok — {aeon_name} empezará vacío. Añade tu vault después con[/dim] [accent]zana vault add[/accent]"
+        )
 
     # ── Step 6: Resonance Test (optional) ─────────────────────────────────────
     console.print()
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print("[bold cyan]Bonus[/bold cyan]  Test de Resonancia (3 minutos · recomendado)")
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        "[bold cyan]Bonus[/bold cyan]  Test de Resonancia (3 minutos · recomendado)"
+    )
     console.print(
         f"  [dim]Sin él, {aeon_name} funciona. Con él, {aeon_name} te conoce.[/dim]"
     )
@@ -966,31 +1133,44 @@ def run_init_wizard() -> bool:
         try:
             from cli.tui.aeon_sigil import AeonProfile
             from cli.tui.resonance import run_resonance_test
+
             aeon_profile = AeonProfile.load()
             archetype = run_resonance_test(aeon_profile)
             profile_data["archetype"] = archetype.value
             aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
         except Exception as e:
             console.print(f"  [warning]Test omitido: {e}[/warning]")
-            console.print(f"  [dim]Ejecuta después con[/dim] [accent]zana aeon resonance[/accent]")
+            console.print(
+                "  [dim]Ejecuta después con[/dim] [accent]zana aeon resonance[/accent]"
+            )
     else:
-        console.print(f"  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]")
+        console.print(
+            "  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]"
+        )
 
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
     console.print(f"[success]  {aeon_name} ha despertado.[/success]")
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print(f"\n  [accent]zana aeon sigil[/accent]  — ver tu Aeón vivo")
-    console.print(f"  [accent]zana aeon card[/accent]   — tarjeta de identidad compartible")
-    console.print(f"  [accent]zana chat[/accent]        — primera conversación con {aeon_name}")
-    console.print(f"\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print("\n  [accent]zana aeon sigil[/accent]  — ver tu Aeón vivo")
+    console.print(
+        "  [accent]zana aeon card[/accent]   — tarjeta de identidad compartible"
+    )
+    console.print(
+        f"  [accent]zana chat[/accent]        — primera conversación con {aeon_name}"
+    )
+    console.print("\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
     return True
 
 
 def provider_var_name(provider: str) -> str:
     mapping = {
         "anthropic": "ANTHROPIC_API_KEY",
-        "openai":    "OPENAI_API_KEY",
-        "gemini":    "GEMINI_API_KEY",
-        "groq":      "GROQ_API_KEY",
+        "openai": "OPENAI_API_KEY",
+        "gemini": "GEMINI_API_KEY",
+        "groq": "GROQ_API_KEY",
     }
     return mapping.get(provider, "API_KEY")

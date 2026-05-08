@@ -5,8 +5,11 @@ import boto3
 
 logger = logging.getLogger("zana.sync.storage")
 
+
 class S3StorageAdapter:
-    def __init__(self, endpoint_url: str, access_key: str, secret_key: str, bucket_name: str):
+    def __init__(
+        self, endpoint_url: str, access_key: str, secret_key: str, bucket_name: str
+    ):
         self.s3 = boto3.client(
             "s3",
             endpoint_url=endpoint_url,

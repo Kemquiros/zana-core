@@ -43,7 +43,7 @@ def test_kalman_calibration():
             status = "CAMBIO!"
 
         print(
-            f"{ctx[:57]+'...':<60} | {surprise:10.4f} | {uncertainty:10.4f} | {status}"
+            f"{ctx[:57] + '...':<60} | {surprise:10.4f} | {uncertainty:10.4f} | {status}"
         )
 
     # Análisis

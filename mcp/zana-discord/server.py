@@ -32,6 +32,7 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 import httpx  # noqa: E402
+
 from mcp.server.fastmcp import FastMCP  # noqa: E402
 
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN", "")

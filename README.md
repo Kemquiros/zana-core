@@ -42,7 +42,7 @@ ZANA inverts this with a single architectural principle:
 └─────────────────────────────────────────────────┘
 ```
 
-**Your Aeon is your digital soul. The model is the compute engine.  
+**Your Aeon is your digital soul. The model is the compute engine.
 No one should own your soul.**
 
 ---
@@ -294,7 +294,7 @@ With gratitude to: `eglejsr`, `ferchus_nandus`, `domination`, `kamo`, `virtus_sa
 
 [![Ko-fi](https://img.shields.io/badge/Support_ZANA-Ko--fi-red?style=for-the-badge&logo=ko-fi)](https://ko-fi.com/kemquiros)
 
-Built with honor in Medellín, Colombia. 🇨🇴  
+Built with honor in Medellín, Colombia. 🇨🇴
 **[VECANOVA](https://vecanova.com)** · MIT License
 
 *JUNTOS HACEMOS TEMBLAR LOS CIELOS.*

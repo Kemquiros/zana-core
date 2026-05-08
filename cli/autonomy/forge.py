@@ -37,13 +37,13 @@ class ZanaForge:
         prompt = f"""
         ZANA ARCHITECT COMMAND: AUTOPOTESIS TRIGGERED.
         Goal: Synthesize a replacement for the failing skill '{skill_id}'.
-        Current Steps: {skill_data['steps']}
-        Domain: {skill_data['domain']}
-        
-        Requirement: Provide a standalone, high-performance RUST struct that 
+        Current Steps: {skill_data["steps"]}
+        Domain: {skill_data["domain"]}
+
+        Requirement: Provide a standalone, high-performance RUST struct that
         implements this logic using f64 and safe memory patterns.
         Include a #[cfg(test)] block with at least one validation case.
-        
+
         Reply ONLY with valid RUST code.
         """
 

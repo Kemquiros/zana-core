@@ -82,7 +82,9 @@ class LocalLLM:
             )
             return self._template_response(user_input, context)
 
-    async def generate_async(self, user_input: str, context: str = "", session_id: str = "") -> str:
+    async def generate_async(
+        self, user_input: str, context: str = "", session_id: str = ""
+    ) -> str:
         """
         Generate Aeon response asynchronously.
         """
@@ -104,12 +106,12 @@ class LocalLLM:
             logger.info(f"☁️  [LLM ASYNC] {self.primary_model} → '{text[:60]}…'")
             return text
         except Exception as e:
-            logger.error(
-                f"❌ [LLM ASYNC] Error: {e}"
-            )
+            logger.error(f"❌ [LLM ASYNC] Error: {e}")
             return self._template_response(user_input, context)
 
-    async def generate_stream_async(self, user_input: str, context: str = "", session_id: str = ""):
+    async def generate_stream_async(
+        self, user_input: str, context: str = "", session_id: str = ""
+    ):
         """
         Generates Aeon response in an async streaming fashion.
         Yields strings.
@@ -127,7 +129,7 @@ class LocalLLM:
                 messages=messages,
                 temperature=0.7,
                 max_tokens=512,
-                stream=True
+                stream=True,
             )
             async for chunk in response:
                 content = chunk.choices[0].delta.content

@@ -70,7 +70,17 @@ class ContextCompressor:
 
     def _detect_language(self, last_message: BaseMessage) -> str:
         content = str(last_message.content).lower()
-        es_markers = {"el ", "la ", "los ", "las ", "que ", "con ", "por ", "para ", "no "}
+        es_markers = {
+            "el ",
+            "la ",
+            "los ",
+            "las ",
+            "que ",
+            "con ",
+            "por ",
+            "para ",
+            "no ",
+        }
         if sum(1 for m in es_markers if m in content) >= 2:
             return "Spanish"
         return "English"
@@ -78,11 +88,11 @@ class ContextCompressor:
     def _summarize(
         self, messages: list[BaseMessage], observations: list[str], language: str
     ) -> str | None:
-        text_parts = [
-            f"{m.__class__.__name__}: {m.content}" for m in messages
-        ]
+        text_parts = [f"{m.__class__.__name__}: {m.content}" for m in messages]
         if observations:
-            text_parts.append("\nObservations:\n" + "\n".join(f"- {o}" for o in observations))
+            text_parts.append(
+                "\nObservations:\n" + "\n".join(f"- {o}" for o in observations)
+            )
 
         prompt = (
             f"Summarize the following conversation context concisely in {language}. "

@@ -213,7 +213,7 @@ export default function AeonCard({ aeon, active = false, onClick }: AeonCardProp
               <motion.div
                 className="text-5xl drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]"
                 style={{ transform: "translateZ(50px)" }}
-                animate={isHovered ? { 
+                animate={isHovered ? {
                   y: [-4, 4, -4],
                   rotate: [0, -5, 5, 0],
                   scale: 1.1

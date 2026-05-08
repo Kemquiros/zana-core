@@ -25,20 +25,20 @@ class RefactorAgent:
         code = file_path.read_text()
 
         prompt = f"""
-        You are a ZANA Senior Systems Engineer. 
+        You are a ZANA Senior Systems Engineer.
         Your task is to translate this Python module into idiomatic, high-performance RUST code.
-        
+
         CRITERIA:
         1. Use f64 for calculations.
         2. Implement it as a public struct/module.
         3. Include doc comments explaining the logic.
         4. No external dependencies if possible (use std).
-        
+
         PYTHON CODE:
         ```python
         {code}
         ```
-        
+
         Reply ONLY with the valid RUST code.
         """
 

@@ -30,18 +30,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Add project root and current dir to sys.path
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # PyInstaller bundle path
     root = Path(sys._MEIPASS)
     # Set tiktoken cache dir to bundled folder
     os.environ["TIKTOKEN_CACHE_DIR"] = str(root / "tiktoken_cache")
-    
+
     # --- TIKTOKEN PYINSTALLER FIX ---
     try:
         import tiktoken
         import tiktoken_ext.openai_public
+
         # Force registration of encodings into tiktoken's registry
-        for name, constructor in tiktoken_ext.openai_public.ENCODING_CONSTRUCTORS.items():
+        for (
+            name,
+            constructor,
+        ) in tiktoken_ext.openai_public.ENCODING_CONSTRUCTORS.items():
             if name not in tiktoken.registry.ENCODINGS:
                 tiktoken.registry.ENCODINGS[name] = constructor
     except Exception as e:
@@ -49,15 +53,16 @@ if getattr(sys, 'frozen', False):
 
     # --- SMOLAGENTS PYINSTALLER FIX ---
     import inspect
+
     _original_getsource = inspect.getsource
     _original_getsourcelines = inspect.getsourcelines
-    
+
     def _patched_getsource(obj):
         try:
             return _original_getsource(obj)
         except OSError:
             return "def forward(self, *args, **kwargs):\n    pass\n"
-            
+
     def _patched_getsourcelines(obj):
         try:
             return _original_getsourcelines(obj)
@@ -91,10 +96,12 @@ logger = logging.getLogger("zana.gateway")
 # ── Sentinel Event Bus — lazy import to avoid circular deps ───────────────────
 try:
     import sys as _sys
+
     _sys.path.insert(0, str(root))
     from sentinel.event_bus import EventType as _ET
     from sentinel.event_bus import ZanaEvent
     from sentinel.event_bus import get_bus as _get_sentinel_bus
+
     _sentinel_available = True
 except Exception as _e:
     logger.warning("Sentinel Event Bus not available: %s", _e)
@@ -110,18 +117,23 @@ async def _emit(event_type, payload: dict, session_id: str = "gateway") -> None:
         return
     try:
         bus = _get_sentinel_bus()
-        await bus.emit(ZanaEvent(type=event_type, payload=payload, session_id=session_id))
+        await bus.emit(
+            ZanaEvent(type=event_type, payload=payload, session_id=session_id)
+        )
     except Exception as _e:
         logger.debug("Sentinel emit failed silently: %s", _e)
+
 
 # --- CONFIG ---
 GATEWAY_PORT = int(os.getenv("ZANA_GATEWAY_PORT", "54446"))
 SYMBIOSIS_URL = os.getenv("ZANA_SYMBIOSIS_URL", "http://localhost:58000")
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
         from orchestrator.background_scheduler import start_scheduler, stop_scheduler
+
         await start_scheduler()
         logger.info("✓  [GATEWAY] Background scheduler started")
     except Exception as _e:
@@ -147,11 +159,13 @@ app.add_middleware(
 
 resonance_engine = ResonanceEngine()
 
+
 class RitualRequest(BaseModel):
     answers: dict[str, Any]
     name: str | None = None
     visual_genes: dict[str, Any] | None = None
     is_master: bool | None = False
+
 
 @app.post("/resonance/forge")
 async def forge_identity(request: RitualRequest):
@@ -162,11 +176,10 @@ async def forge_identity(request: RitualRequest):
     logger.info(f"Forging new Aeon identity for {request.name}...")
     # Pass name and visual_genes to the engine
     profile = resonance_engine.process_ritual(
-        request.answers, 
-        user_name=request.name, 
-        user_visual_genes=request.visual_genes
+        request.answers, user_name=request.name, user_visual_genes=request.visual_genes
     )
     return profile
+
 
 @app.get("/resonance/profile")
 async def get_profile():
@@ -189,7 +202,7 @@ async def update_virtual_space(req: UpdateSpaceRequest):
     """
     if not resonance_engine.resonance_path.exists():
         raise HTTPException(status_code=404, detail="Profile not found")
-    
+
     try:
         profile = json.loads(resonance_engine.resonance_path.read_text())
         if "virtual_space" not in profile:
@@ -200,6 +213,7 @@ async def update_virtual_space(req: UpdateSpaceRequest):
         return {"status": "success", "theme": req.theme}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # ─── Power-user routers (v2.1 / v2.2) ─────────────────────────────────────────
 try:
@@ -220,7 +234,9 @@ try:
     app.include_router(_search_router)
     app.include_router(_wisdom_router)
     app.include_router(_sentinel_router)
-    logger.info("✓  [GATEWAY] reason / memory / control / projects / identity / search / wisdom / sentinel routers loaded")
+    logger.info(
+        "✓  [GATEWAY] reason / memory / control / projects / identity / search / wisdom / sentinel routers loaded"
+    )
 except Exception as _e:
     logger.warning("Power-user routers not loaded: %s", _e)
 
@@ -264,6 +280,7 @@ class _NumpyKalmanGate:
 
 _kalman_registry: dict[str, Any] = {}
 
+
 def _get_kalman_filter(project_id: str):
     """Retrieves or creates a Kalman filter specific to a project context."""
     if project_id not in _kalman_registry:
@@ -286,7 +303,9 @@ def _kalman_surprise_text(text: str, project_id: str = "default") -> float:
     return kf.update(emb)  # type: ignore[union-attr]
 
 
-def _kalman_surprise_buffer(embedding: np.ndarray, project_id: str = "default") -> float:
+def _kalman_surprise_buffer(
+    embedding: np.ndarray, project_id: str = "default"
+) -> float:
     """Zero-copy Kalman update from numpy array — used for audio/vision embeddings."""
     kf = _get_kalman_filter(project_id)
     if hasattr(kf, "update_buffer"):
@@ -320,7 +339,9 @@ async def _query_cortex(event: PerceptionEvent) -> str:
     return ""
 
 
-async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str) -> str:
+async def _build_aeon_response_async(
+    event: PerceptionEvent, cortex_context: str
+) -> str:
     """
     Generates the Aeon's real response via LocalLLM asynchronously.
     Injects the forged identity from the resonance profile.
@@ -363,7 +384,11 @@ async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str
     # Sentinel: ExternalAPI event before LLM call
     await _emit(
         _ET.EXTERNAL_API,
-        {"provider": llm.__class__.__name__, "modality": event.modality, "input_len": len(modality_prefix)},
+        {
+            "provider": llm.__class__.__name__,
+            "modality": event.modality,
+            "input_len": len(modality_prefix),
+        },
         session_id=event.session_id or "gateway",
     )
 
@@ -374,7 +399,12 @@ async def _build_aeon_response_async(event: PerceptionEvent, cortex_context: str
     # Sentinel: MemoryWrite event after response generated (episodic store)
     await _emit(
         _ET.MEMORY_WRITE,
-        {"store": "episodic", "role": "aeon", "session_id": event.session_id, "content_len": len(response)},
+        {
+            "store": "episodic",
+            "role": "aeon",
+            "session_id": event.session_id,
+            "content_len": len(response),
+        },
         session_id=event.session_id or "gateway",
     )
 
@@ -419,7 +449,6 @@ def _build_aeon_response(event: PerceptionEvent, cortex_context: str) -> str:
     return llm.generate(
         modality_prefix, context=full_context, session_id=event.session_id or ""
     )
-
 
 
 # ─── Request models ───────────────────────────────────────────────────────────
@@ -504,7 +533,9 @@ async def sense_audio(
     )
 
     # 3. Kalman surprise
-    event.kalman_surprise = _kalman_surprise_text(result.transcript, session_id or "default")
+    event.kalman_surprise = _kalman_surprise_text(
+        result.transcript, session_id or "default"
+    )
 
     # 4. Cortex
     cortex_ctx = await _query_cortex(event)
@@ -574,7 +605,9 @@ async def sense_vision(
         response_emotion=features.emotional_context,
     )
 
-    event.kalman_surprise = _kalman_surprise_text(combined_desc, session_id or "default")
+    event.kalman_surprise = _kalman_surprise_text(
+        combined_desc, session_id or "default"
+    )
 
     cortex_ctx = await _query_cortex(event)
     event.response_text = _build_aeon_response(event, cortex_ctx)
@@ -644,7 +677,9 @@ async def sense_multimodal(
         # Combine transcript + visual description as Cortex input
         event.text = f"{event.text or ''} [+SEE: {desc}]".strip()
 
-    event.kalman_surprise = _kalman_surprise_text(event.text or "", session_id or "default")
+    event.kalman_surprise = _kalman_surprise_text(
+        event.text or "", session_id or "default"
+    )
 
     cortex_ctx = await _query_cortex(event)
     event.response_text = _build_aeon_response(event, cortex_ctx)
@@ -694,25 +729,34 @@ async def sense_stream(ws: WebSocket):
                 verdict = inspect_input(data)
                 if not verdict["allowed"]:
                     await ws.send_json(
-                        {"type": "error", "content": f"ARMOR_BLOCKED: {verdict['threat_level']}"}
+                        {
+                            "type": "error",
+                            "content": f"ARMOR_BLOCKED: {verdict['threat_level']}",
+                        }
                     )
                     continue
-                
+
                 data = verdict["sanitized"]
-                
+
                 # Mock PerceptionEvent for the start
-                event = PerceptionEvent(modality="text", session_id=session_id, text=data)
-                event.kalman_surprise = _kalman_surprise_text(data, session_id or "default")
+                event = PerceptionEvent(
+                    modality="text", session_id=session_id, text=data
+                )
+                event.kalman_surprise = _kalman_surprise_text(
+                    data, session_id or "default"
+                )
                 ctx = await _query_cortex(event)
-                
+
                 # LLM Streaming (ASYNC)
                 llm = get_local_llm()
-                async for chunk in llm.generate_stream_async(data, context=ctx, session_id=session_id or ""):
+                async for chunk in llm.generate_stream_async(
+                    data, context=ctx, session_id=session_id or ""
+                ):
                     await ws.send_json({"type": "chunk", "content": chunk})
-                
+
                 # End of stream
                 await ws.send_json({"type": "end"})
-                
+
             elif msg_type == "audio":
                 audio_bytes = base64.b64decode(data)
                 # Run sync audio processing in thread to avoid blocking loop
@@ -723,7 +767,9 @@ async def sense_stream(ws: WebSocket):
                     text=result.transcript,
                     audio_features=result.features,
                 )
-                event.kalman_surprise = _kalman_surprise_text(result.transcript, session_id or "default")
+                event.kalman_surprise = _kalman_surprise_text(
+                    result.transcript, session_id or "default"
+                )
                 ctx = await _query_cortex(event)
                 event.response_text = await _build_aeon_response_async(event, ctx)
                 # TTS in stream
@@ -733,14 +779,18 @@ async def sense_stream(ws: WebSocket):
             elif msg_type == "vision":
                 img_bytes = base64.b64decode(data)
                 # Run sync vision processing in thread
-                desc, features = await asyncio.to_thread(_vision.analyze_image, img_bytes)
+                desc, features = await asyncio.to_thread(
+                    _vision.analyze_image, img_bytes
+                )
                 event = PerceptionEvent(
                     modality="vision",
                     session_id=session_id,
                     text=desc,
                     vision_features=features,
                 )
-                event.kalman_surprise = _kalman_surprise_text(desc, session_id or "default")
+                event.kalman_surprise = _kalman_surprise_text(
+                    desc, session_id or "default"
+                )
                 ctx = await _query_cortex(event)
                 event.response_text = await _build_aeon_response_async(event, ctx)
 
@@ -762,19 +812,19 @@ async def sense_stream(ws: WebSocket):
 async def sense_ambient(ws: WebSocket):
     """
     Ambient Senses Endpoint.
-    ZANA listens passively to the environment. 
+    ZANA listens passively to the environment.
     Only triggers orchestration when Voice Activity is detected via Rust DSP.
     """
     await ws.accept()
     logger.info("🎤 [AMBIENT] Passive listener connected")
     audio_buffer = b""
     voice_detected = False
-    
+
     try:
         while True:
             # Receive binary audio data
             data = await ws.receive_bytes()
-            
+
             # Use Rust DSP to detect voice activity
             if _audio.is_voice_active(data):
                 if not voice_detected:
@@ -782,40 +832,45 @@ async def sense_ambient(ws: WebSocket):
                     voice_detected = True
                 audio_buffer += data
             else:
-                if voice_detected and len(audio_buffer) > 16000: # Approx 1s of 16kHz audio
+                if (
+                    voice_detected and len(audio_buffer) > 16000
+                ):  # Approx 1s of 16kHz audio
                     logger.info("🎤 [AMBIENT] Silence detected, processing segment...")
                     # Process buffered audio
                     result = _audio.transcribe(audio_buffer)
                     if result.transcript.strip() and result.transcript != "[silence]":
                         logger.info(f"🎤 [AMBIENT] Heard: '{result.transcript}'")
-                        
+
                         # Forward to Orchestrator in a separate thread to avoid blocking loop
-                        response = await asyncio.to_thread(apex_orchestrator.process_request, result.transcript)
-                        
+                        response = await asyncio.to_thread(
+                            apex_orchestrator.process_request, result.transcript
+                        )
+
                         # Generate TTS
                         audio_resp = await _tts.synthesize_async(response)
-                        
+
                         # Send back PerceptionEvent
                         event = PerceptionEvent(
                             modality="audio",
                             text=result.transcript,
                             response_text=response,
-                            response_audio_b64=base64.b64encode(audio_resp).decode()
+                            response_audio_b64=base64.b64encode(audio_resp).decode(),
                         )
                         await ws.send_json(event.to_dict())
-                        
+
                     # Reset buffer
                     audio_buffer = b""
                     voice_detected = False
                 else:
                     # Keep a small rolling buffer of silence to avoid clipping start of next sentence
-                    audio_buffer = data # Basic rolling, could be improved
-                    
+                    audio_buffer = data  # Basic rolling, could be improved
+
     except WebSocketDisconnect:
         logger.info("🎤 [AMBIENT] Passive listener disconnected")
     except Exception as e:
         logger.error("❌ [AMBIENT] Error: %s", e)
         await ws.close(code=1011)
+
 
 @app.get("/sync/status")
 async def get_sync_status():
@@ -824,12 +879,13 @@ async def get_sync_status():
     last_sync = None
     if vault_path.exists():
         last_sync = datetime.fromtimestamp(vault_path.stat().st_mtime).isoformat()
-    
+
     return {
         "enabled": os.getenv("ZANA_SYNC_SEED") is not None,
         "last_sync": last_sync,
-        "provider": "S3" if os.getenv("ZANA_SYNC_S3_URL") else "Local Only"
+        "provider": "S3" if os.getenv("ZANA_SYNC_S3_URL") else "Local Only",
     }
+
 
 @app.post("/sync/trigger")
 async def trigger_sync(background_tasks: BackgroundTasks):
@@ -837,7 +893,7 @@ async def trigger_sync(background_tasks: BackgroundTasks):
     from autonomy.crypto import AegisCrypto
     from autonomy.storage_adapters import S3StorageAdapter
     from autonomy.sync_engine import SyncEngine
-    
+
     seed = os.getenv("ZANA_SYNC_SEED")
     if not seed:
         return {"status": "error", "message": "Sync not configured (no seed)"}
@@ -847,10 +903,10 @@ async def trigger_sync(background_tasks: BackgroundTasks):
             core_dir = Path(os.getenv("ZANA_CORE_DIR", "."))
             crypto = AegisCrypto(seed)
             engine = SyncEngine(crypto, core_dir)
-            
+
             # Create snapshot
             vault_path = engine.create_snapshot()
-            
+
             # Upload if S3 is configured
             url = os.getenv("ZANA_SYNC_S3_URL")
             if url:
@@ -866,6 +922,7 @@ async def trigger_sync(background_tasks: BackgroundTasks):
     background_tasks.add_task(_do_sync)
     return {"status": "started", "message": "Sync initiated in background."}
 
+
 @app.get("/health")
 def health():
     """Gateway status and availability of each backend."""
@@ -880,11 +937,12 @@ def health():
     vision_backend = (
         f"ollama:{llm_info.get('vision_model')}"
         if llm_info.get("vision_model")
-        else ("claude-vision" if getattr(_vision, '_client', None) else "mock")
+        else ("claude-vision" if getattr(_vision, "_client", None) else "mock")
     )
     scheduler_info: dict = {}
     try:
         from orchestrator.background_scheduler import scheduler_status
+
         scheduler_info = scheduler_status()
     except Exception:
         scheduler_info = {"running": 0}
@@ -896,7 +954,10 @@ def health():
             "tts": tts_backend,
             "llm": llm_backend,
             "vision": vision_backend,
-            "kalman": "rust-steel-core" if _kalman_registry.get("default") and hasattr(_kalman_registry["default"], "update_text") else "numpy (dynamic)",
+            "kalman": "rust-steel-core"
+            if _kalman_registry.get("default")
+            and hasattr(_kalman_registry["default"], "update_text")
+            else "numpy (dynamic)",
             "armor": armor_backend(),
         },
         "scheduler": scheduler_info,

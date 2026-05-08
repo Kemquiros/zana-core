@@ -46,6 +46,7 @@ class ApproveRequest(BaseModel):
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/inbox")
 async def get_wisdom_inbox():
     """Return all pending wisdom proposals for user review."""
@@ -71,11 +72,14 @@ async def approve_wisdom(wisdom_id: str, body: ApproveRequest = ApproveRequest()
 
     proposal = next((p for p in pending if p["id"] == wisdom_id), None)
     if not proposal:
-        raise HTTPException(status_code=404, detail=f"Wisdom ID '{wisdom_id}' not found in inbox")
+        raise HTTPException(
+            status_code=404, detail=f"Wisdom ID '{wisdom_id}' not found in inbox"
+        )
 
     # Register as active skill via SkillRegistry
     try:
         from procedural_memory.manager import SkillRegistry
+
         reg = SkillRegistry()
         skill_id = body.skill_id_override or f"wisdom_{wisdom_id}"
         reg.register_skill(
@@ -88,7 +92,9 @@ async def approve_wisdom(wisdom_id: str, body: ApproveRequest = ApproveRequest()
         if skill_id in reg.skills:
             reg.skills[skill_id]["source"] = "auto_wisdom_mining"
             reg.skills[skill_id]["trigger"] = proposal.get("trigger", "")
-            reg.skills[skill_id]["confidence_at_proposal"] = proposal.get("confidence", 0.5)
+            reg.skills[skill_id]["confidence_at_proposal"] = proposal.get(
+                "confidence", 0.5
+            )
             reg.save()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to register skill: {e}")
@@ -113,7 +119,9 @@ async def reject_wisdom(wisdom_id: str):
 
     proposal = next((p for p in pending if p["id"] == wisdom_id), None)
     if not proposal:
-        raise HTTPException(status_code=404, detail=f"Wisdom ID '{wisdom_id}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"Wisdom ID '{wisdom_id}' not found"
+        )
 
     proposal["rejected_at"] = datetime.now().isoformat()
     proposal["status"] = "rejected"

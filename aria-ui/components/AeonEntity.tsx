@@ -20,8 +20,8 @@ const AeonShaderMaterial = shaderMaterial(
     float noise = sin(pos.x * 5.0 + uTime) * cos(pos.y * 5.0 + uTime);
     // Approximate normal by normalizing position since it's a sphere
     vec3 norm = normalize(pos);
-    pos += norm * noise * uAudioLevel * 0.5; 
-    
+    pos += norm * noise * uAudioLevel * 0.5;
+
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_PointSize = (10.0 + uAudioLevel * 20.0) * (1.0 / -mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;
@@ -51,7 +51,7 @@ export default function AeonEntity({ dna, audioLevel = 0 }: { dna: any, audioLev
     const pos = new Float32Array(particleCount * 3);
     const col = new Float32Array(particleCount * 3);
     const color = new THREE.Color();
-    
+
     // Parse DNA colors
     const palette = dna?.chroma_spectrum || ['#4f46e5', '#8b5cf6'];
     const baseColor = new THREE.Color(palette[0]);
@@ -110,7 +110,7 @@ export default function AeonEntity({ dna, audioLevel = 0 }: { dna: any, audioLev
         y = 1.5 * Math.sin(theta) * Math.sin(phi);
         z = 1.5 * Math.cos(phi);
       }
-      
+
       pos[i * 3] = x;
       pos[i * 3 + 1] = y;
       pos[i * 3 + 2] = z;

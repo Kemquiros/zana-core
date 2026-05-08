@@ -70,7 +70,7 @@ export default function UpdateNotifier() {
           <div className="relative overflow-hidden rounded-3xl bg-indigo-600/10 border border-indigo-500/30 backdrop-blur-2xl shadow-2xl p-6 space-y-4 group">
             {/* Ambient glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 pointer-events-none" />
-            
+
             <div className="flex items-start justify-between relative z-10">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-500/20 text-indigo-400">
@@ -81,7 +81,7 @@ export default function UpdateNotifier() {
                   <p className="text-[10px] font-mono text-indigo-400/70 uppercase tracking-widest">v{update?.version} está lista</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setVisible(false)}
                 className="p-1.5 hover:bg-white/5 rounded-lg text-gray-500 transition-colors"
               >
@@ -90,8 +90,8 @@ export default function UpdateNotifier() {
             </div>
 
             <p className="text-xs text-gray-400 leading-relaxed relative z-10 pl-1">
-              {status === 'downloading' 
-                ? 'Descargando e instalando el nuevo córtex...' 
+              {status === 'downloading'
+                ? 'Descargando e instalando el nuevo córtex...'
                 : status === 'ready'
                   ? 'Reinicio inminente. El futuro se está cargando.'
                   : 'Mejoras en el motor de razonamiento y evolución de Aeons disponibles.'}
@@ -124,7 +124,7 @@ export default function UpdateNotifier() {
             {/* Loading bar for download */}
             {status === 'downloading' && (
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/5">
-                <motion.div 
+                <motion.div
                   className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
                   initial={{ width: 0 }}
                   animate={{ width: '100%' }}

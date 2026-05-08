@@ -52,7 +52,7 @@ coliseum_app = typer.Typer(
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
-from cli.commands.coliseum import app as coliseum_typer
+from cli.commands.coliseum import app as coliseum_typer  # noqa: E402
 
 coliseum_app.add_typer(coliseum_typer, name="")
 app.add_typer(coliseum_app, name="coliseum")
@@ -88,14 +88,17 @@ def main(
         import time as _time
 
         from cli.sentinel_hooks import fire_post_tool_use, fire_pre_tool_use
+
         _t0 = _time.perf_counter()
         fire_pre_tool_use(ctx.invoked_subcommand)
+
         def _on_close():
             fire_post_tool_use(
                 ctx.invoked_subcommand,
                 success=True,
                 elapsed_ms=(_time.perf_counter() - _t0) * 1000,
             )
+
         ctx.call_on_close(_on_close)
         return
 
@@ -205,7 +208,9 @@ def setup() -> None:
     run_onboarding()
 
 
-@app.command(help="Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.")
+@app.command(
+    help="Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation."
+)
 def init() -> None:
     run_init_wizard()
 
@@ -217,10 +222,15 @@ def doctor() -> None:
     cmd_doctor()
 
 
-@app.command(help="Expose Aria UI securely to the public internet via Cloudflare Tunnels.")
+@app.command(
+    help="Expose Aria UI securely to the public internet via Cloudflare Tunnels."
+)
 def expose(
     port: Annotated[
-        int, typer.Option("--port", "-p", help="Local port to expose (default 54448 for Aria UI).")
+        int,
+        typer.Option(
+            "--port", "-p", help="Local port to expose (default 54448 for Aria UI)."
+        ),
     ] = 54448,
 ) -> None:
     from cli.commands.expose import cmd_expose
@@ -243,7 +253,9 @@ def hardware(
     ] = False,
     recommend: Annotated[
         bool,
-        typer.Option("--recommend", "-r", help="Show model recommendations for your hardware."),
+        typer.Option(
+            "--recommend", "-r", help="Show model recommendations for your hardware."
+        ),
     ] = False,
     top: Annotated[
         int,
@@ -291,6 +303,7 @@ id_app = typer.Typer(
 )
 app.add_typer(id_app, name="id")
 
+
 @id_app.command("generate", help="Forge a new Sovereign ZANA Identity.")
 def id_generate(
     force: Annotated[
@@ -298,12 +311,16 @@ def id_generate(
     ] = False,
 ) -> None:
     from cli.commands.identity import cmd_id_generate
+
     cmd_id_generate(force=force)
+
 
 @id_app.command("show", help="Display your public ZANA ID.")
 def id_show() -> None:
     from cli.commands.identity import cmd_id_show
+
     cmd_id_show()
+
 
 # ── Aeon sub-commands ─────────────────────────────────────────────────────────
 
@@ -343,32 +360,36 @@ def aeon_status() -> None:
 
     cmd_status()
 
-@aeon_app.command("resonance", help="Forges an Aeon using the KORU-GENOME v4.0 protocol.")
-def aeon_resonance() -> None:
-    from cli.commands.aeon import cmd_resonance
-    cmd_resonance()
 
 @aeon_app.command("export", help="Export your Aeon DNA to a .aeon file.")
 def aeon_export(
-    path: Annotated[Path | None, typer.Argument(help="Output path.")] = None
+    path: Annotated[Path | None, typer.Argument(help="Output path.")] = None,
 ) -> None:
     from cli.commands.aeon import cmd_export
+
     cmd_export(path)
+
 
 @aeon_app.command("summon", help="Summon an external Aeon from a .aeon file.")
 def aeon_summon(
-    path: Annotated[Path, typer.Argument(help="Path to .aeon file.")]
+    path: Annotated[Path, typer.Argument(help="Path to .aeon file.")],
 ) -> None:
     from cli.commands.aeon import cmd_summon
+
     cmd_summon(path)
+
 
 @aeon_app.command("sigil", help="Animated Aeon sigil — living visual representation.")
 def aeon_sigil(
     duration: Annotated[
-        float, typer.Option("--duration", "-d", help="Seconds to animate (0 = loop until Ctrl+C).")
+        float,
+        typer.Option(
+            "--duration", "-d", help="Seconds to animate (0 = loop until Ctrl+C)."
+        ),
     ] = 0,
 ) -> None:
     from cli.commands.aeon import cmd_sigil
+
     cmd_sigil(duration=duration or None)
 
 
@@ -379,28 +400,36 @@ def aeon_card(
     ] = False,
 ) -> None:
     from cli.commands.aeon import cmd_card
+
     cmd_card(export=export)
 
 
-@aeon_app.command("resonance", help="Run the Resonance Test to calibrate your Aeon archetype.")
+@aeon_app.command(
+    "resonance", help="Run the Resonance Test to calibrate your Aeon archetype."
+)
 def aeon_resonance() -> None:
     from cli.commands.aeon import cmd_resonance
+
     cmd_resonance()
 
 
-@aeon_app.command("habitat", help="Your Aeon in its 2.5D world — living environment animation.")
+@aeon_app.command(
+    "habitat", help="Your Aeon in its 2.5D world — living environment animation."
+)
 def aeon_habitat(
     fps: Annotated[
         int, typer.Option("--fps", help="Animation frames per second (default 4).")
     ] = 4,
 ) -> None:
     from cli.commands.aeon import cmd_habitat
+
     cmd_habitat(fps=fps)
 
 
 @aeon_app.command("dna", help="Show your Aeon's full 21-gene DNA vector.")
 def aeon_dna() -> None:
     from cli.commands.aeon import cmd_dna
+
     cmd_dna()
 
 
@@ -515,7 +544,7 @@ def swarm_query(
     cmd_swarm_query(fact_key)
 
 
-from cli.commands.sync import app as sync_app
+from cli.commands.sync import app as sync_app  # noqa: E402
 
 app.add_typer(sync_app, name="sync")
 
@@ -525,10 +554,20 @@ world_app = typer.Typer(
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
-from cli.commands.world import app as world_typer
+from cli.commands.world import app as world_typer  # noqa: E402
 
 world_app.add_typer(world_typer, name="")
 app.add_typer(world_app, name="world")
+
+satellite_app = typer.Typer(
+    name="satellite",
+    help="Satellite connectivity layer — Telegram, Discord.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+from cli.commands.satellite import app as satellite_typer  # noqa: E402
+
+satellite_app.add_typer(satellite_typer, name="")
 app.add_typer(satellite_app, name="satellite")
 
 sentinel_app = typer.Typer(
@@ -543,24 +582,35 @@ app.add_typer(sentinel_app, name="sentinel")
 @sentinel_app.command("status", help="Bus health + event type counts.")
 def sentinel_status() -> None:
     from cli.commands.sentinel import cmd_sentinel_status
+
     cmd_sentinel_status()
 
 
 @sentinel_app.command("events", help="Recent events from the in-memory ring buffer.")
 def sentinel_events(
     limit: Annotated[int, typer.Option("--limit", "-n", help="Number of events.")] = 20,
-    event_type: Annotated[str | None, typer.Option("--type", "-t", help="Filter by event type.")] = None,
+    event_type: Annotated[
+        str | None, typer.Option("--type", "-t", help="Filter by event type.")
+    ] = None,
 ) -> None:
     from cli.commands.sentinel import cmd_sentinel_events
+
     cmd_sentinel_events(limit=limit, event_type=event_type)
 
 
-@sentinel_app.command("ledger", help="Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl).")
+@sentinel_app.command(
+    "ledger",
+    help="Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl).",
+)
 def sentinel_ledger(
-    limit: Annotated[int, typer.Option("--limit", "-n", help="Number of entries.")] = 20,
+    limit: Annotated[
+        int, typer.Option("--limit", "-n", help="Number of entries.")
+    ] = 20,
 ) -> None:
     from cli.commands.sentinel import cmd_sentinel_ledger
+
     cmd_sentinel_ledger(limit=limit)
+
 
 wisdom_app = typer.Typer(
     name="wisdom",
@@ -574,20 +624,25 @@ app.add_typer(wisdom_app, name="wisdom")
 @wisdom_app.command("inbox", help="List pending wisdom proposals.")
 def wisdom_inbox() -> None:
     from cli.commands.wisdom import cmd_wisdom_inbox
+
     cmd_wisdom_inbox()
 
 
 @wisdom_app.command("mine", help="Trigger trajectory mining to generate new proposals.")
 def wisdom_mine() -> None:
     from cli.commands.wisdom import cmd_wisdom_mine
+
     cmd_wisdom_mine()
 
 
-@wisdom_app.command("approve", help="Approve a proposal and register it as an active skill.")
+@wisdom_app.command(
+    "approve", help="Approve a proposal and register it as an active skill."
+)
 def wisdom_approve(
     wisdom_id: Annotated[str, typer.Argument(help="Wisdom proposal ID.")],
 ) -> None:
     from cli.commands.wisdom import cmd_wisdom_approve
+
     cmd_wisdom_approve(wisdom_id)
 
 
@@ -596,7 +651,9 @@ def wisdom_reject(
     wisdom_id: Annotated[str, typer.Argument(help="Wisdom proposal ID.")],
 ) -> None:
     from cli.commands.wisdom import cmd_wisdom_reject
+
     cmd_wisdom_reject(wisdom_id)
+
 
 if __name__ == "__main__":
     app()

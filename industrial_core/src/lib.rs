@@ -63,10 +63,10 @@ impl IndustrialCore {
         // State = expected value, Uncertainty = deviation
         let q = 0.01; // Process noise
         let r = 0.1;  // Measurement noise
-        
+
         let p = entry.failure_probability + q;
         let gain = p / (p + r);
-        
+
         // Innovation based on deviation from "normal" (0.0 failure prob)
         // Normalized by sensor type
         let normalized_val = match data.sensor_type.as_str() {
@@ -78,7 +78,7 @@ impl IndustrialCore {
 
         let innov = (normalized_val - entry.failure_probability).abs();
         let surprise = (innov * innov) / (p + r);
-        
+
         entry.surprise_level = surprise.min(1.0);
         entry.failure_probability += gain * (normalized_val - entry.failure_probability);
         entry.overall_status = (1.0 - entry.failure_probability).max(0.0);

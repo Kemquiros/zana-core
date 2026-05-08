@@ -60,6 +60,7 @@ _limiter = RateLimiter(
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _session_id(update: Update) -> str:
     return f"tg-{update.effective_chat.id}"
 
@@ -71,13 +72,19 @@ def _allowed(update: Update) -> bool:
 
 
 def _truncate(text: str, max_len: int = MAX_MSG_LEN - 200) -> str:
-    return text if len(text) <= max_len else text[: max_len] + "\n…"
+    return text if len(text) <= max_len else text[:max_len] + "\n…"
 
 
 def _emotion_icon(emotion: str | None) -> str:
     return {
-        "joy": "✨", "surprise": "⚡", "fear": "🛡️", "anger": "🔥",
-        "sadness": "🌧️", "neutral": "🦊", "curiosity": "🦉", "trust": "🤝",
+        "joy": "✨",
+        "surprise": "⚡",
+        "fear": "🛡️",
+        "anger": "🔥",
+        "sadness": "🌧️",
+        "neutral": "🦊",
+        "curiosity": "🦉",
+        "trust": "🤝",
     }.get(emotion or "neutral", "🦊")
 
 
@@ -112,6 +119,7 @@ def _gw_error_msg(e: Exception) -> str:
 
 # ── /start ────────────────────────────────────────────────────────────────────
 
+
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         await update.message.reply_text("⛔ Acceso denegado.")
@@ -137,6 +145,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /help ─────────────────────────────────────────────────────────────────────
 
+
 async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -144,6 +153,7 @@ async def cmd_help(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── /clear ────────────────────────────────────────────────────────────────────
+
 
 async def cmd_clear(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -158,6 +168,7 @@ async def cmd_clear(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /status ───────────────────────────────────────────────────────────────────
 
+
 async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -167,8 +178,11 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         backends = data.get("backends", {})
         lines = ["🦊 *Signos vitales del Aeon*\n"]
         icons = {
-            "stt": "🎤 Oídos", "tts": "🔊 Voz", "llm": "🧠 Córtex",
-            "vision": "👁️ Ojos", "kalman": "📐 Filtro Bayesiano",
+            "stt": "🎤 Oídos",
+            "tts": "🔊 Voz",
+            "llm": "🧠 Córtex",
+            "vision": "👁️ Ojos",
+            "kalman": "📐 Filtro Bayesiano",
             "armor": "🛡️ Escudo Rust",
         }
         for k, v in backends.items():
@@ -189,6 +203,7 @@ async def cmd_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── /recall ───────────────────────────────────────────────────────────────────
+
 
 async def cmd_recall(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -221,6 +236,7 @@ async def cmd_recall(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /reason ───────────────────────────────────────────────────────────────────
 
+
 async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -247,17 +263,21 @@ async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         for d in deductions:
             conf = d.get("confidence", 0)
             bar = "█" * int(conf * 10) + "░" * (10 - int(conf * 10))
-            lines.extend([
-                f"*{d.get('rule', '?')}*",
-                f"`{bar}` {conf:.0%}",
-                f"→ _{d.get('conclusion', '?')}_",
-            ])
+            lines.extend(
+                [
+                    f"*{d.get('rule', '?')}*",
+                    f"`{bar}` {conf:.0%}",
+                    f"→ _{d.get('conclusion', '?')}_",
+                ]
+            )
             if d.get("action"):
                 lines.append(f"⚔️ `{d['action']}`")
             lines.append("")
         if result.get("swarm_rule"):
             sr = result["swarm_rule"]
-            lines.append(f"🌐 _Red Z: {sr.get('name')} ({sr.get('votes')} Aeons coinciden)_")
+            lines.append(
+                f"🌐 _Red Z: {sr.get('name')} ({sr.get('votes')} Aeons coinciden)_"
+            )
         await update.message.reply_text(
             _truncate("\n".join(lines)), parse_mode=ParseMode.MARKDOWN
         )
@@ -266,6 +286,7 @@ async def cmd_reason(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── /swarm ────────────────────────────────────────────────────────────────────
+
 
 async def cmd_swarm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -293,6 +314,7 @@ async def cmd_swarm(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /aeon ─────────────────────────────────────────────────────────────────────
 
+
 async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -314,6 +336,7 @@ async def cmd_aeon(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── /wisdom ───────────────────────────────────────────────────────────────────
 
+
 async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -331,7 +354,9 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
-            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(
+                _gw_error_msg(e), parse_mode=ParseMode.MARKDOWN
+            )
         return
 
     if len(args) >= 2 and args[0] == "approve":
@@ -343,15 +368,21 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
-            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(
+                _gw_error_msg(e), parse_mode=ParseMode.MARKDOWN
+            )
         return
 
     if len(args) >= 2 and args[0] == "reject":
         try:
             await gw.wisdom_reject(args[1])
-            await update.message.reply_text(f"🗑️ Propuesta `{args[1]}` rechazada.", parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(
+                f"🗑️ Propuesta `{args[1]}` rechazada.", parse_mode=ParseMode.MARKDOWN
+            )
         except Exception as e:
-            await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(
+                _gw_error_msg(e), parse_mode=ParseMode.MARKDOWN
+            )
         return
 
     # Show inbox with inline keyboard buttons
@@ -378,12 +409,22 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
                 f"_{p.get('trigger', 'Sin trigger')}_\n"
             )
             if p.get("steps"):
-                text += "\n".join(f"  {i+1}. {s}" for i, s in enumerate(p["steps"][:3]))
+                text += "\n".join(
+                    f"  {i + 1}. {s}" for i, s in enumerate(p["steps"][:3])
+                )
 
-            keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton("✅ Aprobar", callback_data=f"wisdom:approve:{p['id']}"),
-                InlineKeyboardButton("🗑️ Rechazar", callback_data=f"wisdom:reject:{p['id']}"),
-            ]])
+            keyboard = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            "✅ Aprobar", callback_data=f"wisdom:approve:{p['id']}"
+                        ),
+                        InlineKeyboardButton(
+                            "🗑️ Rechazar", callback_data=f"wisdom:reject:{p['id']}"
+                        ),
+                    ]
+                ]
+            )
             await update.message.reply_text(
                 _truncate(text), parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
             )
@@ -398,6 +439,7 @@ async def cmd_wisdom(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── Text messages ─────────────────────────────────────────────────────────────
+
 
 async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -425,7 +467,8 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         elif surprise > 1.2:
             footer = f"\n\n_🧐 Dato interesante — nivel {surprise:.2f}_"
         await update.message.reply_text(
-            _truncate(f"{icon} {response}{footer}"), parse_mode=ParseMode.MARKDOWN,
+            _truncate(f"{icon} {response}{footer}"),
+            parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         logger.error("sense_text error: %s", e)
@@ -433,6 +476,7 @@ async def handle_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ── Voice notes ───────────────────────────────────────────────────────────────
+
 
 async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -459,8 +503,9 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
         audio_b64 = result.get("response_audio_b64")
         icon = _emotion_icon(emotion)
         reply = (
-            f"🎤 _\"{transcript}\"_\n\n{icon} {response}"
-            if transcript else f"{icon} {response}"
+            f'🎤 _"{transcript}"_\n\n{icon} {response}'
+            if transcript
+            else f"{icon} {response}"
         )
         if audio_b64:
             await ctx.bot.send_voice(
@@ -469,13 +514,16 @@ async def handle_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
                 caption="🔊",
             )
         else:
-            await update.message.reply_text(_truncate(reply), parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(
+                _truncate(reply), parse_mode=ParseMode.MARKDOWN
+            )
     except Exception as e:
         logger.error("sense_audio error: %s", e)
         await update.message.reply_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
 
 
 # ── Photos ────────────────────────────────────────────────────────────────────
+
 
 async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
@@ -516,6 +564,7 @@ async def handle_photo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
 
 # ── Documents ─────────────────────────────────────────────────────────────────
 
+
 async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     if not _allowed(update):
         return
@@ -534,9 +583,13 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
 
     # Only process text-like documents; skip binaries silently
     TEXT_MIMES = {
-        "text/plain", "text/markdown", "text/csv",
-        "application/json", "application/xml",
-        "application/x-yaml", "text/x-python",
+        "text/plain",
+        "text/markdown",
+        "text/csv",
+        "application/json",
+        "application/xml",
+        "application/x-yaml",
+        "text/x-python",
     }
     MAX_SIZE = 1_000_000  # 1 MB — larger files not sent to LLM
 
@@ -554,7 +607,9 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
     file = await ctx.bot.get_file(doc.file_id)
     raw_bytes = bytes(await file.download_as_bytearray())
 
-    if mime in TEXT_MIMES or filename.endswith((".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv")):
+    if mime in TEXT_MIMES or filename.endswith(
+        (".txt", ".md", ".py", ".json", ".yaml", ".yml", ".csv")
+    ):
         try:
             content = raw_bytes.decode("utf-8", errors="replace")[:8000]
         except Exception:
@@ -588,6 +643,7 @@ async def handle_document(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
 
 # ── Inline callbacks (wisdom approve/reject + aeon switch) ────────────────────
 
+
 async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
     await query.answer()
@@ -604,7 +660,9 @@ async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
                 parse_mode=ParseMode.MARKDOWN,
             )
         except Exception as e:
-            await query.edit_message_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+            await query.edit_message_text(
+                _gw_error_msg(e), parse_mode=ParseMode.MARKDOWN
+            )
 
     elif data.startswith("wisdom:reject:"):
         wisdom_id = data.split(":", 2)[2]
@@ -614,7 +672,9 @@ async def handle_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> Non
                 "🗑️ Propuesta rechazada.", parse_mode=ParseMode.MARKDOWN
             )
         except Exception as e:
-            await query.edit_message_text(_gw_error_msg(e), parse_mode=ParseMode.MARKDOWN)
+            await query.edit_message_text(
+                _gw_error_msg(e), parse_mode=ParseMode.MARKDOWN
+            )
 
     elif data.startswith("aeon:"):
         aeon_id = data.split(":", 1)[1]

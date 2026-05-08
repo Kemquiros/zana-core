@@ -3,6 +3,7 @@ from pathlib import Path
 
 import zana_steel_core
 from dotenv import load_dotenv
+
 from mcp.server.fastmcp import FastMCP
 
 # Load environment variables (from zana-core/.env)
@@ -33,7 +34,7 @@ def format_chunks(results: list) -> str:
         return "No relevant information found."
 
     formatted = []
-    
+
     for item in results:
         # Depending on how pyo3 exposes the result, we try to access distance and metadata
         try:
@@ -91,15 +92,15 @@ def semantic_search(query: str, collection_filter: str = None, top_k: int = 5) -
                 meta_str = getattr(item, "metadata", "{}")
         except AttributeError:
             meta_str = item[2]
-            
+
         try:
             meta = json.loads(meta_str)
         except json.JSONDecodeError:
             meta = {}
-            
+
         if collection_filter and meta.get("folder") != collection_filter:
             continue
-            
+
         filtered_results.append(item)
         if len(filtered_results) >= top_k:
             break

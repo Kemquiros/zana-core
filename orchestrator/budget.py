@@ -11,16 +11,19 @@ Configuration via environment variables:
   ZANA_MAX_ITERATIONS        — orchestrator budget (default: 10)
   ZANA_SWARM_MAX_ITERATIONS  — per-Aeon swarm budget  (default: 5)
 """
+
 import os
 from dataclasses import dataclass, field
 
 # Operations that are too cheap to count against the budget.
 # Add op names here as new tools are introduced.
-REFUNDABLE_OPS: frozenset[str] = frozenset({
-    "memory_read",
-    "semantic_search",
-    "context_recall",
-})
+REFUNDABLE_OPS: frozenset[str] = frozenset(
+    {
+        "memory_read",
+        "semantic_search",
+        "context_recall",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -29,7 +32,7 @@ class BudgetConfig:
 
     orchestrator: int = 10
     swarm_aeon: int = 5
-    warn_ratio: float = 0.8       # log WARNING at this fraction of budget
+    warn_ratio: float = 0.8  # log WARNING at this fraction of budget
     refundable: frozenset[str] = field(default_factory=lambda: REFUNDABLE_OPS)
 
     # ------------------------------------------------------------------
@@ -86,7 +89,7 @@ if __name__ == "__main__":
     print("is_exhausted: OK")
 
     assert not cfg.should_warn(7)
-    assert cfg.should_warn(8)   # 80% of 10
+    assert cfg.should_warn(8)  # 80% of 10
     assert not cfg.should_warn(9)
     print("should_warn (80%): OK")
 
@@ -111,6 +114,8 @@ if __name__ == "__main__":
     print("swarm tier: OK")
 
     from_env = BudgetConfig.from_env()
-    print(f"from_env: orchestrator={from_env.orchestrator}, swarm={from_env.swarm_aeon}")
+    print(
+        f"from_env: orchestrator={from_env.orchestrator}, swarm={from_env.swarm_aeon}"
+    )
 
     print("\nBudgetConfig: all tests passed.")

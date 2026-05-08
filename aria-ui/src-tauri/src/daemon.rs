@@ -29,7 +29,7 @@ impl Gateway {
 
         log::info!("gateway started pid={}", child.id().unwrap_or(0));
         *guard = Some(child);
-        
+
         let child_arc = self.child.clone();
         tokio::spawn(async move {
             loop {

@@ -16,26 +16,29 @@ def _resolve_stack_root() -> Path:
     env_root = os.getenv("ZANA_CORE_DIR")
     if env_root and Path(env_root).exists():
         return Path(env_root)
-    
+
     # 2. Check for repo clone (dev mode)
     dev_root = Path(__file__).parent.parent.parent.parent
     if (dev_root / "docker-compose.yml").exists():
         return dev_root
-        
+
     # 3. Check for standard install location
     install_root = Path.home() / ".zana" / "core-repo"
     if (install_root / "docker-compose.yml").exists():
         return install_root
-        
-    return dev_root # Fallback to dev_root for error reporting
+
+    return dev_root  # Fallback to dev_root for error reporting
+
 
 STACK_ROOT = _resolve_stack_root()
 SERVICES = ["postgres", "redis", "neo4j", "zana-gateway", "aria-ui"]
+
 
 def _get_gateway_url() -> str:
     # Use environment variable if set by dotenv, otherwise default to 54446
     port = os.getenv("ZANA_GATEWAY_PORT", "54446")
     return f"http://localhost:{port}/health"
+
 
 def _sync_user_env_to_stack(stack_root: Path) -> None:
     """Propagate LLM keys from ~/.zana/.env into the stack .env so Docker containers see them."""
@@ -46,7 +49,7 @@ def _sync_user_env_to_stack(stack_root: Path) -> None:
         return
 
     # Keys to sync from the user env into the stack env
-    LLM_KEYS = {
+    LLM_KEYS = {  # noqa: N806
         "ZANA_PRIMARY_MODEL",
         "OLLAMA_BASE_URL",
         "ANTHROPIC_API_KEY",
@@ -95,8 +98,13 @@ def _sync_user_env_to_stack(stack_root: Path) -> None:
         if key in stack_keys:
             # Update existing line in-place
             stack_lines = [
-                new_line if (l.strip().split("=", 1)[0].strip() == key and not l.strip().startswith("#")) else l
-                for l in stack_lines
+                new_line
+                if (
+                    l.strip().split("=", 1)[0].strip() == key
+                    and not l.strip().startswith("#")
+                )
+                else l
+                for l in stack_lines  # noqa: E741
             ]
         else:
             stack_lines.append(new_line)
@@ -121,22 +129,34 @@ def _clear_conflicting_containers(compose_file: Path) -> None:
         projects_to_clear = ["zana-core", "core-repo", "zana"]
         container_ids = []
         for proj in projects_to_clear:
-            cmd = ["docker", "ps", "-aq", "--filter", f"label=com.docker.compose.project={proj}"]
+            cmd = [
+                "docker",
+                "ps",
+                "-aq",
+                "--filter",
+                f"label=com.docker.compose.project={proj}",
+            ]
             res = subprocess.run(cmd, capture_output=True, text=True)
-            container_ids.extend([cid.strip() for cid in res.stdout.splitlines() if cid.strip()])
-        
+            container_ids.extend(
+                [cid.strip() for cid in res.stdout.splitlines() if cid.strip()]
+            )
+
         # Also catch containers by name prefix just in case
         prefixes = ["zana-core-", "core-repo-", "zana-"]
         for prefix in prefixes:
             cmd = ["docker", "ps", "-aq", "--filter", f"name={prefix}"]
             res = subprocess.run(cmd, capture_output=True, text=True)
-            container_ids.extend([cid.strip() for cid in res.stdout.splitlines() if cid.strip()])
-            
+            container_ids.extend(
+                [cid.strip() for cid in res.stdout.splitlines() if cid.strip()]
+            )
+
         unique_ids = list(set(container_ids))
         if unique_ids:
-            console.print("[yellow]Limpiando contenedores conflictivos de instalaciones previas...[/yellow]")
+            console.print(
+                "[yellow]Limpiando contenedores conflictivos de instalaciones previas...[/yellow]"
+            )
             subprocess.run(["docker", "rm", "-f"] + unique_ids, capture_output=True)
-            
+
         # Also prune unused ZANA networks that might conflict
         subprocess.run(["docker", "network", "prune", "-f"], capture_output=True)
     except Exception:
@@ -162,20 +182,25 @@ def cmd_start(detach: bool = True) -> None:
     _ensure_steel_core_built(STACK_ROOT)
 
     console.print("[primary]Booting ZANA stack...[/primary]")
-    console.print("[muted]  Note: Your data in ./data is safe. Containers are transient, memories are permanent.[/muted]")
+    console.print(
+        "[muted]  Note: Your data in ./data is safe. Containers are transient, memories are permanent.[/muted]"
+    )
 
     # Clear port conflicts automatically before bringing up the stack
     _clear_conflicting_containers(compose)
 
     flags = ["-d"] if detach else []
     result = subprocess.run(
-        ["docker", "compose", "-f", str(compose), "up", "--build", "--remove-orphans"] + flags,
+        ["docker", "compose", "-f", str(compose), "up", "--build", "--remove-orphans"]
+        + flags,
         cwd=str(STACK_ROOT),
     )
 
     if result.returncode != 0:
         console.print("[error]docker compose failed.[/error]")
-        console.print("[yellow]Hint: Port conflict detected. Try: docker stop $(docker ps -q) && zana start[/yellow]")
+        console.print(
+            "[yellow]Hint: Port conflict detected. Try: docker stop $(docker ps -q) && zana start[/yellow]"
+        )
         raise typer.Exit(result.returncode)
 
     if detach:
@@ -192,11 +217,21 @@ def _wait_for_gateway(timeout: int = 60) -> None:
             r = httpx.get(gateway_url, timeout=2)
             if r.status_code == 200:
                 console.print()
-                console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-                console.print("[success]  Córtex en línea. El Gateway está activo.[/success]")
-                console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-                console.print("\n[bold white]🌐 Abre tu navegador en:[/bold white] [bold cyan]http://localhost[/bold cyan] [muted](o la IP/dominio de tu VPS)[/muted]")
-                console.print("[muted]Inicia el Ritual de Resonancia e interactúa con tu Aeón.[/muted]\n")
+                console.print(
+                    "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+                )
+                console.print(
+                    "[success]  Córtex en línea. El Gateway está activo.[/success]"
+                )
+                console.print(
+                    "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+                )
+                console.print(
+                    "\n[bold white]🌐 Abre tu navegador en:[/bold white] [bold cyan]http://localhost[/bold cyan] [muted](o la IP/dominio de tu VPS)[/muted]"
+                )
+                console.print(
+                    "[muted]Inicia el Ritual de Resonancia e interactúa con tu Aeón.[/muted]\n"
+                )
                 return
         except Exception:
             pass
@@ -218,10 +253,16 @@ def _fix_data_permissions(root: Path) -> None:
     # Check if any subdirectory is unreadable
     try:
         # This will fail if we can't read/enter subfolders (like data/caddy/caddy)
-        subprocess.run(["find", str(data_dir), "-maxdepth", "2"], capture_output=True, check=True)
+        subprocess.run(
+            ["find", str(data_dir), "-maxdepth", "2"], capture_output=True, check=True
+        )
     except subprocess.CalledProcessError:
-        console.print("\n[bold yellow]🔐 CORRIGIENDO PERMISOS DE DATOS...[/bold yellow]")
-        console.print("[muted]Docker requiere acceso de lectura para ignorar carpetas protegidas.[/muted]")
+        console.print(
+            "\n[bold yellow]🔐 CORRIGIENDO PERMISOS DE DATOS...[/bold yellow]"
+        )
+        console.print(
+            "[muted]Docker requiere acceso de lectura para ignorar carpetas protegidas.[/muted]"
+        )
         try:
             # Try to add read and directory-search permissions
             # Using sudo might be needed if files are root-owned by Docker
@@ -229,8 +270,12 @@ def _fix_data_permissions(root: Path) -> None:
             subprocess.run(cmd, check=True)
             console.print("[success]✅ Permisos restaurados.[/success]")
         except Exception:
-            console.print("[error]No se pudieron corregir los permisos automáticamente.[/error]")
-            console.print(f"[yellow]Ejecuta manualmente: sudo chmod -R a+rX {data_dir}[/yellow]")
+            console.print(
+                "[error]No se pudieron corregir los permisos automáticamente.[/error]"
+            )
+            console.print(
+                f"[yellow]Ejecuta manualmente: sudo chmod -R a+rX {data_dir}[/yellow]"
+            )
 
 
 def _ensure_rust_installed() -> str:
@@ -249,7 +294,9 @@ def _ensure_rust_installed() -> str:
         return str(cargo_home)
 
     # 3. Install Rust via rustup
-    console.print("\n[bold yellow]⚙️  Rust no detectado — instalando via rustup...[/bold yellow]")
+    console.print(
+        "\n[bold yellow]⚙️  Rust no detectado — instalando via rustup...[/bold yellow]"
+    )
     console.print("[muted]  Esto toma 1-2 minutos y solo ocurre una vez.[/muted]")
 
     r = subprocess.run(
@@ -270,7 +317,9 @@ def _ensure_rust_installed() -> str:
     # 4. Ensure C linker (cc/gcc) is present — required by cargo to link binaries.
     #    On fresh Debian/Ubuntu/WSL installs, build-essential is often missing.
     if not shutil.which("cc") and shutil.which("apt-get"):
-        console.print("[muted]  Instalando build-essential (linker C para cargo)...[/muted]")
+        console.print(
+            "[muted]  Instalando build-essential (linker C para cargo)...[/muted]"
+        )
         subprocess.run(
             ["sudo", "apt-get", "install", "-y", "build-essential"],
             capture_output=True,
@@ -294,11 +343,17 @@ def _ensure_steel_core_built(root: Path) -> None:
             missing.append(f)
 
     if not missing:
-        console.print("[bold green]✅ Todos los componentes binarios están presentes y validados.[/bold green]\n")
+        console.print(
+            "[bold green]✅ Todos los componentes binarios están presentes y validados.[/bold green]\n"
+        )
         return
 
-    console.print(f"[bold yellow]⚠️  Componentes faltantes o inválidos: {', '.join(missing)}[/bold yellow]")
-    console.print("[bold magenta]⚙️  INICIANDO PROCESO DE FORJA (Rust + PyO3)...[/bold magenta]")
+    console.print(
+        f"[bold yellow]⚠️  Componentes faltantes o inválidos: {', '.join(missing)}[/bold yellow]"
+    )
+    console.print(
+        "[bold magenta]⚙️  INICIANDO PROCESO DE FORJA (Rust + PyO3)...[/bold magenta]"
+    )
 
     cargo = _ensure_rust_installed()
 
@@ -307,32 +362,70 @@ def _ensure_steel_core_built(root: Path) -> None:
         if "zana_steel_core.so" in missing:
             rust_dir = root / "rust_core"
             if not rust_dir.exists():
-                console.print(f"[error]Error fatal: Directorio {rust_dir} no encontrado.[/error]")
+                console.print(
+                    f"[error]Error fatal: Directorio {rust_dir} no encontrado.[/error]"
+                )
                 raise typer.Exit(1)
             console.print("[cyan]  ▶ Forjando Steel Core (Cognición)...[/cyan]")
-            subprocess.run([cargo, "build", "--release", "--features", "python"], cwd=str(rust_dir), check=True)
-            subprocess.run(["cp", "target/release/libzana_steel_core.so", str(root / "zana_steel_core.so")], cwd=str(rust_dir), check=True)
+            subprocess.run(
+                [cargo, "build", "--release", "--features", "python"],
+                cwd=str(rust_dir),
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "cp",
+                    "target/release/libzana_steel_core.so",
+                    str(root / "zana_steel_core.so"),
+                ],
+                cwd=str(rust_dir),
+                check=True,
+            )
 
         # 2. Build Audio DSP
         if "zana_audio_dsp.so" in missing:
             audio_dir = root / "audio_dsp"
             if audio_dir.exists():
                 console.print("[cyan]  ▶ Forjando Audio DSP (Sexto Sentido)...[/cyan]")
-                subprocess.run([cargo, "build", "--release"], cwd=str(audio_dir), check=True)
-                subprocess.run(["cp", "target/release/libzana_audio_dsp.so", str(root / "zana_audio_dsp.so")], cwd=str(audio_dir), check=True)
+                subprocess.run(
+                    [cargo, "build", "--release"], cwd=str(audio_dir), check=True
+                )
+                subprocess.run(
+                    [
+                        "cp",
+                        "target/release/libzana_audio_dsp.so",
+                        str(root / "zana_audio_dsp.so"),
+                    ],
+                    cwd=str(audio_dir),
+                    check=True,
+                )
 
         # 3. Build Armor
         if "zana_armor.so" in missing:
             armor_dir = root / "armor"
             if armor_dir.exists():
                 console.print("[cyan]  ▶ Forjando Armor Layer (Soberanía)...[/cyan]")
-                subprocess.run([cargo, "build", "--release"], cwd=str(armor_dir), check=True)
-                subprocess.run(["cp", "target/release/libzana_armor.so", str(root / "zana_armor.so")], cwd=str(armor_dir), check=True)
+                subprocess.run(
+                    [cargo, "build", "--release"], cwd=str(armor_dir), check=True
+                )
+                subprocess.run(
+                    [
+                        "cp",
+                        "target/release/libzana_armor.so",
+                        str(root / "zana_armor.so"),
+                    ],
+                    cwd=str(armor_dir),
+                    check=True,
+                )
 
-        console.print("[bold green]✨ The Steel Core ha sido forjado con éxito para tu arquitectura.[/bold green]\n")
+        console.print(
+            "[bold green]✨ The Steel Core ha sido forjado con éxito para tu arquitectura.[/bold green]\n"
+        )
     except typer.Exit:
         raise
     except Exception as e:
         console.print(f"[bold red]❌ Error durante la forja:[/bold red] {e}")
-        console.print("[yellow]Sugerencia: Ejecuta `cd rust_core && cargo build --release` manualmente.[/yellow]")
-        raise typer.Exit(1)
+        console.print(
+            "[yellow]Sugerencia: Ejecuta `cd rust_core && cargo build --release` manualmente.[/yellow]"
+        )
+        raise typer.Exit(1)  # noqa: B904

@@ -91,7 +91,7 @@ def cmd_memory_search(query: str, collection: str = "zana_vault", n: int = 5) ->
     table.add_column("Source", style="bold white", width=22)
     table.add_column("Excerpt", style="white")
 
-    for i, (doc, dist, meta) in enumerate(zip(docs, dists, metas), 1):
+    for i, (doc, dist, meta) in enumerate(zip(docs, dists, metas), 1):  # noqa: B905
         score = f"{1 - dist:.3f}" if dist is not None else "—"
         source = (meta or {}).get("source", "—")
         if len(source) > 22:

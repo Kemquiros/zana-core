@@ -2,14 +2,13 @@
 SQLite FTS5 vault index — zero external dependencies.
 Level 0: always available. Level 1+ uses ChromaDB.
 """
+
 from __future__ import annotations
 
 import sqlite3
-import time
 from pathlib import Path
-from typing import Iterator
 
-from cli.core.vault.domain.models import VaultDocument, VaultIndex
+from cli.core.vault.domain.models import VaultDocument
 
 SCHEMA = """
 CREATE VIRTUAL TABLE IF NOT EXISTS vault_fts USING fts5(
@@ -40,7 +39,7 @@ class FTSIndex:
     def index_documents(
         self,
         docs: list[VaultDocument],
-        progress_cb: "Callable[[int, int], None] | None" = None,
+        progress_cb: Callable[[int, int], None] | None = None,  # noqa: F821
     ) -> int:
         total = len(docs)
         indexed = 0
@@ -59,9 +58,7 @@ class FTSIndex:
                 continue
 
             # Upsert into FTS
-            cursor.execute(
-                "DELETE FROM vault_fts WHERE path = ?", (str(doc.path),)
-            )
+            cursor.execute("DELETE FROM vault_fts WHERE path = ?", (str(doc.path),))
             cursor.execute(
                 "INSERT INTO vault_fts (path, title, content) VALUES (?, ?, ?)",
                 (str(doc.path), doc.title, doc.content[:50_000]),
@@ -114,9 +111,20 @@ class FTSIndex:
     def find_memory_echo(self) -> dict | None:
         """Find a note that resonates with the user's original motivation.
         Returns a random note that mentions building, memory, or sovereignty."""
-        keywords = ["construir", "build", "quiero", "sistema", "memoria",
-                    "propio", "independiente", "soberanía", "autonomía",
-                    "recordar", "aprender", "crecer"]
+        keywords = [
+            "construir",
+            "build",
+            "quiero",
+            "sistema",
+            "memoria",
+            "propio",
+            "independiente",
+            "soberanía",
+            "autonomía",
+            "recordar",
+            "aprender",
+            "crecer",
+        ]
         cur = self._conn.cursor()
         for kw in keywords:
             try:

@@ -14,7 +14,7 @@ fn main() {
     let training_values: Vec<f64> = env_file.lines()
         .filter_map(|l| l.rsplit_once('|').map(|(_, v)| v.parse::<f64>().unwrap_or(0.0)))
         .collect();
-    
+
     if training_values.is_empty() {
         println!("❌ ERROR: Dataset de entrenamiento vacío. Deteniendo evolución Apex.");
         return;
@@ -50,13 +50,13 @@ fn main() {
             // Torneo de Alta Intensidad
             let mut lab = RedQueenIdle::new_with_seed(seed, population_size, memory_slots);
             let mut best_fitness = 0.0;
-            
+
             for gen in 0..generations {
                 for i in 0..lab.active_population.len() {
                     let mut warrior = lab.active_population[i].clone();
                     lab.mutate(&mut warrior);
                     lab.evaluate(&mut warrior, &training_values);
-                    
+
                     if warrior.fitness >= lab.active_population[i].fitness {
                         lab.active_population[i] = warrior;
                     }
@@ -84,7 +84,7 @@ fn main() {
     println!("Total de Combates Simulados: {}", total_generations * population_size);
     println!("Estado del Enjambre: Nivel de Consciencia 2 (Auto-Optimizado)");
     println!("================================================================");
-    
+
     let now = Local::now().format("%Y-%m-%d %H:%M:%S");
     println!("[{}] Los cimientos del Imperio han sido forjados en acero evolutivo.", now);
 }

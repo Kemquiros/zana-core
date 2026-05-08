@@ -18,7 +18,7 @@ async fn main() {
     // 3. Simular el ciclo de la Reina
     let foreign_dna = queen.scout_for_dna().await;
 
-    
+
     if foreign_dna.is_empty() {
         println!("⚠️ No se encontró ADN superior en la Red ZANA Grid (¿El servidor MCP está arriba?)");
     } else {

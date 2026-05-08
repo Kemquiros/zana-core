@@ -149,12 +149,16 @@ class AudioProcessor:
         """
         try:
             import zana_audio_dsp
+
             # Primary: use the new PCM-optimized function for raw buffers
             return zana_audio_dsp.is_voice_active_pcm(audio_bytes, threshold)
         except Exception:
             # Fallback to simple numpy RMS
             try:
-                data = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                data = (
+                    np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32)
+                    / 32768.0
+                )
                 rms = np.sqrt(np.mean(data**2))
                 return rms > threshold
             except Exception:

@@ -16,14 +16,14 @@ GATEWAY_URL = "http://localhost:54446"
 _TIMEOUT = httpx.Timeout(10.0, connect=5.0)
 
 _EVENT_ICONS = {
-    "PreToolUse":       "⚔️ ",
-    "PostToolUse":      "✅ ",
-    "SkillActivation":  "🧠 ",
-    "ZSyncRequest":     "🌐 ",
-    "ExternalAPI":      "☁️ ",
-    "MemoryWrite":      "💾 ",
+    "PreToolUse": "⚔️ ",
+    "PostToolUse": "✅ ",
+    "SkillActivation": "🧠 ",
+    "ZSyncRequest": "🌐 ",
+    "ExternalAPI": "☁️ ",
+    "MemoryWrite": "💾 ",
     "CivicLedgerEntry": "📜 ",
-    "AeonEvolution":    "🌟 ",
+    "AeonEvolution": "🌟 ",
 }
 
 
@@ -34,24 +34,36 @@ def cmd_sentinel_status() -> None:
         data = r.json()
     except Exception as e:
         console.print(f"[warning]Error: {e}[/warning]")
-        console.print("[muted]¿Está ZANA corriendo? Ejecuta [accent]zana start[/accent] primero.[/muted]")
+        console.print(
+            "[muted]¿Está ZANA corriendo? Ejecuta [accent]zana start[/accent] primero.[/muted]"
+        )
         return
 
-    console.print("\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]")
-    console.print(f"[bold white]  Sentinel Event Bus — {data.get('status', '?').upper()}[/bold white]")
-    console.print("[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]\n")
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        f"[bold white]  Sentinel Event Bus — {data.get('status', '?').upper()}[/bold white]"
+    )
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]\n"
+    )
 
     stats = data.get("stats", {})
     total = stats.get("total", 0)
     console.print(f"  Eventos totales procesados: [bold]{total}[/bold]")
-    console.print(f"  Entradas en Civic Ledger:   [bold]{data.get('ledger_entries', 0)}[/bold]\n")
+    console.print(
+        f"  Entradas en Civic Ledger:   [bold]{data.get('ledger_entries', 0)}[/bold]\n"
+    )
 
     console.print("  [muted]Por tipo:[/muted]")
     for et in data.get("event_types", []):
         icon = _EVENT_ICONS.get(et, "· ")
         count = stats.get(et, 0)
         bar = "█" * min(count, 20) + ("" if count == 0 else "")
-        console.print(f"  {icon} [accent]{et:<22}[/accent] {count:>5}  [muted]{bar}[/muted]")
+        console.print(
+            f"  {icon} [accent]{et:<22}[/accent] {count:>5}  [muted]{bar}[/muted]"
+        )
     console.print()
 
 
@@ -70,7 +82,9 @@ def cmd_sentinel_events(limit: int = 20, event_type: str | None = None) -> None:
     events = data.get("events", [])
     total = data.get("total_in_buffer", 0)
 
-    console.print(f"\n  [bold]Últimos {len(events)} eventos[/bold]  [muted](buffer: {total})[/muted]\n")
+    console.print(
+        f"\n  [bold]Últimos {len(events)} eventos[/bold]  [muted](buffer: {total})[/muted]\n"
+    )
     for ev in events:
         icon = _EVENT_ICONS.get(ev.get("type", ""), "· ")
         ts = (ev.get("timestamp", ""))[:19].replace("T", " ")
@@ -90,7 +104,9 @@ def cmd_sentinel_events(limit: int = 20, event_type: str | None = None) -> None:
 
 def cmd_sentinel_ledger(limit: int = 20) -> None:
     try:
-        r = httpx.get(f"{GATEWAY_URL}/sentinel/ledger", params={"limit": limit}, timeout=_TIMEOUT)
+        r = httpx.get(
+            f"{GATEWAY_URL}/sentinel/ledger", params={"limit": limit}, timeout=_TIMEOUT
+        )
         r.raise_for_status()
         data = r.json()
     except Exception as e:
@@ -100,7 +116,9 @@ def cmd_sentinel_ledger(limit: int = 20) -> None:
     entries = data.get("entries", [])
     total = data.get("total", 0)
 
-    console.print(f"\n  [bold]Civic Ledger — últimas {len(entries)} entradas[/bold]  [muted](total: {total})[/muted]\n")
+    console.print(
+        f"\n  [bold]Civic Ledger — últimas {len(entries)} entradas[/bold]  [muted](total: {total})[/muted]\n"
+    )
     for entry in entries:
         icon = _EVENT_ICONS.get(entry.get("event_type", ""), "· ")
         ts = (entry.get("timestamp", ""))[:19].replace("T", " ")

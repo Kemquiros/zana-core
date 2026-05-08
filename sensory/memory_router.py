@@ -38,7 +38,9 @@ PG_USER = os.getenv("ZANA_PG_USER", "zana")
 PG_PASS = os.getenv("ZANA_PG_PASSWORD", "")
 
 # SQLite config (default)
-_SQLITE_DB_PATH = Path(os.getenv("ZANA_SQLITE_PATH", str(Path.home() / ".zana" / "episodic.db")))
+_SQLITE_DB_PATH = Path(
+    os.getenv("ZANA_SQLITE_PATH", str(Path.home() / ".zana" / "episodic.db"))
+)
 
 
 # ── SQLite backend ────────────────────────────────────────────────────────────
@@ -69,6 +71,7 @@ async def _sqlite_ensure_schema() -> None:
         return
     try:
         import aiosqlite
+
         _SQLITE_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
         async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
             await db.executescript(_SCHEMA)
@@ -89,6 +92,7 @@ async def _sqlite_fetch(
     await _sqlite_ensure_schema()
     try:
         import aiosqlite
+
         query = "SELECT id, session_id, project_id, role, content, modality, emotion, kalman_surprise, created_at FROM episodic_memory WHERE 1=1"
         params: list = []
         if session_id:
@@ -114,6 +118,7 @@ async def _sqlite_insert(rec) -> bool:
     await _sqlite_ensure_schema()
     try:
         import aiosqlite
+
         row_id = uuid.uuid4().hex
         async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
             await db.execute(
@@ -143,6 +148,7 @@ async def _sqlite_count() -> int | None:
     await _sqlite_ensure_schema()
     try:
         import aiosqlite
+
         async with aiosqlite.connect(_SQLITE_DB_PATH) as db:
             async with db.execute("SELECT COUNT(*) FROM episodic_memory") as cur:
                 row = await cur.fetchone()
@@ -279,6 +285,7 @@ def _emit_memory_write(rec: EpisodicRecord, success: bool, backend: str) -> None
         import asyncio
 
         from sentinel.event_bus import EventType, ZanaEvent, get_bus
+
         event = ZanaEvent(
             type=EventType.MEMORY_WRITE,
             payload={
@@ -297,7 +304,10 @@ def _emit_memory_write(rec: EpisodicRecord, success: bool, backend: str) -> None
         logger.debug("Sentinel MEMORY_WRITE emit skipped: %s", _e)
 
 
-@router.get("/graph", summary="Knowledge graph — topics + entities extracted from episodic memory")
+@router.get(
+    "/graph",
+    summary="Knowledge graph — topics + entities extracted from episodic memory",
+)
 async def memory_graph(
     limit: int = Query(default=150, ge=10, le=500, description="Records to analyse"),
     project_id: str | None = Query(default=None),
@@ -318,21 +328,147 @@ async def memory_graph(
 
     _STOP = {
         # English
-        "the","and","for","that","this","with","from","have","will","are","was",
-        "not","but","can","been","your","they","them","then","when","what","which",
-        "also","into","than","more","very","just","all","one","any","some","our",
-        "its","out","has","had","how","who","you","their","there","these","those",
-        "should","would","could","about","after","before","other","each","over",
-        "only","even","both","such","much","many","still","well","back",
-        "being","doing","going","using","used","make","made","need","like","want",
-        "here","where","while","now","get","got","let","may","per","set","use",
+        "the",
+        "and",
+        "for",
+        "that",
+        "this",
+        "with",
+        "from",
+        "have",
+        "will",
+        "are",
+        "was",
+        "not",
+        "but",
+        "can",
+        "been",
+        "your",
+        "they",
+        "them",
+        "then",
+        "when",
+        "what",
+        "which",
+        "also",
+        "into",
+        "than",
+        "more",
+        "very",
+        "just",
+        "all",
+        "one",
+        "any",
+        "some",
+        "our",
+        "its",
+        "out",
+        "has",
+        "had",
+        "how",
+        "who",
+        "you",
+        "their",
+        "there",
+        "these",
+        "those",
+        "should",
+        "would",
+        "could",
+        "about",
+        "after",
+        "before",
+        "other",
+        "each",
+        "over",
+        "only",
+        "even",
+        "both",
+        "such",
+        "much",
+        "many",
+        "still",
+        "well",
+        "back",
+        "being",
+        "doing",
+        "going",
+        "using",
+        "used",
+        "make",
+        "made",
+        "need",
+        "like",
+        "want",
+        "here",
+        "where",
+        "while",
+        "now",
+        "get",
+        "got",
+        "let",
+        "may",
+        "per",
+        "set",
+        "use",
         # Spanish
-        "que","una","los","las","del","por","con","para","como","pero","este",
-        "esta","esto","son","ser","fue","hay","sus","sin","más","sobre",
-        "entre","así","todo","todos","cada","cuando","porque","también","puede",
-        "hace","han","tiene","tienen","está","están","era","hacia","desde",
-        "hasta","aunque","siempre","nunca","mismo","misma","otro","otra","bien",
-        "gran","solo","sólo","pues","donde","menos","algo","nadie","nada",
+        "que",
+        "una",
+        "los",
+        "las",
+        "del",
+        "por",
+        "con",
+        "para",
+        "como",
+        "pero",
+        "este",
+        "esta",
+        "esto",
+        "son",
+        "ser",
+        "fue",
+        "hay",
+        "sus",
+        "sin",
+        "más",
+        "sobre",
+        "entre",
+        "así",
+        "todo",
+        "todos",
+        "cada",
+        "cuando",
+        "porque",
+        "también",
+        "puede",
+        "hace",
+        "han",
+        "tiene",
+        "tienen",
+        "está",
+        "están",
+        "era",
+        "hacia",
+        "desde",
+        "hasta",
+        "aunque",
+        "siempre",
+        "nunca",
+        "mismo",
+        "misma",
+        "otro",
+        "otra",
+        "bien",
+        "gran",
+        "solo",
+        "sólo",
+        "pues",
+        "donde",
+        "menos",
+        "algo",
+        "nadie",
+        "nada",
     }
 
     if EPISODIC_BACKEND == "sqlite":
@@ -382,9 +518,21 @@ async def memory_graph(
 
     # ── Build response ────────────────────────────────────────────────────────
     TOPIC_COLORS = [
-        "#6366f1", "#8b5cf6", "#a855f7", "#06b6d4", "#0ea5e9",
-        "#10b981", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6",
-        "#f97316", "#84cc16", "#e879f9", "#67e8f9", "#fbbf24",
+        "#6366f1",
+        "#8b5cf6",
+        "#a855f7",
+        "#06b6d4",
+        "#0ea5e9",
+        "#10b981",
+        "#f59e0b",
+        "#ef4444",
+        "#ec4899",
+        "#14b8a6",
+        "#f97316",
+        "#84cc16",
+        "#e879f9",
+        "#67e8f9",
+        "#fbbf24",
     ]
     nodes = [
         {
@@ -404,10 +552,10 @@ async def memory_graph(
     ]
 
     # Emotion stats
-    emotion_counts: Counter = Counter(
-        r["emotion"] for r in rows if r.get("emotion")
+    emotion_counts: Counter = Counter(r["emotion"] for r in rows if r.get("emotion"))
+    dominant_emotion = (
+        emotion_counts.most_common(1)[0][0] if emotion_counts else "neutral"
     )
-    dominant_emotion = emotion_counts.most_common(1)[0][0] if emotion_counts else "neutral"
 
     # Day coverage
     days: set = set()

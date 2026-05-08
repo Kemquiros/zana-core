@@ -29,7 +29,7 @@ client = TestClient(app)
 def test_websocket_stream_basic():
     with client.websocket_connect("/sense/stream") as websocket:
         websocket.send_json({"type": "text", "data": "Hello Aeon", "session_id": "test_1"})
-        
+
         # We expect a chunk response
         response = websocket.receive_json()
         assert response["type"] in ["chunk", "end", "error"]
@@ -59,11 +59,11 @@ def test_websocket_stream_stress():
         # Send 10 messages rapidly
         for i in range(10):
             websocket.send_json({"type": "text", "data": f"Stress {i}", "session_id": f"stress_{i}"})
-        
+
         responses = []
         for _ in range(10):
             responses.append(websocket.receive_json())
-            
+
         assert len(responses) > 0
 ```
 
@@ -79,18 +79,18 @@ import asyncio
 # Inside sense_stream websocket endpoint:
             if msg_type == "text":
                 # ... armor check ...
-                
+
                 async def _process_llm():
                     llm = get_local_llm()
                     # Run the synchronous generator in a thread pool
                     def _get_chunks():
                         return list(llm.generate_stream(data, context=ctx, session_id=session_id or ""))
-                        
+
                     chunks = await asyncio.to_thread(_get_chunks)
                     for chunk in chunks:
                         await ws.send_json({"type": "chunk", "content": chunk})
                     await ws.send_json({"type": "end"})
-                
+
                 # Fire and forget (or await it depending on how we want to block the user)
                 # To stream properly without blocking the receive loop, we create a task:
                 asyncio.create_task(_process_llm())

@@ -19,11 +19,13 @@ DB_NAME = os.getenv("POSTGRES_DB", "zana")
 DB_USER = os.getenv("POSTGRES_USER", "zana")
 DB_PASS = os.getenv("POSTGRES_PASSWORD", "zana_pass")
 DB_HOST = os.getenv("POSTGRES_HOST", "localhost")
-DB_PORT = os.getenv("POSTGRES_PORT", "55433") # Default local proxy port
+DB_PORT = os.getenv("POSTGRES_PORT", "55433")  # Default local proxy port
+
 
 class ProjectCreate(BaseModel):
     name: str
     description: str | None = None
+
 
 @router.post("")
 async def create_project(project: ProjectCreate):
@@ -36,19 +38,21 @@ async def create_project(project: ProjectCreate):
             raise HTTPException(status_code=422, detail=str(e))
     elif not project.name.strip():
         raise HTTPException(status_code=422, detail="Project name cannot be empty")
-        
+
     try:
         conn = await asyncpg.connect(
             user=DB_USER, password=DB_PASS, database=DB_NAME, host=DB_HOST, port=DB_PORT
         )
         row = await conn.fetchrow(
             "INSERT INTO projects (name, description) VALUES ($1, $2) RETURNING id, name",
-            project.name, project.description
+            project.name,
+            project.description,
         )
         await conn.close()
         return {"status": "success", "project_id": str(row["id"]), "name": row["name"]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("")
 async def list_projects():
@@ -58,6 +62,11 @@ async def list_projects():
         )
         rows = await conn.fetch("SELECT id, name, description FROM projects")
         await conn.close()
-        return {"projects": [{"id": str(r["id"]), "name": r["name"], "description": r["description"]} for r in rows]}
+        return {
+            "projects": [
+                {"id": str(r["id"]), "name": r["name"], "description": r["description"]}
+                for r in rows
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

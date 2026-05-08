@@ -55,13 +55,13 @@ export default function SensorBar({ onText, onAudio, onImage, disabled }: Props)
       {/* Scanning laser effect when recording */}
       <AnimatePresence>
         {recording && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "2px" }}
             exit={{ opacity: 0, height: 0 }}
             className="absolute -top-4 left-0 right-0 overflow-hidden"
           >
-            <motion.div 
+            <motion.div
               className="w-full h-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"
               animate={{ x: ["-100%", "100%"] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
@@ -71,14 +71,14 @@ export default function SensorBar({ onText, onAudio, onImage, disabled }: Props)
       </AnimatePresence>
 
       <div className={`
-        relative overflow-hidden rounded-[24px] flex items-center gap-2 p-2 
+        relative overflow-hidden rounded-[24px] flex items-center gap-2 p-2
         border transition-all duration-300
-        ${recording 
-          ? 'bg-indigo-950/40 border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.2)]' 
+        ${recording
+          ? 'bg-indigo-950/40 border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.2)]'
           : 'bg-white/5 border-white/10 hover:border-white/20 backdrop-blur-xl shadow-2xl'
         }
       `}>
-        
+
         {/* Animated background pulse when recording */}
         {recording && (
           <motion.div
@@ -147,7 +147,7 @@ export default function SensorBar({ onText, onAudio, onImage, disabled }: Props)
         {/* Action Buttons */}
         <div className="relative z-10 flex items-center gap-2 pr-1 shrink-0">
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-          
+
           <AnimatePresence>
             {!recording && (
               <motion.button

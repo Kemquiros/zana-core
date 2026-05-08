@@ -4,15 +4,15 @@ Aeon Sigil — Living visual representation of a sovereign Aeon.
 Each Aeon is a unique organism: archetype determines morphology,
 stage determines complexity, seed determines individual variation.
 """
+
 from __future__ import annotations
 
 import json
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Iterator
 
 from rich.console import Console
 from rich.live import Live
@@ -26,53 +26,54 @@ EPISODIC_DB = AEON_HOME / "episodic.db"
 
 # ── Enums ─────────────────────────────────────────────────────────────────────
 
-class AeonArchetype(str, Enum):
-    LLAMA   = "llama"    # Fire — visionary, leader
+
+class AeonArchetype(str, Enum):  # noqa: UP042
+    LLAMA = "llama"  # Fire — visionary, leader
     ORACULO = "oraculo"  # Sacred geometry — analytical
-    FORJA   = "forja"    # Mechanical-organic — builder
-    MAREA   = "marea"    # Fluid, no angles — connector
-    RAIZ    = "raiz"     # Tree/mountain, fractal — guardian
-    VACIO   = "vacio"    # Cosmos inverted — explorer
+    FORJA = "forja"  # Mechanical-organic — builder
+    MAREA = "marea"  # Fluid, no angles — connector
+    RAIZ = "raiz"  # Tree/mountain, fractal — guardian
+    VACIO = "vacio"  # Cosmos inverted — explorer
     UNKNOWN = "unknown"  # Pre-resonance test
 
 
-class AeonStage(str, Enum):
-    HUEVO     = "HUEVO"     # Hours 0-12: embryonic
-    FRESH     = "FRESH"     # Days 1-3
-    ROOKIE    = "ROOKIE"    # Days 4-30
-    CHAMPION  = "CHAMPION"  # Days 31-180
-    ULTIMATE  = "ULTIMATE"  # Days 181-365
-    MEGA      = "MEGA"      # Days 366+
-    SOVEREIGN = "SOVEREIGN" # MEGA + Z-Sync ON
+class AeonStage(str, Enum):  # noqa: UP042
+    HUEVO = "HUEVO"  # Hours 0-12: embryonic
+    FRESH = "FRESH"  # Days 1-3
+    ROOKIE = "ROOKIE"  # Days 4-30
+    CHAMPION = "CHAMPION"  # Days 31-180
+    ULTIMATE = "ULTIMATE"  # Days 181-365
+    MEGA = "MEGA"  # Days 366+
+    SOVEREIGN = "SOVEREIGN"  # MEGA + Z-Sync ON
 
 
-class AeonState(str, Enum):
-    IDLE       = "idle"
+class AeonState(str, Enum):  # noqa: UP042
+    IDLE = "idle"
     PROCESSING = "processing"
-    SLEEPING   = "sleeping"
-    EVOLVING   = "evolving"
+    SLEEPING = "sleeping"
+    EVOLVING = "evolving"
 
 
 # ── Colors per archetype ───────────────────────────────────────────────────────
 
 ARCHETYPE_COLORS = {
-    AeonArchetype.LLAMA:   ("bright_red",    "gold1"),
+    AeonArchetype.LLAMA: ("bright_red", "gold1"),
     AeonArchetype.ORACULO: ("medium_purple", "bright_blue"),
-    AeonArchetype.FORJA:   ("dark_orange",   "bright_yellow"),
-    AeonArchetype.MAREA:   ("cyan",          "sea_green3"),
-    AeonArchetype.RAIZ:    ("green",         "dark_olive_green3"),
-    AeonArchetype.VACIO:   ("grey82",        "bright_white"),
-    AeonArchetype.UNKNOWN: ("magenta",       "white"),
+    AeonArchetype.FORJA: ("dark_orange", "bright_yellow"),
+    AeonArchetype.MAREA: ("cyan", "sea_green3"),
+    AeonArchetype.RAIZ: ("green", "dark_olive_green3"),
+    AeonArchetype.VACIO: ("grey82", "bright_white"),
+    AeonArchetype.UNKNOWN: ("magenta", "white"),
 }
 
 ARCHETYPE_LABELS = {
-    AeonArchetype.LLAMA:   ("Llama",   "Visionario · Líder"),
+    AeonArchetype.LLAMA: ("Llama", "Visionario · Líder"),
     AeonArchetype.ORACULO: ("Oráculo", "Analítico · Contemplativo"),
-    AeonArchetype.FORJA:   ("Forja",   "Constructor · Pragmático"),
-    AeonArchetype.MAREA:   ("Marea",   "Conector · Empático"),
-    AeonArchetype.RAIZ:    ("Raíz",    "Guardián · Sistemático"),
-    AeonArchetype.VACIO:   ("Vacío",   "Explorador · Disruptor"),
-    AeonArchetype.UNKNOWN: ("???",     "Resonancia pendiente"),
+    AeonArchetype.FORJA: ("Forja", "Constructor · Pragmático"),
+    AeonArchetype.MAREA: ("Marea", "Conector · Empático"),
+    AeonArchetype.RAIZ: ("Raíz", "Guardián · Sistemático"),
+    AeonArchetype.VACIO: ("Vacío", "Explorador · Disruptor"),
+    AeonArchetype.UNKNOWN: ("???", "Resonancia pendiente"),
 }
 
 
@@ -80,203 +81,152 @@ ARCHETYPE_LABELS = {
 # Each entry is a list of frames (for animation). Frame chars that vary between
 # frames are the "breathing" pixels. All frames same line count.
 
+
 def _frames_llama(stage: AeonStage, seed: int) -> list[list[str]]:
     name_deco = ["✦", "·", "⟡", "★"][seed % 4]
     if stage in (AeonStage.HUEVO, AeonStage.FRESH):
         return [
-            ["    ◇    ",
-             "   ╱▲╲   ",
-             "  ◇ █ ◇  ",
-             "    │    "],
-            ["    ◇    ",
-             "   ╱▲╲   ",
-             "  ◇ ▲ ◇  ",
-             "    │    "],
+            ["    ◇    ", "   ╱▲╲   ", "  ◇ █ ◇  ", "    │    "],
+            ["    ◇    ", "   ╱▲╲   ", "  ◇ ▲ ◇  ", "    │    "],
         ]
     if stage == AeonStage.ROOKIE:
         return [
-            ["    ▲    ",
-             "   ╱█╲   ",
-             "  ◇ █ ◇  ",
-             "    │    "],
-            ["    ▲▲   ",
-             "   ╱█╲   ",
-             "  ◇ ▲ ◇  ",
-             "    │    "],
+            ["    ▲    ", "   ╱█╲   ", "  ◇ █ ◇  ", "    │    "],
+            ["    ▲▲   ", "   ╱█╲   ", "  ◇ ▲ ◇  ", "    │    "],
         ]
     if stage == AeonStage.CHAMPION:
         return [
-            [f" {name_deco} · {name_deco} ",
-             " ╱╔═════╗╲",
-             f" ║ ║▲█▲║ ║",
-             " ╲╚═════╝╱",
-             f" {name_deco} · {name_deco} "],
-            [f" · {name_deco} · ",
-             " ╱╔═════╗╲",
-             f" ║ ║▲▲▲║ ║",
-             " ╲╚═════╝╱",
-             f" · {name_deco} · "],
+            [
+                f" {name_deco} · {name_deco} ",
+                " ╱╔═════╗╲",
+                " ║ ║▲█▲║ ║",
+                " ╲╚═════╝╱",
+                f" {name_deco} · {name_deco} ",
+            ],
+            [
+                f" · {name_deco} · ",
+                " ╱╔═════╗╲",
+                " ║ ║▲▲▲║ ║",
+                " ╲╚═════╝╱",
+                f" · {name_deco} · ",
+            ],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            [f"⟡ {name_deco} · {name_deco} ⟡",
-             "╱╔═══════╗╲ ",
-             f"║ ║▲█▲█▲║ ║",
-             "╲╚═══════╝╱ ",
-             f"⟡ {name_deco} · {name_deco} ⟡"],
-            [f"· {name_deco} ⟡ {name_deco} ·",
-             "╱╔═══════╗╲ ",
-             f"║ ║▲▲█▲▲║ ║",
-             "╲╚═══════╝╱ ",
-             f"· {name_deco} ⟡ {name_deco} ·"],
+            [
+                f"⟡ {name_deco} · {name_deco} ⟡",
+                "╱╔═══════╗╲ ",
+                "║ ║▲█▲█▲║ ║",
+                "╲╚═══════╝╱ ",
+                f"⟡ {name_deco} · {name_deco} ⟡",
+            ],
+            [
+                f"· {name_deco} ⟡ {name_deco} ·",
+                "╱╔═══════╗╲ ",
+                "║ ║▲▲█▲▲║ ║",
+                "╲╚═══════╝╱ ",
+                f"· {name_deco} ⟡ {name_deco} ·",
+            ],
         ]
     # MEGA / SOVEREIGN
     return [
-        [f"⟡ {name_deco} ★ {name_deco} ⟡",
-         "╱╔═════════╗╲",
-         f"║ ║▲▲█▲▲▲║ ║",
-         "╲╚═════════╝╱",
-         f"⟡ {name_deco} ★ {name_deco} ⟡"],
-        [f"★ {name_deco} ⟡ {name_deco} ★",
-         "╱╔═════════╗╲",
-         f"║ ║▲█▲▲█▲║ ║",
-         "╲╚═════════╝╱",
-         f"★ {name_deco} ⟡ {name_deco} ★"],
+        [
+            f"⟡ {name_deco} ★ {name_deco} ⟡",
+            "╱╔═════════╗╲",
+            "║ ║▲▲█▲▲▲║ ║",
+            "╲╚═════════╝╱",
+            f"⟡ {name_deco} ★ {name_deco} ⟡",
+        ],
+        [
+            f"★ {name_deco} ⟡ {name_deco} ★",
+            "╱╔═════════╗╲",
+            "║ ║▲█▲▲█▲║ ║",
+            "╲╚═════════╝╱",
+            f"★ {name_deco} ⟡ {name_deco} ★",
+        ],
     ]
 
 
 def _frames_oraculo(stage: AeonStage, seed: int) -> list[list[str]]:
     if stage in (AeonStage.HUEVO, AeonStage.FRESH):
-        return [["  ◈  ", " ◈◈◈ ", "  ◈  "],
-                ["  ◈  ", " ◈·◈ ", "  ◈  "]]
+        return [["  ◈  ", " ◈◈◈ ", "  ◈  "], ["  ◈  ", " ◈·◈ ", "  ◈  "]]
     if stage == AeonStage.ROOKIE:
-        return [["  ◈  ", " ◈◉◈ ", "  ◈  "],
-                ["  ◈  ", " ◈◎◈ ", "  ◈  "]]
+        return [["  ◈  ", " ◈◉◈ ", "  ◈  "], ["  ◈  ", " ◈◎◈ ", "  ◈  "]]
     if stage == AeonStage.CHAMPION:
         return [
-            ["  ⊕━━━⊕  ",
-             " ╱ ◎◉◎ ╲ ",
-             " ⊕ ╔═╗ ⊕ ",
-             "   ╚═╝   ",
-             "  ⊕━━━⊕  "],
-            ["  ⊕─── ⊕ ",
-             " ╱ ◉◎◉ ╲ ",
-             " ⊕ ╔═╗ ⊕ ",
-             "   ╚═╝   ",
-             "  ⊕─── ⊕ "],
+            ["  ⊕━━━⊕  ", " ╱ ◎◉◎ ╲ ", " ⊕ ╔═╗ ⊕ ", "   ╚═╝   ", "  ⊕━━━⊕  "],
+            ["  ⊕─── ⊕ ", " ╱ ◉◎◉ ╲ ", " ⊕ ╔═╗ ⊕ ", "   ╚═╝   ", "  ⊕─── ⊕ "],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            ["◈━━━━━━━◈ ",
-             "╱ ◈ ◎◉◎ ◈╲",
-             "◈ ╔══════╗ ◈",
-             "╲ ◈ ◎◉◎ ◈╱",
-             "◈━━━━━━━◈ "],
-            ["◈───────◈ ",
-             "╱ ◈ ◉◎◉ ◈╲",
-             "◈ ╔══════╗ ◈",
-             "╲ ◈ ◉◎◉ ◈╱",
-             "◈───────◈ "],
+            ["◈━━━━━━━◈ ", "╱ ◈ ◎◉◎ ◈╲", "◈ ╔══════╗ ◈", "╲ ◈ ◎◉◎ ◈╱", "◈━━━━━━━◈ "],
+            ["◈───────◈ ", "╱ ◈ ◉◎◉ ◈╲", "◈ ╔══════╗ ◈", "╲ ◈ ◉◎◉ ◈╱", "◈───────◈ "],
         ]
     return [
-        ["◈━━━━━━━━━◈",
-         "╱◈ ◎◉◎◉◎ ◈╲",
-         "◈ ╔════════╗ ◈",
-         "╲◈ ◎◉◎◉◎ ◈╱",
-         "◈━━━━━━━━━◈"],
-        ["◈─────────◈",
-         "╱◈ ◉◎◉◎◉ ◈╲",
-         "◈ ╔════════╗ ◈",
-         "╲◈ ◉◎◉◎◉ ◈╱",
-         "◈─────────◈"],
+        ["◈━━━━━━━━━◈", "╱◈ ◎◉◎◉◎ ◈╲", "◈ ╔════════╗ ◈", "╲◈ ◎◉◎◉◎ ◈╱", "◈━━━━━━━━━◈"],
+        ["◈─────────◈", "╱◈ ◉◎◉◎◉ ◈╲", "◈ ╔════════╗ ◈", "╲◈ ◉◎◉◎◉ ◈╱", "◈─────────◈"],
     ]
 
 
 def _frames_forja(stage: AeonStage, seed: int) -> list[list[str]]:
     if stage in (AeonStage.HUEVO, AeonStage.FRESH, AeonStage.ROOKIE):
-        return [["◉─◉", "│F│", "◉─◉"],
-                ["◉━◉", "│F│", "◉━◉"]]
+        return [["◉─◉", "│F│", "◉─◉"], ["◉━◉", "│F│", "◉━◉"]]
     if stage == AeonStage.CHAMPION:
         return [
-            [" ◉━◈━◉ ",
-             " │╔═╗│ ",
-             "◉─╣F ╠─◉",
-             " │╚═╝│ ",
-             " ◉━◈━◉ "],
-            [" ◉─◈─◉ ",
-             " │╔═╗│ ",
-             "◉━╣F ╠━◉",
-             " │╚═╝│ ",
-             " ◉─◈─◉ "],
+            [" ◉━◈━◉ ", " │╔═╗│ ", "◉─╣F ╠─◉", " │╚═╝│ ", " ◉━◈━◉ "],
+            [" ◉─◈─◉ ", " │╔═╗│ ", "◉━╣F ╠━◉", " │╚═╝│ ", " ◉─◈─◉ "],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            ["◉━◈━◉━◈━◉",
-             "║ ╔══════╗ ║",
-             "╠══╣◈  F◈╠══╣",
-             "║ ╚══════╝ ║",
-             "◉━◈━◉━◈━◉"],
-            ["◉─◈─◉─◈─◉",
-             "║ ╔══════╗ ║",
-             "╠──╣◈  F◈╠──╣",
-             "║ ╚══════╝ ║",
-             "◉─◈─◉─◈─◉"],
+            ["◉━◈━◉━◈━◉", "║ ╔══════╗ ║", "╠══╣◈  F◈╠══╣", "║ ╚══════╝ ║", "◉━◈━◉━◈━◉"],
+            ["◉─◈─◉─◈─◉", "║ ╔══════╗ ║", "╠──╣◈  F◈╠──╣", "║ ╚══════╝ ║", "◉─◈─◉─◈─◉"],
         ]
     return [
-        ["◉━━◈━━◉━━◈━━◉",
-         "║  ╔═══════╗  ║",
-         "╠══╣ ◈  F  ◈╠══╣",
-         "║  ╚═══════╝  ║",
-         "◉━━◈━━◉━━◈━━◉"],
-        ["◉──◈──◉──◈──◉",
-         "║  ╔═══════╗  ║",
-         "╠──╣ ◈  F  ◈╠──╣",
-         "║  ╚═══════╝  ║",
-         "◉──◈──◉──◈──◉"],
+        [
+            "◉━━◈━━◉━━◈━━◉",
+            "║  ╔═══════╗  ║",
+            "╠══╣ ◈  F  ◈╠══╣",
+            "║  ╚═══════╝  ║",
+            "◉━━◈━━◉━━◈━━◉",
+        ],
+        [
+            "◉──◈──◉──◈──◉",
+            "║  ╔═══════╗  ║",
+            "╠──╣ ◈  F  ◈╠──╣",
+            "║  ╚═══════╝  ║",
+            "◉──◈──◉──◈──◉",
+        ],
     ]
 
 
 def _frames_marea(stage: AeonStage, seed: int) -> list[list[str]]:
     if stage in (AeonStage.HUEVO, AeonStage.FRESH, AeonStage.ROOKIE):
-        return [["∿∿∿", "∿M∿", "∿∿∿"],
-                ["≋≋≋", "≋M≋", "≋≋≋"]]
+        return [["∿∿∿", "∿M∿", "∿∿∿"], ["≋≋≋", "≋M≋", "≋≋≋"]]
     if stage == AeonStage.CHAMPION:
         return [
-            [" ≋≋≋≋≋ ",
-             "∿╔═════╗∿",
-             "≋║∿M∿∿ ║≋",
-             "∿╚═════╝∿",
-             " ≋≋≋≋≋ "],
-            [" ∿∿∿∿∿ ",
-             "≋╔═════╗≋",
-             "∿║≋M≋≋ ║∿",
-             "≋╚═════╝≋",
-             " ∿∿∿∿∿ "],
+            [" ≋≋≋≋≋ ", "∿╔═════╗∿", "≋║∿M∿∿ ║≋", "∿╚═════╝∿", " ≋≋≋≋≋ "],
+            [" ∿∿∿∿∿ ", "≋╔═════╗≋", "∿║≋M≋≋ ║∿", "≋╚═════╝≋", " ∿∿∿∿∿ "],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            ["≋≋≋≋≋≋≋≋≋",
-             "∿╔═══════╗∿",
-             "≋║∿∿M∿∿∿ ║≋",
-             "∿╚═══════╝∿",
-             "≋≋≋≋≋≋≋≋≋"],
-            ["∿∿∿∿∿∿∿∿∿",
-             "≋╔═══════╗≋",
-             "∿║≋≋M≋≋≋ ║∿",
-             "≋╚═══════╝≋",
-             "∿∿∿∿∿∿∿∿∿"],
+            ["≋≋≋≋≋≋≋≋≋", "∿╔═══════╗∿", "≋║∿∿M∿∿∿ ║≋", "∿╚═══════╝∿", "≋≋≋≋≋≋≋≋≋"],
+            ["∿∿∿∿∿∿∿∿∿", "≋╔═══════╗≋", "∿║≋≋M≋≋≋ ║∿", "≋╚═══════╝≋", "∿∿∿∿∿∿∿∿∿"],
         ]
     return [
-        ["≋≋≋≋≋≋≋≋≋≋≋",
-         "∿╔═══════════╗∿",
-         "≋║ ∿∿M∿∿∿∿  ║≋",
-         "∿╚═══════════╝∿",
-         "≋≋≋≋≋≋≋≋≋≋≋"],
-        ["∿∿∿∿∿∿∿∿∿∿∿",
-         "≋╔═══════════╗≋",
-         "∿║ ≋≋M≋≋≋≋  ║∿",
-         "≋╚═══════════╝≋",
-         "∿∿∿∿∿∿∿∿∿∿∿"],
+        [
+            "≋≋≋≋≋≋≋≋≋≋≋",
+            "∿╔═══════════╗∿",
+            "≋║ ∿∿M∿∿∿∿  ║≋",
+            "∿╚═══════════╝∿",
+            "≋≋≋≋≋≋≋≋≋≋≋",
+        ],
+        [
+            "∿∿∿∿∿∿∿∿∿∿∿",
+            "≋╔═══════════╗≋",
+            "∿║ ≋≋M≋≋≋≋  ║∿",
+            "≋╚═══════════╝≋",
+            "∿∿∿∿∿∿∿∿∿∿∿",
+        ],
     ]
 
 
@@ -289,45 +239,45 @@ def _frames_raiz(stage: AeonStage, seed: int) -> list[list[str]]:
         ]
     if stage == AeonStage.CHAMPION:
         return [
-            [f"    {star}    ",
-             "   ╱│╲   ",
-             "  ╱ │ ╲  ",
-             " ◇  │  ◇ ",
-             "   ═╧═   "],
-            [f"    {star}    ",
-             "   ╱│╲   ",
-             "  ╱ │ ╲  ",
-             " ◇  │  ◇ ",
-             "   ─╧─   "],
+            [f"    {star}    ", "   ╱│╲   ", "  ╱ │ ╲  ", " ◇  │  ◇ ", "   ═╧═   "],
+            [f"    {star}    ", "   ╱│╲   ", "  ╱ │ ╲  ", " ◇  │  ◇ ", "   ─╧─   "],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            [f"{star}   {star}   {star}",
-             "╱│╲ ╱│╲ ╱│╲",
-             "╱ ╔═════╗ ╲",
-             "◇ ║ R ◈ ║ ◇",
-             "  ╚═════╝  ",
-             "  ═══╧═══  "],
-            [f"·   {star}   ·",
-             "╱│╲ ╱│╲ ╱│╲",
-             "╱ ╔═════╗ ╲",
-             "◇ ║ R ◈ ║ ◇",
-             "  ╚═════╝  ",
-             "  ───╧───  "],
+            [
+                f"{star}   {star}   {star}",
+                "╱│╲ ╱│╲ ╱│╲",
+                "╱ ╔═════╗ ╲",
+                "◇ ║ R ◈ ║ ◇",
+                "  ╚═════╝  ",
+                "  ═══╧═══  ",
+            ],
+            [
+                f"·   {star}   ·",
+                "╱│╲ ╱│╲ ╱│╲",
+                "╱ ╔═════╗ ╲",
+                "◇ ║ R ◈ ║ ◇",
+                "  ╚═════╝  ",
+                "  ───╧───  ",
+            ],
         ]
     return [
-        [f"{star}  {star}  {star}  {star}",
-         "╱│╲╱│╲╱│╲╱│╲",
-         "╱ ╔═══════╗ ╲",
-         "◇ ║ ◈ R ◈ ║ ◇",
-         "  ╚═══════╝  ",
-         " ═════╧═════ "],
-        [f"·  {star}  {star}  ·",
-         "╱│╲╱│╲╱│╲╱│╲",
-         "╱ ╔═══════╗ ╲",
-         "◇ ║ ◈ R ◈ ║ ◇",
-         "  ╚═══════╝  ",
-         " ─────╧───── "],
+        [
+            f"{star}  {star}  {star}  {star}",
+            "╱│╲╱│╲╱│╲╱│╲",
+            "╱ ╔═══════╗ ╲",
+            "◇ ║ ◈ R ◈ ║ ◇",
+            "  ╚═══════╝  ",
+            " ═════╧═════ ",
+        ],
+        [
+            f"·  {star}  {star}  ·",
+            "╱│╲╱│╲╱│╲╱│╲",
+            "╱ ╔═══════╗ ╲",
+            "◇ ║ ◈ R ◈ ║ ◇",
+            "  ╚═══════╝  ",
+            " ─────╧───── ",
+        ],
     ]
 
 
@@ -340,41 +290,41 @@ def _frames_vacio(stage: AeonStage, seed: int) -> list[list[str]]:
         ]
     if stage == AeonStage.CHAMPION:
         return [
-            [" · ★ · ",
-             "·╔════╗·",
-             "·║◉◎◉ ║·",
-             "·╚════╝·",
-             " · · · "],
-            [" · · · ",
-             "·╔════╗·",
-             "·║◎◉◎ ║·",
-             "·╚════╝·",
-             " · ★ · "],
+            [" · ★ · ", "·╔════╗·", "·║◉◎◉ ║·", "·╚════╝·", " · · · "],
+            [" · · · ", "·╔════╗·", "·║◎◉◎ ║·", "·╚════╝·", " · ★ · "],
         ]
     if stage == AeonStage.ULTIMATE:
         return [
-            ["·  ·  ★  ·  ·",
-             "·╔══════════╗·",
-             "· ║·◉·◎·◉·◎·║ ·",
-             "·╚══════════╝·",
-             "·  ·  ·  ★  ·"],
-            ["·  ★  ·  ·  ·",
-             "·╔══════════╗·",
-             "· ║·◎·◉·◎·◉·║ ·",
-             "·╚══════════╝·",
-             "·  ·  ★  ·  ·"],
+            [
+                "·  ·  ★  ·  ·",
+                "·╔══════════╗·",
+                "· ║·◉·◎·◉·◎·║ ·",
+                "·╚══════════╝·",
+                "·  ·  ·  ★  ·",
+            ],
+            [
+                "·  ★  ·  ·  ·",
+                "·╔══════════╗·",
+                "· ║·◎·◉·◎·◉·║ ·",
+                "·╚══════════╝·",
+                "·  ·  ★  ·  ·",
+            ],
         ]
     return [
-        ["·  ·  ★  ·  ·  ·",
-         "·╔══════════════╗·",
-         "· ║·◉·◎·◉·◎·◉·◎·║ ·",
-         "·╚══════════════╝·",
-         "·  ★  ·  ·  ·  ★"],
-        ["·  ★  ·  ★  ·  ·",
-         "·╔══════════════╗·",
-         "· ║·◎·◉·◎·◉·◎·◉·║ ·",
-         "·╚══════════════╝·",
-         "·  ·  ★  ·  ★  ·"],
+        [
+            "·  ·  ★  ·  ·  ·",
+            "·╔══════════════╗·",
+            "· ║·◉·◎·◉·◎·◉·◎·║ ·",
+            "·╚══════════════╝·",
+            "·  ★  ·  ·  ·  ★",
+        ],
+        [
+            "·  ★  ·  ★  ·  ·",
+            "·╔══════════════╗·",
+            "· ║·◎·◉·◎·◉·◎·◉·║ ·",
+            "·╚══════════════╝·",
+            "·  ·  ★  ·  ★  ·",
+        ],
     ]
 
 
@@ -386,17 +336,18 @@ def _frames_unknown(stage: AeonStage, seed: int) -> list[list[str]]:
 
 
 _FRAME_BUILDERS = {
-    AeonArchetype.LLAMA:   _frames_llama,
+    AeonArchetype.LLAMA: _frames_llama,
     AeonArchetype.ORACULO: _frames_oraculo,
-    AeonArchetype.FORJA:   _frames_forja,
-    AeonArchetype.MAREA:   _frames_marea,
-    AeonArchetype.RAIZ:    _frames_raiz,
-    AeonArchetype.VACIO:   _frames_vacio,
+    AeonArchetype.FORJA: _frames_forja,
+    AeonArchetype.MAREA: _frames_marea,
+    AeonArchetype.RAIZ: _frames_raiz,
+    AeonArchetype.VACIO: _frames_vacio,
     AeonArchetype.UNKNOWN: _frames_unknown,
 }
 
 
 # ── Profile loading ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class AeonProfile:
@@ -408,10 +359,10 @@ class AeonProfile:
     ledger_count: int = 0
 
     @classmethod
-    def load(cls) -> "AeonProfile":
+    def load(cls) -> AeonProfile:
         data: dict = {}
         if AEON_PROFILE_PATH.exists():
-            try:
+            try:  # noqa: SIM105
                 data = json.loads(AEON_PROFILE_PATH.read_text())
             except Exception:
                 pass
@@ -449,6 +400,7 @@ class AeonProfile:
             return
         try:
             import sqlite3
+
             conn = sqlite3.connect(EPISODIC_DB)
             cur = conn.cursor()
             cur.execute("SELECT COUNT(*) FROM memories")
@@ -462,12 +414,14 @@ class AeonProfile:
         if not self.init_at:
             return 0
         from datetime import datetime, timezone
+
         try:
             born = datetime.fromisoformat(self.init_at)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(timezone.utc)  # noqa: UP017
             if born.tzinfo is None:
                 from datetime import timezone as tz
-                born = born.replace(tzinfo=tz.utc)
+
+                born = born.replace(tzinfo=tz.utc)  # noqa: UP017
             return max(0, (now - born).days)
         except Exception:
             return 0
@@ -495,12 +449,12 @@ class AeonProfile:
     @property
     def stage_label(self) -> str:
         labels = {
-            AeonStage.HUEVO:     "◇ HUEVO",
-            AeonStage.FRESH:     "◈ FRESH",
-            AeonStage.ROOKIE:    "▷ ROOKIE",
-            AeonStage.CHAMPION:  "◆ CHAMPION",
-            AeonStage.ULTIMATE:  "❖ ULTIMATE",
-            AeonStage.MEGA:      "✦ MEGA",
+            AeonStage.HUEVO: "◇ HUEVO",
+            AeonStage.FRESH: "◈ FRESH",
+            AeonStage.ROOKIE: "▷ ROOKIE",
+            AeonStage.CHAMPION: "◆ CHAMPION",
+            AeonStage.ULTIMATE: "❖ ULTIMATE",
+            AeonStage.MEGA: "✦ MEGA",
             AeonStage.SOVEREIGN: "⟡ SOVEREIGN",
         }
         return labels.get(self.stage, self.stage.value)
@@ -523,6 +477,7 @@ class AeonProfile:
 
 
 # ── Sigil rendering ────────────────────────────────────────────────────────────
+
 
 def _get_frames(profile: AeonProfile) -> list[list[str]]:
     builder = _FRAME_BUILDERS.get(profile.archetype, _frames_unknown)
@@ -558,10 +513,10 @@ def _render_frame(
 
     # State indicator
     state_marks = {
-        AeonState.IDLE:       ("·", "dim"),
+        AeonState.IDLE: ("·", "dim"),
         AeonState.PROCESSING: ("◉", ac),
-        AeonState.SLEEPING:   ("z", "dim"),
-        AeonState.EVOLVING:   ("★", "bright_yellow"),
+        AeonState.SLEEPING: ("z", "dim"),
+        AeonState.EVOLVING: ("★", "bright_yellow"),
     }
     s_char, s_style = state_marks[state]
 
@@ -569,19 +524,19 @@ def _render_frame(
     stats = Text()
     stats.append(f"\n{profile.name}\n", style=f"bold {pc}")
     stats.append("─" * max(len(profile.name), 16) + "\n", style="dim")
-    stats.append(f"Etapa:    ", style="dim")
+    stats.append("Etapa:    ", style="dim")
     stats.append(f"{profile.stage_label}\n", style=ac)
-    stats.append(f"Arquetipo: ", style="dim")
+    stats.append("Arquetipo: ", style="dim")
     stats.append(f"{profile.archetype_name}\n", style=pc)
-    stats.append(f"Días:     ", style="dim")
+    stats.append("Días:     ", style="dim")
     stats.append(f"{profile.days_alive}\n", style="white")
-    stats.append(f"Memorias: ", style="dim")
+    stats.append("Memorias: ", style="dim")
     stats.append(f"{profile.memory_count:,}\n", style="white")
     if profile.vault_notes:
-        stats.append(f"Vault:    ", style="dim")
+        stats.append("Vault:    ", style="dim")
         stats.append(f"{profile.vault_notes:,} notas\n", style="white")
     if profile.ledger_count:
-        stats.append(f"Ledger:   ", style="dim")
+        stats.append("Ledger:   ", style="dim")
         stats.append(f"{profile.ledger_count} entradas\n", style="white")
     stats.append(f"\n⟡ {profile.archetype_tagline} ⟡", style=f"dim {ac}")
 
@@ -590,13 +545,13 @@ def _render_frame(
     art_lines = frame_lines
     stats_lines = stats.plain.split("\n")
 
-    max_art_w = max(len(l) for l in art_lines)
+    max_art_w = max(len(l) for l in art_lines)  # noqa: E741
     combined_lines = max(len(art_lines), len(stats_lines))
 
     for i in range(combined_lines):
         art_l = art_lines[i] if i < len(art_lines) else ""
         stat_l = stats_lines[i] if i < len(stats_lines) else ""
-        pad = max_art_w - len(art_l)
+        pad = max_art_w - len(art_l)  # noqa: F841
         if i > 0:
             content.append("\n")
         content.append(art_l.ljust(max_art_w), style=pc)
@@ -629,14 +584,14 @@ def render_card(profile: AeonProfile) -> str:
     """Render exportable text card for sharing (like Digimon card)."""
     frames = _get_frames(profile)
     art = frames[0]
-    max_w = max(len(l) for l in art)
+    max_w = max(len(l) for l in art)  # noqa: E741
     border = "═" * (max_w + 4)
     lines = [
         f"╔{border}╗",
         f"║  {'ZANA AEON':^{max_w}}  ║",
         f"╠{border}╣",
     ]
-    for l in art:
+    for l in art:  # noqa: E741
         lines.append(f"║  {l:<{max_w}}  ║")
     lines += [
         f"╠{border}╣",
@@ -647,7 +602,7 @@ def render_card(profile: AeonProfile) -> str:
         f"║  {'Memorias: ' + str(profile.memory_count):<{max_w}}  ║",
         f"╚{border}╝",
         f"  ⟡ {profile.archetype_tagline} ⟡",
-        f"  pip install zana  ·  zana.vecanova.com",
+        "  pip install zana  ·  zana.vecanova.com",
     ]
     return "\n".join(lines)
 
@@ -655,28 +610,28 @@ def render_card(profile: AeonProfile) -> str:
 def render_mini(profile: AeonProfile, state: AeonState = AeonState.IDLE) -> str:
     """5-char inline sigil for chat header."""
     archetype_mini = {
-        AeonArchetype.LLAMA:   "▲",
+        AeonArchetype.LLAMA: "▲",
         AeonArchetype.ORACULO: "◉",
-        AeonArchetype.FORJA:   "◈",
-        AeonArchetype.MAREA:   "∿",
-        AeonArchetype.RAIZ:    "✦",
-        AeonArchetype.VACIO:   "★",
+        AeonArchetype.FORJA: "◈",
+        AeonArchetype.MAREA: "∿",
+        AeonArchetype.RAIZ: "✦",
+        AeonArchetype.VACIO: "★",
         AeonArchetype.UNKNOWN: "?",
     }
     stage_mini = {
-        AeonStage.HUEVO:    "○",
-        AeonStage.FRESH:    "◇",
-        AeonStage.ROOKIE:   "▷",
+        AeonStage.HUEVO: "○",
+        AeonStage.FRESH: "◇",
+        AeonStage.ROOKIE: "▷",
         AeonStage.CHAMPION: "◆",
         AeonStage.ULTIMATE: "❖",
-        AeonStage.MEGA:     "✦",
-        AeonStage.SOVEREIGN:"⟡",
+        AeonStage.MEGA: "✦",
+        AeonStage.SOVEREIGN: "⟡",
     }
     state_pulse = {
-        AeonState.IDLE:       "·",
+        AeonState.IDLE: "·",
         AeonState.PROCESSING: "◉",
-        AeonState.SLEEPING:   "z",
-        AeonState.EVOLVING:   "★",
+        AeonState.SLEEPING: "z",
+        AeonState.EVOLVING: "★",
     }
     core = archetype_mini.get(profile.archetype, "?")
     stage = stage_mini.get(profile.stage, "?")
@@ -693,6 +648,7 @@ def animate(
     """Run live animation. duration=None loops until Ctrl+C."""
     if console is None:
         from cli.tui.theme import console as default_console
+
         console = default_console
 
     frames = _get_frames(profile)

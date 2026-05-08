@@ -46,7 +46,7 @@ export default function AeonVisualizer() {
           <div className="relative w-48 h-48">
             {/* Visual Resonance Sphere */}
             <motion.div
-              animate={{ 
+              animate={{
                 scale: pulse && pulse.innovationScore > 1.2 ? [1, 1.2, 1] : [1, 1.05, 1],
                 opacity: pulse && pulse.innovationScore > 1.2 ? 0.8 : 0.4
               }}
@@ -64,8 +64,8 @@ export default function AeonVisualizer() {
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Resonancia Latente</p>
             <div className="flex gap-1">
               {pulse?.latentState.map((val, i) => (
-                <motion.div 
-                  key={i} 
+                <motion.div
+                  key={i}
                   initial={{ height: 0 }}
                   animate={{ height: val * 30 }}
                   className="w-full bg-resonance/60 rounded-sm"
@@ -77,7 +77,7 @@ export default function AeonVisualizer() {
           <div className="space-y-3">
             <AnimatePresence mode="wait">
               {history.map((msg, i) => (
-                <motion.div 
+                <motion.div
                   key={msg.timestamp}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1 - i * 0.2, x: 0 }}

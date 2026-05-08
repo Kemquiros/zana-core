@@ -28,7 +28,7 @@ def cmd_id_generate(force: bool = False) -> None:
     pub, priv = _generate_keys()
 
     import datetime
-    
+
     now_iso = datetime.datetime.now(datetime.UTC).isoformat()
 
     identity = {

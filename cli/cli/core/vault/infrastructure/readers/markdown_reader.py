@@ -1,4 +1,5 @@
 """Read .md and .txt files into VaultDocuments."""
+
 from __future__ import annotations
 
 import os

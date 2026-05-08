@@ -54,5 +54,5 @@ ALTER TABLE episodes ENABLE ROW LEVEL SECURITY;
 
 -- Drop policy if exists to allow re-run
 DROP POLICY IF EXISTS user_isolation ON episodes;
-CREATE POLICY user_isolation ON episodes 
+CREATE POLICY user_isolation ON episodes
     USING (owner_id = current_setting('zana.current_user_id', true)::uuid);

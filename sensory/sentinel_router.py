@@ -24,11 +24,13 @@ _LEDGER_PATH = Path.home() / ".zana" / "civic_ledger.jsonl"
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+
 @router.get("/status")
 async def sentinel_status():
     """Sentinel Event Bus health and event statistics."""
     try:
         from sentinel.event_bus import EventType, get_bus
+
         bus = get_bus()
         counts = bus.stats()
         return {
@@ -50,6 +52,7 @@ async def sentinel_events(
     """Recent events from the in-memory ring buffer."""
     try:
         from sentinel.event_bus import get_bus
+
         bus = get_bus()
         return {
             "events": bus.recent_events(limit=limit, event_type=event_type),
@@ -104,6 +107,7 @@ async def sentinel_emit(req: EmitRequest):
     """Manually emit an event for testing/debugging."""
     try:
         from sentinel.event_bus import EventType, ZanaEvent, get_bus
+
         event_type = EventType(req.event_type)
         bus = get_bus()
         await bus.emit(
@@ -113,8 +117,11 @@ async def sentinel_emit(req: EmitRequest):
         return {"emitted": event_type, "session_id": req.session_id}
     except ValueError:
         from sentinel.event_bus import EventType
+
         valid = [e.value for e in EventType]
-        raise HTTPException(status_code=400, detail=f"Unknown event type. Valid: {valid}")
+        raise HTTPException(
+            status_code=400, detail=f"Unknown event type. Valid: {valid}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -52,7 +52,7 @@ impl CognitiveVM {
         for instr in instructions {
             let val1 = *self.memory.get(instr.in1_addr).unwrap_or(&0.0);
             let val2 = *self.memory.get(instr.in2_addr).unwrap_or(&0.0);
-            
+
             let result = match instr.op {
                 Op::NoOp => val1,
                 Op::Add => val1 + val2,

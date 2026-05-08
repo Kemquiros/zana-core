@@ -3,11 +3,11 @@
 @theme {
   --font-sans: var(--font-space-grotesk);
   --font-mono: var(--font-geist-mono);
-  
+
   --color-gold: #FFD700;
   --color-resonance: #3B82F6;
   --color-innovation: #A855F7;
-  
+
   --radius-xl: 1rem;
 }
 

@@ -20,7 +20,7 @@ async def mock_koruos_aeon():
                 print("\n⚡ [KoruOS] Interrupt received from ZANA!")
                 print(f"  └─> Intent:   {event.get('intent')}")
                 print(f"  └─> Emotion:  {event.get('emotion')}")
-                print(f"  └─> Message:  \"{event.get('message')}\"")
+                print(f'  └─> Message:  "{event.get("message")}"')
 
     except Exception as e:
         print(f"❌ Connection error: {e}")

@@ -18,17 +18,17 @@ class MapBridge:
         Scans the vault and aggregates signals into map parameters.
         """
         files = list(self.vault_path.glob("**/*.md"))
-        
+
         entropy_score = 0
         total_age_factor = 0
         tag_counts = {}
         clusters = {}
 
         now = time.time()
-        
+
         for md_file in files:
             content = md_file.read_text(errors="ignore")
-            
+
             # 1. Entropy: Detect syntax errors in Python blocks
             python_blocks = re.findall(r"```python\n(.*?)\n```", content, re.DOTALL)
             for block in python_blocks:
@@ -47,7 +47,7 @@ class MapBridge:
             tags = re.findall(r"#(\w+)", content)
             for tag in tags:
                 tag_counts[tag] = tag_counts.get(tag, 0) + 1
-            
+
             # Use parent directory as cluster signal
             parent_name = md_file.parent.name
             if parent_name != self.vault_path.name:
@@ -58,5 +58,5 @@ class MapBridge:
             "entropy_level": min(1.0, entropy_score / 10.0),
             "memory_fog": min(1.0, total_age_factor / 5.0),
             "biome_weights": tag_counts,
-            "file_count": len(files)
+            "file_count": len(files),
         }

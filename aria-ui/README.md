@@ -41,5 +41,5 @@ The landing page is optimized for production deployment on Vercel as a subdomain
 
 ---
 
-Built with honor in Medellín, Colombia. 🇨🇴  
+Built with honor in Medellín, Colombia. 🇨🇴
 **[VECANOVA](https://vecanova.com)** · MIT License

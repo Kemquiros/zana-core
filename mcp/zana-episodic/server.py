@@ -6,6 +6,7 @@ from pathlib import Path
 import httpx
 import numpy as np
 from dotenv import load_dotenv
+
 from mcp.server.fastmcp import FastMCP
 
 # Add project root to sys.path to find episodic modules
@@ -104,9 +105,7 @@ async def store_episode(
 
 
 @mcp.tool()
-async def recall_similar(
-    query: str, project: str | None = None, limit: int = 3
-) -> str:
+async def recall_similar(query: str, project: str | None = None, limit: int = 3) -> str:
     """
     Recall similar past episodes from memory using semantic search.
 

@@ -15,16 +15,15 @@ Theory basis:
   - Shannon (1948): information entropy — complexity from compressed description
   - Kolmogorov: description length — compact genome → complex phenotype
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
 import math
-import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 AEON_HOME = Path.home() / ".zana"
 DNA_PATH = AEON_HOME / "aeon_dna.json"
@@ -34,32 +33,41 @@ EPISODIC_DB = AEON_HOME / "episodic.db"
 
 # ── Archetype ─────────────────────────────────────────────────────────────────
 
-class AeonArchetype(str, Enum):
-    KETER    = "keter"
-    BINAH    = "binah"
+
+class AeonArchetype(str, Enum):  # noqa: UP042
+    KETER = "keter"
+    BINAH = "binah"
     CHOKHMAH = "chokhmah"
-    CHESED   = "chesed"
-    GEVURAH  = "gevurah"
-    TIFERET  = "tiferet"
-    NETZACH  = "netzach"
-    HOD      = "hod"
-    YESOD    = "yesod"
-    MALKHUT  = "malkhut"
-    DAAT     = "daat"
-    UNKNOWN  = "unknown"
+    CHESED = "chesed"
+    GEVURAH = "gevurah"
+    TIFERET = "tiferet"
+    NETZACH = "netzach"
+    HOD = "hod"
+    YESOD = "yesod"
+    MALKHUT = "malkhut"
+    DAAT = "daat"
+    UNKNOWN = "unknown"
+    # Legacy aliases — original 6-archetype naming system
+    LLAMA = "malkhut"  # Fire / Warrior → Malkhut (manifestation, action)
+    ORACULO = "chokhmah"  # Analytical / Oracle → Chokhmah (wisdom)
+    FORJA = "binah"  # Builder / Forge → Binah (understanding, structure)
+    MAREA = "netzach"  # Connector / Tide → Netzach (emotion, flow)
+    RAIZ = "yesod"  # Guardian / Root → Yesod (foundation)
+    VACIO = "daat"  # Explorer / Void → Daat (hidden knowledge)
 
 
-class AeonStage(str, Enum):
-    HUEVO     = "HUEVO"     # h 0-12: embryonic, not hatched
-    FRESH     = "FRESH"     # d 1-3
-    ROOKIE    = "ROOKIE"    # d 4-30,   mem <100
-    CHAMPION  = "CHAMPION"  # d 31-180, mem <1000
-    ULTIMATE  = "ULTIMATE"  # d 181-365,mem <10000
-    MEGA      = "MEGA"      # d 366+
-    SOVEREIGN = "SOVEREIGN" # MEGA + vault >5000 + Z-Sync
+class AeonStage(str, Enum):  # noqa: UP042
+    HUEVO = "HUEVO"  # h 0-12: embryonic, not hatched
+    FRESH = "FRESH"  # d 1-3
+    ROOKIE = "ROOKIE"  # d 4-30,   mem <100
+    CHAMPION = "CHAMPION"  # d 31-180, mem <1000
+    ULTIMATE = "ULTIMATE"  # d 181-365,mem <10000
+    MEGA = "MEGA"  # d 366+
+    SOVEREIGN = "SOVEREIGN"  # MEGA + vault >5000 + Z-Sync
 
 
 # ── The 21-Gene DNA Vector ────────────────────────────────────────────────────
+
 
 @dataclass
 class AeonDNA:
@@ -80,36 +88,36 @@ class AeonDNA:
     """
 
     # ── PHENOTYPE: 9 morphogenetic genes (Dawkins-inspired) ──────────────────
-    g0_branch_angle:   float = 35.0   # Bifurcation angle in degrees (10–75)
-    g1_depth:          int   = 3      # Recursion depth = complexity (2–7)
-    g2_trunk_length:   float = 6.0    # Initial segment length in chars (3–10)
-    g3_attenuation:    float = 0.68   # Length decay per level (0.40–0.85)
-    g4_symmetry:       int   = 0      # 0=bilateral 1=spiral 2=radial 3=chaotic
-    g5_fork:           int   = 2      # Sub-branches per node (2 or 3)
-    g6_bend_drift:     float = 0.0    # Progressive angle drift per level (−15–+15)
-    g7_terminal_form:  int   = 0      # Terminal node style (0–5)
-    g8_armor_density:  float = 0.5    # Body decoration intensity (0.0–1.0)
+    g0_branch_angle: float = 35.0  # Bifurcation angle in degrees (10–75)
+    g1_depth: int = 3  # Recursion depth = complexity (2–7)
+    g2_trunk_length: float = 6.0  # Initial segment length in chars (3–10)
+    g3_attenuation: float = 0.68  # Length decay per level (0.40–0.85)
+    g4_symmetry: int = 0  # 0=bilateral 1=spiral 2=radial 3=chaotic
+    g5_fork: int = 2  # Sub-branches per node (2 or 3)
+    g6_bend_drift: float = 0.0  # Progressive angle drift per level (−15–+15)
+    g7_terminal_form: int = 0  # Terminal node style (0–5)
+    g8_armor_density: float = 0.5  # Body decoration intensity (0.0–1.0)
 
     # ── COGNITIVE: 7 behavioral genes ────────────────────────────────────────
-    g9_curiosity:      float = 5.0    # Eagerness to explore new connections (0–9)
-    g10_tenacity:      float = 5.0    # Depth of analysis before answering (0–9)
-    g11_empathy:       float = 5.0    # Communication style adaptation (0–9)
-    g12_creativity:    float = 5.0    # Preference for novel vs established (0–9)
-    g13_precision:     float = 5.0    # Detail focus vs big picture (0–9)
-    g14_resilience:    float = 5.0    # Recovery from gaps/failures (0–9)
-    g15_sovereignty:   float = 5.0    # Local-first processing preference (0–9)
+    g9_curiosity: float = 5.0  # Eagerness to explore new connections (0–9)
+    g10_tenacity: float = 5.0  # Depth of analysis before answering (0–9)
+    g11_empathy: float = 5.0  # Communication style adaptation (0–9)
+    g12_creativity: float = 5.0  # Preference for novel vs established (0–9)
+    g13_precision: float = 5.0  # Detail focus vs big picture (0–9)
+    g14_resilience: float = 5.0  # Recovery from gaps/failures (0–9)
+    g15_sovereignty: float = 5.0  # Local-first processing preference (0–9)
 
     # ── EVOLUTIONARY: 5 lifecycle genes ──────────────────────────────────────
-    g16_growth_rate:      float = 1.0  # Stage advancement speed multiplier
-    g17_memory_affinity:  float = 0.5  # Episodic(0) ↔ Semantic(1) preference
+    g16_growth_rate: float = 1.0  # Stage advancement speed multiplier
+    g17_memory_affinity: float = 0.5  # Episodic(0) ↔ Semantic(1) preference
     g18_skill_absorption: float = 0.5  # Procedural knowledge integration speed
-    g19_ledger_depth:     int   = 7    # Civic Ledger trace depth (3–21)
-    g20_social_vector:    float = 0.2  # Isolation(0) ↔ Z-Sync sharing(1)
+    g19_ledger_depth: int = 7  # Civic Ledger trace depth (3–21)
+    g20_social_vector: float = 0.2  # Isolation(0) ↔ Z-Sync sharing(1)
 
     # ── Metadata ──────────────────────────────────────────────────────────────
-    generation:    int   = 0          # Mutation count since initial derivation
-    entropy:       float = 0.0        # Shannon entropy of gene vector (computed)
-    birth_hash:    str   = ""         # Immutable identity anchor
+    generation: int = 0  # Mutation count since initial derivation
+    entropy: float = 0.0  # Shannon entropy of gene vector (computed)
+    birth_hash: str = ""  # Immutable identity anchor
 
     def __post_init__(self) -> None:
         self.entropy = self._compute_entropy()
@@ -155,7 +163,7 @@ class AeonDNA:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, d: dict) -> "AeonDNA":
+    def from_dict(cls, d: dict) -> AeonDNA:
         valid = {k: v for k, v in d.items() if k in cls.__dataclass_fields__}
         return cls(**valid)
 
@@ -164,7 +172,7 @@ class AeonDNA:
         DNA_PATH.write_text(json.dumps(self.to_dict(), indent=2))
 
     @classmethod
-    def load(cls) -> Optional["AeonDNA"]:
+    def load(cls) -> AeonDNA | None:
         if not DNA_PATH.exists():
             return None
         try:
@@ -179,92 +187,92 @@ class AeonDNA:
 # These boundaries are what make archetypes morphologically irreconcilable.
 _ARCHETYPE_CONSTRAINTS: dict[AeonArchetype, dict] = {
     AeonArchetype.LLAMA: {
-        "g0_branch_angle":  (40.0, 70.0),   # Wide, fire-like spread
-        "g1_depth":         (3, 5),
-        "g2_trunk_length":  (5.0, 8.0),
-        "g3_attenuation":   (0.55, 0.72),
-        "g4_symmetry":      (0, 0),          # Always bilateral (warrior stance)
-        "g5_fork":          (2, 2),
-        "g6_bend_drift":    (2.0, 8.0),      # Curves outward (flame shape)
-        "g7_terminal_form": (0, 1),          # Fire terminals: ▲ ✦
-        "g8_armor_density": (0.6, 1.0),      # Heavy armor
-        "g9_curiosity":     (6.0, 9.0),
-        "g12_creativity":   (7.0, 9.0),
-        "g15_sovereignty":  (4.0, 8.0),
-        "g16_growth_rate":  (1.2, 2.0),      # Fast growth
+        "g0_branch_angle": (40.0, 70.0),  # Wide, fire-like spread
+        "g1_depth": (3, 5),
+        "g2_trunk_length": (5.0, 8.0),
+        "g3_attenuation": (0.55, 0.72),
+        "g4_symmetry": (0, 0),  # Always bilateral (warrior stance)
+        "g5_fork": (2, 2),
+        "g6_bend_drift": (2.0, 8.0),  # Curves outward (flame shape)
+        "g7_terminal_form": (0, 1),  # Fire terminals: ▲ ✦
+        "g8_armor_density": (0.6, 1.0),  # Heavy armor
+        "g9_curiosity": (6.0, 9.0),
+        "g12_creativity": (7.0, 9.0),
+        "g15_sovereignty": (4.0, 8.0),
+        "g16_growth_rate": (1.2, 2.0),  # Fast growth
     },
     AeonArchetype.ORACULO: {
-        "g0_branch_angle":  (15.0, 35.0),   # Narrow, precise angles
-        "g1_depth":         (4, 7),          # Very deep recursion = complex
-        "g2_trunk_length":  (4.0, 7.0),
-        "g3_attenuation":   (0.65, 0.82),   # Slow decay = tall structure
-        "g4_symmetry":      (2, 2),          # Always radial (sacred geometry)
-        "g5_fork":          (2, 2),
-        "g6_bend_drift":    (-3.0, 3.0),    # Near-zero drift (geometric purity)
-        "g7_terminal_form": (2, 3),          # Geometric: ◈ ⊕
+        "g0_branch_angle": (15.0, 35.0),  # Narrow, precise angles
+        "g1_depth": (4, 7),  # Very deep recursion = complex
+        "g2_trunk_length": (4.0, 7.0),
+        "g3_attenuation": (0.65, 0.82),  # Slow decay = tall structure
+        "g4_symmetry": (2, 2),  # Always radial (sacred geometry)
+        "g5_fork": (2, 2),
+        "g6_bend_drift": (-3.0, 3.0),  # Near-zero drift (geometric purity)
+        "g7_terminal_form": (2, 3),  # Geometric: ◈ ⊕
         "g8_armor_density": (0.4, 0.7),
-        "g10_tenacity":     (7.0, 9.0),
-        "g13_precision":    (7.0, 9.0),
-        "g19_ledger_depth": (14, 21),        # Deep audit trail
+        "g10_tenacity": (7.0, 9.0),
+        "g13_precision": (7.0, 9.0),
+        "g19_ledger_depth": (14, 21),  # Deep audit trail
     },
     AeonArchetype.FORJA: {
-        "g0_branch_angle":  (25.0, 45.0),
-        "g1_depth":         (3, 5),
-        "g2_trunk_length":  (6.0, 9.0),     # Thick trunk
-        "g3_attenuation":   (0.50, 0.65),   # Sharp attenuation = compact
-        "g4_symmetry":      (0, 0),          # Bilateral (mechanical symmetry)
-        "g5_fork":          (2, 3),          # Sometimes triple fork
-        "g6_bend_drift":    (-5.0, 0.0),    # Inward curve (structural)
-        "g7_terminal_form": (4, 5),          # Mechanical: ◉ ─
-        "g8_armor_density": (0.7, 1.0),     # Maximum armor
-        "g10_tenacity":     (6.0, 9.0),
-        "g13_precision":    (6.0, 9.0),
-        "g18_skill_absorption": (0.6, 1.0), # High skill absorption
+        "g0_branch_angle": (25.0, 45.0),
+        "g1_depth": (3, 5),
+        "g2_trunk_length": (6.0, 9.0),  # Thick trunk
+        "g3_attenuation": (0.50, 0.65),  # Sharp attenuation = compact
+        "g4_symmetry": (0, 0),  # Bilateral (mechanical symmetry)
+        "g5_fork": (2, 3),  # Sometimes triple fork
+        "g6_bend_drift": (-5.0, 0.0),  # Inward curve (structural)
+        "g7_terminal_form": (4, 5),  # Mechanical: ◉ ─
+        "g8_armor_density": (0.7, 1.0),  # Maximum armor
+        "g10_tenacity": (6.0, 9.0),
+        "g13_precision": (6.0, 9.0),
+        "g18_skill_absorption": (0.6, 1.0),  # High skill absorption
     },
     AeonArchetype.MAREA: {
-        "g0_branch_angle":  (20.0, 50.0),
-        "g1_depth":         (3, 5),
-        "g2_trunk_length":  (5.0, 8.0),
-        "g3_attenuation":   (0.60, 0.78),
-        "g4_symmetry":      (1, 1),          # Spiral (fluid motion)
-        "g5_fork":          (2, 2),
-        "g6_bend_drift":    (5.0, 15.0),    # Strong outward drift (wave shape)
-        "g7_terminal_form": (0, 1),          # Fluid: ∿ ≋
-        "g8_armor_density": (0.2, 0.5),     # Light, flowing
-        "g9_curiosity":     (5.0, 8.0),
-        "g11_empathy":      (7.0, 9.0),
-        "g20_social_vector":(0.5, 1.0),     # High social tendency
+        "g0_branch_angle": (20.0, 50.0),
+        "g1_depth": (3, 5),
+        "g2_trunk_length": (5.0, 8.0),
+        "g3_attenuation": (0.60, 0.78),
+        "g4_symmetry": (1, 1),  # Spiral (fluid motion)
+        "g5_fork": (2, 2),
+        "g6_bend_drift": (5.0, 15.0),  # Strong outward drift (wave shape)
+        "g7_terminal_form": (0, 1),  # Fluid: ∿ ≋
+        "g8_armor_density": (0.2, 0.5),  # Light, flowing
+        "g9_curiosity": (5.0, 8.0),
+        "g11_empathy": (7.0, 9.0),
+        "g20_social_vector": (0.5, 1.0),  # High social tendency
     },
     AeonArchetype.RAIZ: {
-        "g0_branch_angle":  (25.0, 45.0),
-        "g1_depth":         (5, 7),          # Maximum depth = fractal tree
-        "g2_trunk_length":  (4.0, 7.0),
-        "g3_attenuation":   (0.70, 0.85),   # Slow decay = tall, many levels
-        "g4_symmetry":      (0, 0),          # Bilateral (tree symmetry)
-        "g5_fork":          (2, 3),          # Triple fork = fractal richness
-        "g6_bend_drift":    (-2.0, 2.0),    # Near-zero (upright tree)
-        "g7_terminal_form": (2, 3),          # Botanical: ✦ ◇
+        "g0_branch_angle": (25.0, 45.0),
+        "g1_depth": (5, 7),  # Maximum depth = fractal tree
+        "g2_trunk_length": (4.0, 7.0),
+        "g3_attenuation": (0.70, 0.85),  # Slow decay = tall, many levels
+        "g4_symmetry": (0, 0),  # Bilateral (tree symmetry)
+        "g5_fork": (2, 3),  # Triple fork = fractal richness
+        "g6_bend_drift": (-2.0, 2.0),  # Near-zero (upright tree)
+        "g7_terminal_form": (2, 3),  # Botanical: ✦ ◇
         "g8_armor_density": (0.3, 0.6),
-        "g14_resilience":   (7.0, 9.0),
-        "g17_memory_affinity": (0.0, 0.35), # Strong episodic preference
+        "g14_resilience": (7.0, 9.0),
+        "g17_memory_affinity": (0.0, 0.35),  # Strong episodic preference
         "g19_ledger_depth": (10, 21),
     },
     AeonArchetype.VACIO: {
-        "g0_branch_angle":  (10.0, 60.0),   # Variable (chaotic)
-        "g1_depth":         (2, 6),          # Variable depth
-        "g2_trunk_length":  (3.0, 9.0),     # Variable size
-        "g3_attenuation":   (0.40, 0.85),   # Full range
-        "g4_symmetry":      (3, 3),          # Always chaotic/asymmetric
-        "g5_fork":          (2, 3),
-        "g6_bend_drift":    (-15.0, 15.0),  # Full drift range
-        "g7_terminal_form": (3, 5),          # Cosmic: ★ · ◎
-        "g8_armor_density": (0.0, 0.4),     # Minimal armor (transparent)
-        "g12_creativity":   (7.0, 9.0),
-        "g14_resilience":   (4.0, 8.0),
-        "g15_sovereignty":  (6.0, 9.0),     # High sovereignty
+        "g0_branch_angle": (10.0, 60.0),  # Variable (chaotic)
+        "g1_depth": (2, 6),  # Variable depth
+        "g2_trunk_length": (3.0, 9.0),  # Variable size
+        "g3_attenuation": (0.40, 0.85),  # Full range
+        "g4_symmetry": (3, 3),  # Always chaotic/asymmetric
+        "g5_fork": (2, 3),
+        "g6_bend_drift": (-15.0, 15.0),  # Full drift range
+        "g7_terminal_form": (3, 5),  # Cosmic: ★ · ◎
+        "g8_armor_density": (0.0, 0.4),  # Minimal armor (transparent)
+        "g12_creativity": (7.0, 9.0),
+        "g14_resilience": (4.0, 8.0),
+        "g15_sovereignty": (6.0, 9.0),  # High sovereignty
     },
     AeonArchetype.UNKNOWN: {
-        "g1_depth":         (2, 3),
+        "g1_depth": (2, 3),
         "g8_armor_density": (0.1, 0.3),
     },
 }
@@ -290,7 +298,7 @@ def derive_dna(name: str, init_at: str, archetype: AeonArchetype) -> AeonDNA:
     def _prng(slot: int, lo: float, hi: float) -> float:
         """Extract float in [lo, hi] from birth_hash at position slot."""
         offset = (slot * 3) % (len(birth_hash) - 2)
-        byte_val = int(birth_hash[offset:offset+4], 16)
+        byte_val = int(birth_hash[offset : offset + 4], 16)
         return lo + (byte_val / 0xFFFF) * (hi - lo)
 
     def _prng_int(slot: int, lo: int, hi: int) -> int:
@@ -309,38 +317,39 @@ def derive_dna(name: str, init_at: str, archetype: AeonArchetype) -> AeonDNA:
 
     dna = AeonDNA(
         # Phenotype
-        g0_branch_angle  = _g("g0_branch_angle",  0, 20.0, 60.0),
-        g1_depth         = _gi("g1_depth",         1, 2,    6),
-        g2_trunk_length  = _g("g2_trunk_length",   2, 4.0,  8.0),
-        g3_attenuation   = _g("g3_attenuation",    3, 0.45, 0.80),
-        g4_symmetry      = _gi("g4_symmetry",      4, 0,    3),
-        g5_fork          = _gi("g5_fork",          5, 2,    3),
-        g6_bend_drift    = _g("g6_bend_drift",     6, -10.0, 10.0),
-        g7_terminal_form = _gi("g7_terminal_form", 7, 0,    5),
-        g8_armor_density = _g("g8_armor_density",  8, 0.1,  0.9),
+        g0_branch_angle=_g("g0_branch_angle", 0, 20.0, 60.0),
+        g1_depth=_gi("g1_depth", 1, 2, 6),
+        g2_trunk_length=_g("g2_trunk_length", 2, 4.0, 8.0),
+        g3_attenuation=_g("g3_attenuation", 3, 0.45, 0.80),
+        g4_symmetry=_gi("g4_symmetry", 4, 0, 3),
+        g5_fork=_gi("g5_fork", 5, 2, 3),
+        g6_bend_drift=_g("g6_bend_drift", 6, -10.0, 10.0),
+        g7_terminal_form=_gi("g7_terminal_form", 7, 0, 5),
+        g8_armor_density=_g("g8_armor_density", 8, 0.1, 0.9),
         # Cognitive
-        g9_curiosity      = _g("g9_curiosity",      9, 2.0, 9.0),
-        g10_tenacity      = _g("g10_tenacity",     10, 2.0, 9.0),
-        g11_empathy       = _g("g11_empathy",      11, 2.0, 9.0),
-        g12_creativity    = _g("g12_creativity",   12, 2.0, 9.0),
-        g13_precision     = _g("g13_precision",    13, 2.0, 9.0),
-        g14_resilience    = _g("g14_resilience",   14, 2.0, 9.0),
-        g15_sovereignty   = _g("g15_sovereignty",  15, 1.0, 9.0),
+        g9_curiosity=_g("g9_curiosity", 9, 2.0, 9.0),
+        g10_tenacity=_g("g10_tenacity", 10, 2.0, 9.0),
+        g11_empathy=_g("g11_empathy", 11, 2.0, 9.0),
+        g12_creativity=_g("g12_creativity", 12, 2.0, 9.0),
+        g13_precision=_g("g13_precision", 13, 2.0, 9.0),
+        g14_resilience=_g("g14_resilience", 14, 2.0, 9.0),
+        g15_sovereignty=_g("g15_sovereignty", 15, 1.0, 9.0),
         # Evolutionary
-        g16_growth_rate      = _g("g16_growth_rate",     16, 0.6, 1.8),
-        g17_memory_affinity  = _g("g17_memory_affinity", 17, 0.0, 1.0),
-        g18_skill_absorption = _g("g18_skill_absorption",18, 0.1, 1.0),
-        g19_ledger_depth     = _gi("g19_ledger_depth",   19, 3,   21),
-        g20_social_vector    = _g("g20_social_vector",   20, 0.0, 0.8),
+        g16_growth_rate=_g("g16_growth_rate", 16, 0.6, 1.8),
+        g17_memory_affinity=_g("g17_memory_affinity", 17, 0.0, 1.0),
+        g18_skill_absorption=_g("g18_skill_absorption", 18, 0.1, 1.0),
+        g19_ledger_depth=_gi("g19_ledger_depth", 19, 3, 21),
+        g20_social_vector=_g("g20_social_vector", 20, 0.0, 0.8),
         # Metadata
-        generation = 0,
-        birth_hash = birth_hash[:16],
+        generation=0,
+        birth_hash=birth_hash[:16],
     )
     dna.entropy = dna._compute_entropy()
     return dna
 
 
 # ── Epigenetic drift — genes evolve with usage ────────────────────────────────
+
 
 def apply_epigenetic_drift(dna: AeonDNA, usage: dict) -> AeonDNA:
     """
@@ -360,6 +369,7 @@ def apply_epigenetic_drift(dna: AeonDNA, usage: dict) -> AeonDNA:
       ledger_entries: int      — Civic Ledger entries written
     """
     import copy
+
     d = copy.deepcopy(dna)
 
     mem = usage.get("memory_count", 0)
@@ -412,21 +422,22 @@ def apply_epigenetic_drift(dna: AeonDNA, usage: dict) -> AeonDNA:
 
 # ── Profile (wraps DNA + lifecycle state) ─────────────────────────────────────
 
+
 @dataclass
 class AeonProfile:
-    name:         str          = "Exodia"
-    archetype:    AeonArchetype = AeonArchetype.UNKNOWN
-    init_at:      str          = ""
-    vault_notes:  int          = 0
-    memory_count: int          = 0
-    ledger_count: int          = 0
-    dna:          Optional[AeonDNA] = field(default=None, repr=False)
+    name: str = "Exodia"
+    archetype: AeonArchetype = AeonArchetype.UNKNOWN
+    init_at: str = ""
+    vault_notes: int = 0
+    memory_count: int = 0
+    ledger_count: int = 0
+    dna: AeonDNA | None = field(default=None, repr=False)
 
     @classmethod
-    def load(cls) -> "AeonProfile":
+    def load(cls) -> AeonProfile:
         data: dict = {}
         if PROFILE_PATH.exists():
-            try:
+            try:  # noqa: SIM105
                 data = json.loads(PROFILE_PATH.read_text())
             except Exception:
                 pass
@@ -473,6 +484,7 @@ class AeonProfile:
             return
         try:
             import sqlite3
+
             conn = sqlite3.connect(EPISODIC_DB)
             cur = conn.cursor()
             cur.execute("SELECT COUNT(*) FROM memories")
@@ -492,11 +504,12 @@ class AeonProfile:
         if not self.init_at:
             return 0
         from datetime import datetime, timezone
+
         try:
             born = datetime.fromisoformat(self.init_at)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(timezone.utc)  # noqa: UP017
             if born.tzinfo is None:
-                born = born.replace(tzinfo=timezone.utc)
+                born = born.replace(tzinfo=timezone.utc)  # noqa: UP017
             return max(0, (now - born).days)
         except Exception:
             return 0
@@ -522,13 +535,13 @@ class AeonProfile:
     @property
     def stage_label(self) -> str:
         return {
-            AeonStage.HUEVO:    "◇ HUEVO",
-            AeonStage.FRESH:    "◈ FRESH",
-            AeonStage.ROOKIE:   "▷ ROOKIE",
+            AeonStage.HUEVO: "◇ HUEVO",
+            AeonStage.FRESH: "◈ FRESH",
+            AeonStage.ROOKIE: "▷ ROOKIE",
             AeonStage.CHAMPION: "◆ CHAMPION",
             AeonStage.ULTIMATE: "❖ ULTIMATE",
-            AeonStage.MEGA:     "✦ MEGA",
-            AeonStage.SOVEREIGN:"⟡ SOVEREIGN",
+            AeonStage.MEGA: "✦ MEGA",
+            AeonStage.SOVEREIGN: "⟡ SOVEREIGN",
         }[self.stage]
 
     @property
@@ -538,59 +551,66 @@ class AeonProfile:
             return "DNA pending"
         d = self.dna
         traits = []
-        if d.g9_curiosity > 7:   traits.append("hypercurious")
-        elif d.g9_curiosity < 3: traits.append("focused")
-        if d.g10_tenacity > 7:   traits.append("deep-analytical")
-        if d.g12_creativity > 7: traits.append("generative")
-        if d.g13_precision > 7:  traits.append("precise")
-        if d.g15_sovereignty > 7: traits.append("sovereign-first")
-        if d.g11_empathy > 7:    traits.append("adaptive")
+        if d.g9_curiosity > 7:
+            traits.append("hypercurious")
+        elif d.g9_curiosity < 3:
+            traits.append("focused")
+        if d.g10_tenacity > 7:
+            traits.append("deep-analytical")
+        if d.g12_creativity > 7:
+            traits.append("generative")
+        if d.g13_precision > 7:
+            traits.append("precise")
+        if d.g15_sovereignty > 7:
+            traits.append("sovereign-first")
+        if d.g11_empathy > 7:
+            traits.append("adaptive")
         return " · ".join(traits) if traits else "balanced"
 
     @property
     def primary_color(self) -> str:
         return {
-            AeonArchetype.LLAMA:   "bright_red",
+            AeonArchetype.LLAMA: "bright_red",
             AeonArchetype.ORACULO: "medium_purple",
-            AeonArchetype.FORJA:   "dark_orange",
-            AeonArchetype.MAREA:   "cyan",
-            AeonArchetype.RAIZ:    "green",
-            AeonArchetype.VACIO:   "grey82",
+            AeonArchetype.FORJA: "dark_orange",
+            AeonArchetype.MAREA: "cyan",
+            AeonArchetype.RAIZ: "green",
+            AeonArchetype.VACIO: "grey82",
             AeonArchetype.UNKNOWN: "magenta",
         }[self.archetype]
 
     @property
     def accent_color(self) -> str:
         return {
-            AeonArchetype.LLAMA:   "gold1",
+            AeonArchetype.LLAMA: "gold1",
             AeonArchetype.ORACULO: "bright_blue",
-            AeonArchetype.FORJA:   "bright_yellow",
-            AeonArchetype.MAREA:   "sea_green3",
-            AeonArchetype.RAIZ:    "dark_olive_green3",
-            AeonArchetype.VACIO:   "bright_white",
+            AeonArchetype.FORJA: "bright_yellow",
+            AeonArchetype.MAREA: "sea_green3",
+            AeonArchetype.RAIZ: "dark_olive_green3",
+            AeonArchetype.VACIO: "bright_white",
             AeonArchetype.UNKNOWN: "white",
         }[self.archetype]
 
     @property
     def archetype_name(self) -> str:
         return {
-            AeonArchetype.LLAMA:   "Llama",
+            AeonArchetype.LLAMA: "Llama",
             AeonArchetype.ORACULO: "Oráculo",
-            AeonArchetype.FORJA:   "Forja",
-            AeonArchetype.MAREA:   "Marea",
-            AeonArchetype.RAIZ:    "Raíz",
-            AeonArchetype.VACIO:   "Vacío",
+            AeonArchetype.FORJA: "Forja",
+            AeonArchetype.MAREA: "Marea",
+            AeonArchetype.RAIZ: "Raíz",
+            AeonArchetype.VACIO: "Vacío",
             AeonArchetype.UNKNOWN: "???",
         }[self.archetype]
 
     @property
     def archetype_tagline(self) -> str:
         return {
-            AeonArchetype.LLAMA:   "Visionario · Líder",
+            AeonArchetype.LLAMA: "Visionario · Líder",
             AeonArchetype.ORACULO: "Analítico · Contemplativo",
-            AeonArchetype.FORJA:   "Constructor · Pragmático",
-            AeonArchetype.MAREA:   "Conector · Empático",
-            AeonArchetype.RAIZ:    "Guardián · Sistemático",
-            AeonArchetype.VACIO:   "Explorador · Disruptor",
+            AeonArchetype.FORJA: "Constructor · Pragmático",
+            AeonArchetype.MAREA: "Conector · Empático",
+            AeonArchetype.RAIZ: "Guardián · Sistemático",
+            AeonArchetype.VACIO: "Explorador · Disruptor",
             AeonArchetype.UNKNOWN: "Resonancia pendiente",
         }[self.archetype]

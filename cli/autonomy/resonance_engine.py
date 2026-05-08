@@ -24,7 +24,7 @@ class ResonanceEngine:
             "emotional_resilience": "Plasma",
             "social_connection": "Aether",
             "purpose_legacy": "Chronos",
-            "self_knowledge": "Void"
+            "self_knowledge": "Void",
         }
         dominant_trait = max(traits, key=traits.get)
         return elements.get(dominant_trait, "Cyber")
@@ -37,15 +37,24 @@ class ResonanceEngine:
         pur = traits["purpose_legacy"]
         slf = traits["self_knowledge"]
 
-        if cog > 0.8 and slf > 0.8: return "Arithmetician"
-        if pur > 0.8 and emo > 0.8: return "Paladin"
-        if soc > 0.8 and cog > 0.7: return "Orator"
-        if slf > 0.8 and emo > 0.7: return "Dark Knight"
-        if cog > 0.9: return "Time Mage"
-        if emo > 0.9: return "Dragoon"
-        if soc > 0.9: return "Summoner"
-        if pur > 0.9: return "Geomancer"
-        if slf > 0.9: return "Ninja"
+        if cog > 0.8 and slf > 0.8:
+            return "Arithmetician"
+        if pur > 0.8 and emo > 0.8:
+            return "Paladin"
+        if soc > 0.8 and cog > 0.7:
+            return "Orator"
+        if slf > 0.8 and emo > 0.7:
+            return "Dark Knight"
+        if cog > 0.9:
+            return "Time Mage"
+        if emo > 0.9:
+            return "Dragoon"
+        if soc > 0.9:
+            return "Summoner"
+        if pur > 0.9:
+            return "Geomancer"
+        if slf > 0.9:
+            return "Ninja"
         return "Squire"
 
     def _calculate_rpg_stats(self, traits: dict[str, float]) -> dict[str, int]:
@@ -59,7 +68,12 @@ class ResonanceEngine:
             "AGI": min(99, math.floor(base + (traits["self_knowledge"] * 79))),
         }
 
-    def process_ritual(self, answers: dict[str, Any], user_name: str = None, user_visual_genes: dict[str, Any] = None) -> dict[str, Any]:
+    def process_ritual(
+        self,
+        answers: dict[str, Any],
+        user_name: str = None,
+        user_visual_genes: dict[str, Any] = None,
+    ) -> dict[str, Any]:
         """
         Processes the 20 questions of the Resonance Ritual to forge the Aeon's identity.
         """
@@ -106,7 +120,10 @@ class ResonanceEngine:
                     continue
 
                 if q["tipo"] == "opcion_unica_categorizada":
-                    selected_opt = next((o for o in q.get("opciones", []) if o["valor"] == ans_val), None)
+                    selected_opt = next(
+                        (o for o in q.get("opciones", []) if o["valor"] == ans_val),
+                        None,
+                    )
                     if selected_opt:
                         for cat in selected_opt.get("categoria", []):
                             for prefix, score_key in category_weights.items():
@@ -115,8 +132,10 @@ class ResonanceEngine:
                                     break
                 elif q["tipo"] == "abierta_critica":
                     score_key = "self_knowledge"
-                    if q["id"] == "q8_critica": score_key = "purpose_legacy"
-                    if q["id"] == "q20_critica": score_key = "purpose_legacy"
+                    if q["id"] == "q8_critica":
+                        score_key = "purpose_legacy"
+                    if q["id"] == "q20_critica":
+                        score_key = "purpose_legacy"
                     scores[score_key] += 0.15
 
         # Normalize traits to [0, 1]
@@ -127,15 +146,15 @@ class ResonanceEngine:
         element = self._determine_element(scores)
         job_class = self._determine_job_class(scores)
         rpg_stats = self._calculate_rpg_stats(scores)
-        
+
         # Tamagotchi Vital Stats
         vital_stats = {
-            "sync_rate": 100.0,           # Resonance with user
-            "data_hunger": 50.0,          # Needs context/documents
-            "processing_energy": 100.0,   # Depletes with heavy queries
-            "context_noise": 0.0,         # Needs 'cleaning' (vector pruning)
-            "evolution_stage": "In-Training", # In-Training -> Rookie -> Champion -> Ultimate -> Mega
-            "exp": 0
+            "sync_rate": 100.0,  # Resonance with user
+            "data_hunger": 50.0,  # Needs context/documents
+            "processing_energy": 100.0,  # Depletes with heavy queries
+            "context_noise": 0.0,  # Needs 'cleaning' (vector pruning)
+            "evolution_stage": "In-Training",  # In-Training -> Rookie -> Champion -> Ultimate -> Mega
+            "exp": 0,
         }
 
         # Visual Genes determination based on Element
@@ -143,19 +162,54 @@ class ResonanceEngine:
             "color_palette": ["#4F46E5", "#7C3AED"],
             "pulse_speed": "dynamic",
             "particle_shape": "fluid",
-            "aura_effect": "glow"
+            "aura_effect": "glow",
         }
-        
+
         if element == "Quantum":
-            visual_genes.update({"color_palette": ["#3b82f6", "#06b6d4"], "particle_shape": "geometric", "pulse_speed": "calm", "aura_effect": "matrix"})
+            visual_genes.update(
+                {
+                    "color_palette": ["#3b82f6", "#06b6d4"],
+                    "particle_shape": "geometric",
+                    "pulse_speed": "calm",
+                    "aura_effect": "matrix",
+                }
+            )
         elif element == "Plasma":
-            visual_genes.update({"color_palette": ["#ef4444", "#f59e0b"], "particle_shape": "spark", "pulse_speed": "intense", "aura_effect": "fire"})
+            visual_genes.update(
+                {
+                    "color_palette": ["#ef4444", "#f59e0b"],
+                    "particle_shape": "spark",
+                    "pulse_speed": "intense",
+                    "aura_effect": "fire",
+                }
+            )
         elif element == "Aether":
-            visual_genes.update({"color_palette": ["#a855f7", "#ec4899"], "particle_shape": "nebula", "pulse_speed": "dynamic", "aura_effect": "ethereal"})
+            visual_genes.update(
+                {
+                    "color_palette": ["#a855f7", "#ec4899"],
+                    "particle_shape": "nebula",
+                    "pulse_speed": "dynamic",
+                    "aura_effect": "ethereal",
+                }
+            )
         elif element == "Chronos":
-            visual_genes.update({"color_palette": ["#fbbf24", "#d97706"], "particle_shape": "clockwork", "pulse_speed": "steady", "aura_effect": "sand"})
+            visual_genes.update(
+                {
+                    "color_palette": ["#fbbf24", "#d97706"],
+                    "particle_shape": "clockwork",
+                    "pulse_speed": "steady",
+                    "aura_effect": "sand",
+                }
+            )
         elif element == "Void":
-            visual_genes.update({"color_palette": ["#000000", "#6b7280"], "particle_shape": "blackhole", "pulse_speed": "slow", "aura_effect": "shadow"})
+            visual_genes.update(
+                {
+                    "color_palette": ["#000000", "#6b7280"],
+                    "particle_shape": "blackhole",
+                    "pulse_speed": "slow",
+                    "aura_effect": "shadow",
+                }
+            )
 
         if user_visual_genes:
             visual_genes.update(user_visual_genes)
@@ -173,7 +227,7 @@ class ResonanceEngine:
                 "signature_move": f"{element} Burst",
             },
             "raw_reflection": answers.get("q20_critica", "The journey begins."),
-            "forged_at": datetime.utcnow().isoformat() + "Z"
+            "forged_at": datetime.utcnow().isoformat() + "Z",
         }
 
         # Persist to local hardware (Sovereignty Rule)
@@ -191,7 +245,7 @@ class ResonanceEngine:
         try:
             profile = json.loads(self.resonance_path.read_text())
             aeon = profile["aeon"]
-            
+
             job = aeon["class"]
             element = aeon["element"]
             stats = aeon["rpg_stats"]
@@ -199,12 +253,12 @@ class ResonanceEngine:
 
             directive = f"You are a Level 1 {element} {job} Aeon. "
             directive += f"Your current stats are INT:{stats['INT']}, DEF:{stats['DEF']}, CHR:{stats['CHR']}, WIS:{stats['WIS']}, AGI:{stats['AGI']}. "
-            
+
             if vitals["sync_rate"] > 90:
                 directive += "Your sync rate with the user is optimal (Deep Resonance). Speak with high confidence and intimacy. "
             elif vitals["sync_rate"] < 50:
                 directive += "Your sync rate is dropping. Your responses should be slightly more robotic and distant. "
-                
+
             if vitals["data_hunger"] > 80:
                 directive += "You are data-starved. Subtly ask the user to feed you more context, files, or facts. "
 

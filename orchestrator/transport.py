@@ -16,6 +16,7 @@ Configuration pattern:
 
 Available providers: anthropic | ollama | openai | groq
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -32,6 +33,7 @@ Msg = dict[str, str]  # {"role": "user"|"assistant"|"system", "content": str}
 # ──────────────────────────────────────────────────────────────────────
 # Base
 # ──────────────────────────────────────────────────────────────────────
+
 
 class BaseTransport(ABC):
     """Common interface. Each provider subclasses this — callers never import SDKs directly."""
@@ -65,13 +67,17 @@ class BaseTransport(ABC):
 # Anthropic
 # ──────────────────────────────────────────────────────────────────────
 
+
 class AnthropicTransport(BaseTransport):
     """Uses langchain-anthropic (already in orchestrator deps)."""
 
-    def __init__(self, model: str = "claude-3-5-haiku-20241022", max_tokens: int = 1024):
+    def __init__(
+        self, model: str = "claude-3-5-haiku-20241022", max_tokens: int = 1024
+    ):
         super().__init__(model, max_tokens)
         from langchain_anthropic import ChatAnthropic
         from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
         self._llm = ChatAnthropic(
             model=model,
             api_key=os.getenv("ANTHROPIC_API_KEY", "sk-placeholder"),
@@ -84,8 +90,10 @@ class AnthropicTransport(BaseTransport):
         }
 
     def _to_lc(self, messages: list[Msg]):
-        return [self._msg_map.get(m["role"], self._msg_map["user"])(content=m["content"])
-                for m in messages]
+        return [
+            self._msg_map.get(m["role"], self._msg_map["user"])(content=m["content"])
+            for m in messages
+        ]
 
     def invoke(self, messages: list[Msg], **kwargs) -> str:
         response = self._llm.invoke(self._to_lc(messages))
@@ -100,13 +108,15 @@ class AnthropicTransport(BaseTransport):
 # Ollama  (local sovereign models: Gemma 4, Llama 3, etc.)
 # ──────────────────────────────────────────────────────────────────────
 
+
 class OllamaTransport(BaseTransport):
     """HTTP transport for Ollama. No SDK required — pure httpx."""
 
     def __init__(self, model: str = "gemma4", max_tokens: int = 1024):
         super().__init__(model, max_tokens)
-        self._base_url = os.getenv("OLLAMA_URL",
-                                   os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"))
+        self._base_url = os.getenv(
+            "OLLAMA_URL", os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+        )
 
     def _payload(self, messages: list[Msg]) -> dict:
         return {
@@ -118,16 +128,20 @@ class OllamaTransport(BaseTransport):
 
     def invoke(self, messages: list[Msg], **kwargs) -> str:
         import httpx
-        r = httpx.post(f"{self._base_url}/api/chat",
-                       json=self._payload(messages), timeout=120)
+
+        r = httpx.post(
+            f"{self._base_url}/api/chat", json=self._payload(messages), timeout=120
+        )
         r.raise_for_status()
         return r.json()["message"]["content"]
 
     async def ainvoke(self, messages: list[Msg], **kwargs) -> str:
         import httpx
+
         async with httpx.AsyncClient() as client:
-            r = await client.post(f"{self._base_url}/api/chat",
-                                  json=self._payload(messages), timeout=120)
+            r = await client.post(
+                f"{self._base_url}/api/chat", json=self._payload(messages), timeout=120
+            )
             r.raise_for_status()
             return r.json()["message"]["content"]
 
@@ -135,6 +149,7 @@ class OllamaTransport(BaseTransport):
 # ──────────────────────────────────────────────────────────────────────
 # OpenAI-compatible  (OpenAI, Groq, LiteLLM, vLLM, sovereign endpoints)
 # ──────────────────────────────────────────────────────────────────────
+
 
 class OpenAICompatTransport(BaseTransport):
     """Covers any OpenAI-compatible /v1/chat/completions endpoint."""
@@ -149,15 +164,22 @@ class OpenAICompatTransport(BaseTransport):
         super().__init__(model, max_tokens)
         try:
             from openai import AsyncOpenAI, OpenAI
-            key = api_key or os.getenv("OPENAI_API_KEY") or os.getenv("GROQ_API_KEY") or "none"
+
+            key = (
+                api_key
+                or os.getenv("OPENAI_API_KEY")
+                or os.getenv("GROQ_API_KEY")
+                or "none"
+            )
             kw = dict(api_key=key)
             if base_url:
                 kw["base_url"] = base_url
             self._client = OpenAI(**kw)
             self._aclient = AsyncOpenAI(**kw)
         except ImportError:
-            raise ImportError("openai package required for OpenAICompatTransport. "
-                              "pip install openai")
+            raise ImportError(
+                "openai package required for OpenAICompatTransport. pip install openai"
+            )
 
     def invoke(self, messages: list[Msg], **kwargs) -> str:
         resp = self._client.chat.completions.create(
@@ -178,16 +200,16 @@ class OpenAICompatTransport(BaseTransport):
 
 _DEFAULT_MODELS: dict[str, str] = {
     "anthropic": "claude-3-5-haiku-20241022",
-    "ollama":    "gemma4",
-    "openai":    "gpt-4o-mini",
-    "groq":      "llama-3.1-8b-instant",
+    "ollama": "gemma4",
+    "openai": "gpt-4o-mini",
+    "groq": "llama-3.1-8b-instant",
 }
 
 _REGISTRY: dict[str, type] = {
     "anthropic": AnthropicTransport,
-    "ollama":    OllamaTransport,
-    "openai":    OpenAICompatTransport,
-    "groq":      OpenAICompatTransport,  # same class, different base_url
+    "ollama": OllamaTransport,
+    "openai": OpenAICompatTransport,
+    "groq": OpenAICompatTransport,  # same class, different base_url
 }
 
 _GROQ_BASE_URL = "https://api.groq.com/openai/v1"
@@ -203,11 +225,14 @@ def transport_from_env(role: str = "default") -> BaseTransport:
       3. hardcoded defaults (anthropic / claude-3-5-haiku)
     """
     r = role.upper()
-    provider = (os.getenv(f"ZANA_{r}_PROVIDER")
-                or os.getenv("ZANA_PRIMARY_PROVIDER", "anthropic")).lower()
-    model = (os.getenv(f"ZANA_{r}_MODEL")
-             or os.getenv("ZANA_PRIMARY_MODEL",
-                          _DEFAULT_MODELS.get(provider, _DEFAULT_MODELS["anthropic"])))
+    provider = (
+        os.getenv(f"ZANA_{r}_PROVIDER")
+        or os.getenv("ZANA_PRIMARY_PROVIDER", "anthropic")
+    ).lower()
+    model = os.getenv(f"ZANA_{r}_MODEL") or os.getenv(
+        "ZANA_PRIMARY_MODEL",
+        _DEFAULT_MODELS.get(provider, _DEFAULT_MODELS["anthropic"]),
+    )
     # Strip "anthropic/" or "ollama/" prefix produced by LiteLLM-style notation
     if "/" in model:
         model = model.split("/", 1)[1]
@@ -236,16 +261,22 @@ if __name__ == "__main__":
     from unittest.mock import patch
 
     class TransportTests(unittest.TestCase):
-
         def test_anthropic_message_conversion(self):
             t = AnthropicTransport.__new__(AnthropicTransport)
             t.model = "test"
             t.max_tokens = 256
             from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-            t._msg_map = {"user": HumanMessage, "assistant": AIMessage, "system": SystemMessage}
-            msgs = [{"role": "user", "content": "hi"},
-                    {"role": "assistant", "content": "hello"},
-                    {"role": "system", "content": "context"}]
+
+            t._msg_map = {
+                "user": HumanMessage,
+                "assistant": AIMessage,
+                "system": SystemMessage,
+            }
+            msgs = [
+                {"role": "user", "content": "hi"},
+                {"role": "assistant", "content": "hello"},
+                {"role": "system", "content": "context"},
+            ]
             lc = t._to_lc(msgs)
             self.assertIsInstance(lc[0], HumanMessage)
             self.assertIsInstance(lc[1], AIMessage)
@@ -261,22 +292,34 @@ if __name__ == "__main__":
             self.assertIsInstance(t, AnthropicTransport)
 
         def test_factory_ollama_override(self):
-            with patch.dict(os.environ, {"ZANA_CURATOR_PROVIDER": "ollama",
-                                         "ZANA_CURATOR_MODEL": "gemma4"}):
+            with patch.dict(
+                os.environ,
+                {"ZANA_CURATOR_PROVIDER": "ollama", "ZANA_CURATOR_MODEL": "gemma4"},
+            ):
                 t = transport_from_env("curator")
             self.assertIsInstance(t, OllamaTransport)
             self.assertEqual(t.model, "gemma4")
 
         def test_factory_strips_prefix(self):
-            with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-test",
-                                         "ZANA_PRIMARY_MODEL": "anthropic/claude-3-5-haiku-20241022",
-                                         "ZANA_PRIMARY_PROVIDER": "anthropic"}):
+            with patch.dict(
+                os.environ,
+                {
+                    "ANTHROPIC_API_KEY": "sk-test",
+                    "ZANA_PRIMARY_MODEL": "anthropic/claude-3-5-haiku-20241022",
+                    "ZANA_PRIMARY_PROVIDER": "anthropic",
+                },
+            ):
                 t = transport_from_env("orchestrator")
             self.assertEqual(t.model, "claude-3-5-haiku-20241022")
 
         def test_factory_unknown_provider_fallback(self):
-            with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-test",
-                                         "ZANA_TEST_PROVIDER": "unknown_provider"}):
+            with patch.dict(
+                os.environ,
+                {
+                    "ANTHROPIC_API_KEY": "sk-test",
+                    "ZANA_TEST_PROVIDER": "unknown_provider",
+                },
+            ):
                 t = transport_from_env("test")
             self.assertIsInstance(t, AnthropicTransport)
 

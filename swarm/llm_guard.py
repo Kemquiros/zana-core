@@ -88,9 +88,7 @@ class LLMGuard:
         dangerous = any(self._is_dangerous(t) for t in threats)
         level = ThreatLevel.DANGEROUS if dangerous else ThreatLevel.SUSPICIOUS
 
-        print(
-            f"🛡️  [LLM GUARD] Rule '{rule.get('name', '?')}' flagged [{level.value}]:"
-        )
+        print(f"🛡️  [LLM GUARD] Rule '{rule.get('name', '?')}' flagged [{level.value}]:")
         for t in threats:
             print(f"   ⚠ {t}")
 

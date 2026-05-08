@@ -36,9 +36,9 @@ class ApexOrchestrator:
 
         # 1. SENTINEL: Input audit (Security)
         print("🛡️ [1/6] SENTINEL auditing prompt...")
-        sentinel_query = SENTINEL_PROMPT.replace("{resonance_directive}", res_dir).format(
-            query=f"Audit this user prompt: {user_prompt}"
-        )
+        sentinel_query = SENTINEL_PROMPT.replace(
+            "{resonance_directive}", res_dir
+        ).format(query=f"Audit this user prompt: {user_prompt}")
         sentinel_audit = sentinel_agent.run(sentinel_query)
         if (
             "BLOQUEADO" in str(sentinel_audit).upper()
@@ -49,9 +49,9 @@ class ApexOrchestrator:
 
         # 2. ARCHIVIST: Retrieve necessary context (Memory)
         print("📚 [2/6] ARCHIVIST searching context in Vault...")
-        archivist_query = ARCHIVIST_PROMPT.replace("{resonance_directive}", res_dir).format(
-            query=f"Find relevant context to answer this request: {user_prompt}"
-        )
+        archivist_query = ARCHIVIST_PROMPT.replace(
+            "{resonance_directive}", res_dir
+        ).format(query=f"Find relevant context to answer this request: {user_prompt}")
         archivist_context = archivist_agent.run(archivist_query)
 
         # 3. ANALYST: Reasoning and deduction (Logic)
@@ -63,7 +63,9 @@ class ApexOrchestrator:
 
         # 4. OPERATOR: Action execution (Tools)
         print("⚙️ [4/6] OPERATOR executing tools...")
-        operator_query = OPERATOR_PROMPT.replace("{resonance_directive}", res_dir).format(
+        operator_query = OPERATOR_PROMPT.replace(
+            "{resonance_directive}", res_dir
+        ).format(
             query=f"Execute any necessary tools based on the deduction.\nDEDUCTION: {deduction}"
         )
         operation_result = operator_agent.run(operator_query)
@@ -77,9 +79,9 @@ class ApexOrchestrator:
 
         # 6. SENTINEL: Output audit (Safety)
         print("🛡️ [6/6] SENTINEL auditing output...")
-        final_audit_query = SENTINEL_PROMPT.replace("{resonance_directive}", res_dir).format(
-            query=f"Audit this final response for safety: {final_response}"
-        )
+        final_audit_query = SENTINEL_PROMPT.replace(
+            "{resonance_directive}", res_dir
+        ).format(query=f"Audit this final response for safety: {final_response}")
         final_audit = sentinel_agent.run(final_audit_query)
 
         return str(final_audit)

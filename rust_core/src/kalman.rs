@@ -57,14 +57,14 @@ impl CognitiveKalmanFilter {
                 FilterMode::Hybrid => self.q * (1.0 + uncertainty[k] * 0.5), // Middle ground
                 _ => self.q,
             };
-            
+
             let p = uncertainty[k] + q_adaptive;
             let gain = p / (p + r);
             let innov = observation[k] - state[k];
-            
+
             let innov_sq = innov * innov;
             acc += innov_sq / (p + r);
-            
+
             state[k] += gain * innov;
             uncertainty[k] = p * (1.0 - gain);
         }

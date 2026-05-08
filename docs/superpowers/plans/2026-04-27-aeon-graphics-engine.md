@@ -62,7 +62,7 @@ export default function AeonEntity({ dna }: { dna: any }) {
     const pos = new Float32Array(particleCount * 3);
     const col = new Float32Array(particleCount * 3);
     const color = new THREE.Color();
-    
+
     // Parse DNA colors
     const palette = dna?.visual_genes?.color_palette || ['#4f46e5', '#8b5cf6'];
     const baseColor = new THREE.Color(palette[0]);
@@ -72,9 +72,9 @@ export default function AeonEntity({ dna }: { dna: any }) {
       // Golden ratio spiral distribution on a sphere
       const phi = Math.acos(1 - 2 * (i + 0.5) / particleCount);
       const theta = Math.PI * (1 + Math.sqrt(5)) * (i + 0.5);
-      
+
       const r = 2.0; // Radius
-      
+
       pos[i * 3] = r * Math.cos(theta) * Math.sin(phi);
       pos[i * 3 + 1] = r * Math.sin(theta) * Math.sin(phi);
       pos[i * 3 + 2] = r * Math.cos(phi);
@@ -148,8 +148,8 @@ const AeonShaderMaterial = shaderMaterial(
     vec3 pos = position;
     // Audio reactive expansion
     float noise = sin(pos.x * 5.0 + uTime) * cos(pos.y * 5.0 + uTime);
-    pos += normal * noise * uAudioLevel * 0.5; 
-    
+    pos += normal * noise * uAudioLevel * 0.5;
+
     vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
     gl_PointSize = (10.0 + uAudioLevel * 20.0) * (1.0 / -mvPosition.z);
     gl_Position = projectionMatrix * mvPosition;

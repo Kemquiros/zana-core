@@ -8,11 +8,11 @@ import typer
 
 from cli.tui.theme import console
 
-REPO          = "Kemquiros/zana-core"
-RELEASES_API  = f"https://api.github.com/repos/{REPO}/releases/latest"
-COMMITS_API   = f"https://api.github.com/repos/{REPO}/commits/main"
-GIT_INSTALL   = f"zana @ git+https://github.com/{REPO}.git#subdirectory=cli"
-PACKAGE_NAME  = "zana"
+REPO = "Kemquiros/zana-core"
+RELEASES_API = f"https://api.github.com/repos/{REPO}/releases/latest"
+COMMITS_API = f"https://api.github.com/repos/{REPO}/commits/main"
+GIT_INSTALL = f"zana @ git+https://github.com/{REPO}.git#subdirectory=cli"
+PACKAGE_NAME = "zana"
 
 
 def _current_version() -> str:
@@ -25,8 +25,10 @@ def _current_version() -> str:
 def _latest_release_version() -> str | None:
     try:
         import httpx
+
         r = httpx.get(
-            RELEASES_API, timeout=8,
+            RELEASES_API,
+            timeout=8,
             headers={"Accept": "application/vnd.github+json"},
         )
         r.raise_for_status()
@@ -40,8 +42,10 @@ def _latest_commit_sha() -> str | None:
     """Return the short SHA of the latest commit on main."""
     try:
         import httpx
-        r = httpx.get(COMMITS_API, timeout=8,
-                      headers={"Accept": "application/vnd.github+json"})
+
+        r = httpx.get(
+            COMMITS_API, timeout=8, headers={"Accept": "application/vnd.github+json"}
+        )
         r.raise_for_status()
         return r.json().get("sha", "")[:7]
     except Exception:
@@ -57,9 +61,15 @@ def _do_upgrade() -> bool:
     if uv:
         cmd = [uv, "tool", "install", GIT_INSTALL, "--force", "--quiet"]
     else:
-        cmd = [sys.executable, "-m", "pip", "install",
-               f"git+https://github.com/{REPO}.git#subdirectory=cli",
-               "--upgrade", "--quiet"]
+        cmd = [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            f"git+https://github.com/{REPO}.git#subdirectory=cli",
+            "--upgrade",
+            "--quiet",
+        ]
 
     result = subprocess.run(cmd)
     return result.returncode == 0
@@ -67,6 +77,7 @@ def _do_upgrade() -> bool:
 
 def _find_uv() -> str | None:
     import shutil
+
     uv = shutil.which("uv")
     if uv:
         return uv
@@ -76,17 +87,23 @@ def _find_uv() -> str | None:
 
 def _pull_local_repo() -> bool:
     """If the repo was cloned locally, fast-forward it to origin/main."""
-    repo_dir = Path(os.getenv("ZANA_CORE_DIR", "")) or Path.home() / ".zana" / "core-repo"
+    repo_dir = (
+        Path(os.getenv("ZANA_CORE_DIR", "")) or Path.home() / ".zana" / "core-repo"
+    )
     if not (repo_dir / ".git").exists():
         return False
     try:
         subprocess.run(
             ["git", "fetch", "--all"],
-            cwd=str(repo_dir), capture_output=True, check=True,
+            cwd=str(repo_dir),
+            capture_output=True,
+            check=True,
         )
         subprocess.run(
             ["git", "reset", "--hard", "origin/main"],
-            cwd=str(repo_dir), capture_output=True, check=True,
+            cwd=str(repo_dir),
+            capture_output=True,
+            check=True,
         )
         return True
     except Exception:
@@ -99,7 +116,7 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
     console.print("[muted]Consultando GitHub...[/muted]")
 
     release_ver = _latest_release_version()
-    commit_sha  = _latest_commit_sha()
+    commit_sha = _latest_commit_sha()
 
     # Determine if an upgrade is available
     if release_ver and release_ver != current:
@@ -110,7 +127,9 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
         # Always offer — commit-based installs never match a version string
         needs_upgrade = True
     else:
-        console.print("[warning]No se pudo contactar GitHub. Verifica tu conexión.[/warning]")
+        console.print(
+            "[warning]No se pudo contactar GitHub. Verifica tu conexión.[/warning]"
+        )
         needs_upgrade = False
 
     if not needs_upgrade:
@@ -124,7 +143,9 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
         return
 
     if not no_interactive:
-        confirm = typer.confirm("  ¿Iniciar el Protocolo de Ascensión (upgrade)?", default=True)
+        confirm = typer.confirm(
+            "  ¿Iniciar el Protocolo de Ascensión (upgrade)?", default=True
+        )
         if not confirm:
             console.print("[muted]Upgrade cancelado.[/muted]")
             return
@@ -138,10 +159,14 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
     # Step 2: reinstall the CLI from git
     if _do_upgrade():
         console.print("[success]✅ ZANA Córtex actualizado exitosamente.[/success]")
-        console.print("[muted]Reinicia tu terminal para aplicar cambios de PATH.[/muted]")
+        console.print(
+            "[muted]Reinicia tu terminal para aplicar cambios de PATH.[/muted]"
+        )
         console.print("[muted]Juntos hacemos temblar los cielos.[/muted]")
     else:
         console.print("[error]El upgrade automático falló.[/error]")
         console.print("[yellow]Solución manual:[/yellow]")
-        console.print("  [accent]bash <(curl -LsSf https://zana.vecanova.com/install.sh)[/accent]")
+        console.print(
+            "  [accent]bash <(curl -LsSf https://zana.vecanova.com/install.sh)[/accent]"
+        )
         raise typer.Exit(1)

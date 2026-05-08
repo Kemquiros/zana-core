@@ -197,7 +197,7 @@ def _bootstrap_local(warriors: int, generations: int, progress, task) -> None:
         spec = importlib.util.spec_from_file_location("dna", root / "swarm" / "dna.py")
         dna_mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(dna_mod)
-        ZanaDNA = dna_mod.ZanaDNA
+        ZanaDNA = dna_mod.ZanaDNA  # noqa: N806
     except Exception as e:
         console.print(f"[error]Cannot load swarm module: {e}[/error]")
         return

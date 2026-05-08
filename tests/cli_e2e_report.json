@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-05-08T18:19:26.062729+00:00",
+  "passed": 20,
+  "total": 20,
+  "results": [
+    {
+      "id": "smoke_version",
+      "category": "SMOKE",
+      "description": "CLI boots and reports version",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 928.0,
+      "failure_reason": ""
+    },
+    {
+      "id": "smoke_help",
+      "category": "SMOKE",
+      "description": "--help exits 0 and shows root usage",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1157.5,
+      "failure_reason": ""
+    },
+    {
+      "id": "smoke_help_aeon",
+      "category": "SMOKE",
+      "description": "aeon sub-command help",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1014.9,
+      "failure_reason": ""
+    },
+    {
+      "id": "smoke_help_coliseum",
+      "category": "SMOKE",
+      "description": "coliseum sub-command help",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 945.6,
+      "failure_reason": ""
+    },
+    {
+      "id": "smoke_help_memory",
+      "category": "SMOKE",
+      "description": "memory sub-command help",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1089.0,
+      "failure_reason": ""
+    },
+    {
+      "id": "system_doctor",
+      "category": "SYSTEM",
+      "description": "doctor runs full health audit (exit 1 OK when services offline)",
+      "passed": true,
+      "exit_code": 1,
+      "elapsed_ms": 1854.4,
+      "failure_reason": ""
+    },
+    {
+      "id": "system_status",
+      "category": "SYSTEM",
+      "description": "status exits cleanly (services may be offline)",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1373.4,
+      "failure_reason": ""
+    },
+    {
+      "id": "system_sentinel_status",
+      "category": "SYSTEM",
+      "description": "sentinel status exits cleanly",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1103.6,
+      "failure_reason": ""
+    },
+    {
+      "id": "system_hardware",
+      "category": "SYSTEM",
+      "description": "hardware reports CPU/RAM info",
+      "passed": true,
+      "exit_code": 1,
+      "elapsed_ms": 1161.4,
+      "failure_reason": ""
+    },
+    {
+      "id": "identity_show",
+      "category": "IDENTITY",
+      "description": "identity show exits cleanly (graceful if no ID yet)",
+      "passed": true,
+      "exit_code": 2,
+      "elapsed_ms": 1056.6,
+      "failure_reason": ""
+    },
+    {
+      "id": "identity_aeon_list",
+      "category": "IDENTITY",
+      "description": "aeon list exits cleanly",
+      "passed": true,
+      "exit_code": 1,
+      "elapsed_ms": 810.7,
+      "failure_reason": ""
+    },
+    {
+      "id": "identity_aeon_dna",
+      "category": "IDENTITY",
+      "description": "aeon dna exits cleanly (graceful if no profile)",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 800.3,
+      "failure_reason": ""
+    },
+    {
+      "id": "identity_aeon_status",
+      "category": "IDENTITY",
+      "description": "aeon status exits cleanly",
+      "passed": true,
+      "exit_code": 1,
+      "elapsed_ms": 1022.7,
+      "failure_reason": ""
+    },
+    {
+      "id": "coliseum_worlds",
+      "category": "COLISEUM",
+      "description": "lists all 6 worlds with names and affinities",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 937.8,
+      "failure_reason": ""
+    },
+    {
+      "id": "memory_stats",
+      "category": "MEMORY",
+      "description": "memory stats exits cleanly",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1302.7,
+      "failure_reason": ""
+    },
+    {
+      "id": "memory_recall",
+      "category": "MEMORY",
+      "description": "memory recall exits cleanly",
+      "passed": true,
+      "exit_code": 2,
+      "elapsed_ms": 1027.9,
+      "failure_reason": ""
+    },
+    {
+      "id": "reasoning_basic",
+      "category": "REASONING",
+      "description": "reason exits cleanly with any output",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 1118.1,
+      "failure_reason": ""
+    },
+    {
+      "id": "world_help",
+      "category": "WORLD",
+      "description": "world sub-command help",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 989.9,
+      "failure_reason": ""
+    },
+    {
+      "id": "world_mine",
+      "category": "WORLD",
+      "description": "world mine exits cleanly",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 995.0,
+      "failure_reason": ""
+    },
+    {
+      "id": "project_list",
+      "category": "SYSTEM",
+      "description": "project list exits cleanly",
+      "passed": true,
+      "exit_code": 2,
+      "elapsed_ms": 924.8,
+      "failure_reason": ""
+    }
+  ]
+}

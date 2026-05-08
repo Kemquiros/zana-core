@@ -40,6 +40,7 @@ class AgentState(TypedDict):
 
 # --- Nodes ---
 
+
 def orchestrator(state: AgentState):
     """The brain: decides strategy (ToT/CoT)."""
     last_message = state["messages"][-1].content
@@ -47,27 +48,33 @@ def orchestrator(state: AgentState):
     logger.info(f"🔱 Orchestrating: {task[:50]}...")
     return {"iterations": 0, "task": task}
 
+
 def planner(state: AgentState):
     """Generates a structured plan using Tree of Thoughts logic."""
     last_message = state["messages"][-1].content.lower()
-    
+
     # Dynamic strategy selection based on intent
     if "correo" in last_message or "email" in last_message:
         llm_plan = [
             "1. Recall contact context from Wiki",
             "2. Execute action 'send_email' via KoruOS (n8n)",
-            "3. Reflect on delivery status"
+            "3. Reflect on delivery status",
         ]
     else:
-        llm_plan = ["1. Recall context", "2. Execute body action via MCP", "3. Reflect and Chronicler"]
-        
+        llm_plan = [
+            "1. Recall context",
+            "2. Execute body action via MCP",
+            "3. Reflect and Chronicler",
+        ]
+
     return {"plan": llm_plan, "next_node": "executor"}
+
 
 def executor(state: AgentState):
     """ReAct Loop: Thought -> Action -> Observation."""
     current_step = state["plan"][state["iterations"] % len(state["plan"])]
     logger.info(f"⚙️ Executing Step: {current_step}")
-    
+
     # Integration with KoruOS Nervous System (Forge)
     try:
         packet = {
@@ -75,19 +82,20 @@ def executor(state: AgentState):
             "aeon_id": "zana-v2",
             "type": "action",
             "content": {"step": current_step},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         # In production, this calls the NestJS server we created
         # response = requests.post("http://localhost:51112/ai/forge/packet", json=packet)
         observation = f"KoruOS Forge confirmed execution of: {current_step}"
     except Exception as e:
         observation = f"Tool execution failed: {str(e)}"
-    
+
     return {
         "observations": state.get("observations", []) + [observation],
         "iterations": state["iterations"] + 1,
-        "next_node": "critic"
+        "next_node": "critic",
     }
+
 
 def critic(state: AgentState):
     """Reflection Node: Verifies outcome or enforces iteration budget."""
@@ -106,6 +114,7 @@ def critic(state: AgentState):
     logger.info(f"🧠 Reflecting — {BUDGET.status_line(iterations)}")
     return {}
 
+
 def compressor(state: AgentState):
     """Context Compression Node: summarizes history when approaching token limits."""
     logger.info("🗜️ Compressing context...")
@@ -118,13 +127,16 @@ def compressor(state: AgentState):
         "compression_count": state.get("compression_count", 0) + 1,
     }
 
+
 def chronicler(state: AgentState):
     """Memory Reflection: Persists learning to Wiki and captures trajectory."""
     logger.info("🖋️ Chronicling session to Obsidian Wiki...")
     _trajectory.capture(state)
     return {}
 
+
 # --- Graph Construction ---
+
 
 def _route_critic(state: AgentState) -> str:
     if state.get("task_completed"):

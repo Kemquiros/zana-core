@@ -35,17 +35,17 @@ pub fn run() {
 
             // 2. Resolver ruta del gateway (Sidecar)
             let mut gateway_bin = PathBuf::new();
-            
+
             // Caso A: Instalación global Debian (/usr/bin)
             let global_bin = PathBuf::from("/usr/bin/zana-gateway");
-            if global_bin.exists() { 
-                gateway_bin = global_bin; 
+            if global_bin.exists() {
+                gateway_bin = global_bin;
             } else {
                 // Caso B: Carpeta de recursos de la aplicación
                 if let Ok(res_dir) = app.path().resource_dir() {
                     let res_bin = res_dir.join("zana-gateway");
-                    if res_bin.exists() { 
-                        gateway_bin = res_bin; 
+                    if res_bin.exists() {
+                        gateway_bin = res_bin;
                     } else {
                         // Caso C: Ruta de desarrollo (sidecar folder)
                         let dev_bin = res_dir.join("_up_").join("sidecar").join("zana-gateway");
@@ -53,7 +53,7 @@ pub fn run() {
                     }
                 }
             }
-            
+
             log::info!("Binario Gateway detectado: {}", gateway_bin.display());
 
             // 3. Inicializar base de datos local
@@ -66,8 +66,8 @@ pub fn run() {
                 .and_then(|v| v.parse().ok())
                 .unwrap_or(54446);
             let gateway = Arc::new(Gateway::new(gateway_port));
-            
-            app.manage(AppState { 
+
+            app.manage(AppState {
                 gateway: gateway.clone(),
                 gateway_bin: gateway_bin.clone(),
             });

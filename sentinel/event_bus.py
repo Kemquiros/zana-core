@@ -38,18 +38,20 @@ logger = logging.getLogger("zana.sentinel")
 
 # ── 8 Lifecycle Events ────────────────────────────────────────────────────────
 
+
 class EventType(str, Enum):
-    PRE_TOOL_USE      = "PreToolUse"
-    POST_TOOL_USE     = "PostToolUse"
-    SKILL_ACTIVATION  = "SkillActivation"
-    ZSYNC_REQUEST     = "ZSyncRequest"
-    EXTERNAL_API      = "ExternalAPI"
-    MEMORY_WRITE      = "MemoryWrite"
+    PRE_TOOL_USE = "PreToolUse"
+    POST_TOOL_USE = "PostToolUse"
+    SKILL_ACTIVATION = "SkillActivation"
+    ZSYNC_REQUEST = "ZSyncRequest"
+    EXTERNAL_API = "ExternalAPI"
+    MEMORY_WRITE = "MemoryWrite"
     CIVIC_LEDGER_ENTRY = "CivicLedgerEntry"
-    AEON_EVOLUTION    = "AeonEvolution"
+    AEON_EVOLUTION = "AeonEvolution"
 
 
 # ── Event dataclass ───────────────────────────────────────────────────────────
+
 
 @dataclass
 class ZanaEvent:
@@ -80,6 +82,7 @@ HandlerFn = Callable[[ZanaEvent], Awaitable[None]]
 
 
 # ── Event Bus ─────────────────────────────────────────────────────────────────
+
 
 class EventBus:
     """
@@ -118,14 +121,16 @@ class EventBus:
         self._stats["total"] += 1
 
         # Buffer for introspection
-        self._buffer.append({
-            "type": event.type,
-            "session_id": event.session_id,
-            "aeon_id": event.aeon_id,
-            "timestamp": event.timestamp,
-            "civic_hash": event.civic_hash,
-            "payload_keys": list(event.payload.keys()),
-        })
+        self._buffer.append(
+            {
+                "type": event.type,
+                "session_id": event.session_id,
+                "aeon_id": event.aeon_id,
+                "timestamp": event.timestamp,
+                "civic_hash": event.civic_hash,
+                "payload_keys": list(event.payload.keys()),
+            }
+        )
         if len(self._buffer) > self._buffer_size:
             self._buffer.pop(0)
 
@@ -150,7 +155,9 @@ class EventBus:
                     e,
                 )
 
-    def recent_events(self, limit: int = 50, event_type: str | None = None) -> list[dict]:
+    def recent_events(
+        self, limit: int = 50, event_type: str | None = None
+    ) -> list[dict]:
         events = self._buffer[-limit:]
         if event_type:
             events = [e for e in events if e["type"] == event_type]
@@ -177,12 +184,15 @@ def get_bus() -> EventBus:
 
 # ── Default handlers ──────────────────────────────────────────────────────────
 
+
 def _wire_default_handlers(bus: EventBus) -> None:
     """Wire built-in handlers: Civic Ledger audit + console debug log."""
     bus.subscribe_all(_civic_ledger_handler)
 
 
-async def emit_aeon_evolution(old_rank: str, new_rank: str, aeon_id: str = "default", session_id: str = "global") -> None:
+async def emit_aeon_evolution(
+    old_rank: str, new_rank: str, aeon_id: str = "default", session_id: str = "global"
+) -> None:
     """Convenience function to emit an AeonEvolution event when Mastery Map rank changes."""
     bus = get_bus()
     await bus.emit(

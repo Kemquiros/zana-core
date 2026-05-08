@@ -14,7 +14,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
   const [copied, setCopied] = useState(false);
   const [syncStatus, setSyncStatus] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  
+
   useEffect(() => {
     if (isOpen && tab === 'memory') {
       fetch('/sync/status').then(r => r.json()).then(setSyncStatus);
@@ -29,7 +29,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
         setIsSyncing(false);
     }, 5000);
   };
-  
+
   const [tokens, setTokens] = useState<Record<string, string>>({
     openai: (typeof window !== 'undefined' && localStorage.getItem('token_openai')) || '',
     anthropic: (typeof window !== 'undefined' && localStorage.getItem('token_anthropic')) || '',
@@ -54,14 +54,14 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-md z-[150]"
           />
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -69,25 +69,25 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
           >
             {/* Sidebar */}
             <div className="w-48 border-r border-white/5 p-8 space-y-4">
-              <button 
+              <button
                 onClick={() => setTab('general')}
                 className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'general' ? 'bg-indigo-500 text-white' : 'text-gray-500 hover:bg-white/5'}`}
               >
                 <Settings size={14} /> General
               </button>
-              <button 
+              <button
                 onClick={() => setTab('apis')}
                 className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'apis' ? 'bg-indigo-500 text-white' : 'text-gray-500 hover:bg-white/5'}`}
               >
                 <Link2 size={14} /> Conexiones
               </button>
-              <button 
+              <button
                 onClick={() => setTab('memory')}
                 className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'memory' ? 'bg-indigo-500 text-white' : 'text-gray-500 hover:bg-white/5'}`}
               >
                 <Cloud size={14} /> Memoria
               </button>
-              <button 
+              <button
                 onClick={() => setTab('danger')}
                 className={`w-full text-left px-4 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-3 ${tab === 'danger' ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'text-red-500/40 hover:text-red-400'}`}
               >
@@ -107,14 +107,14 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                     <h2 className="text-3xl font-black italic uppercase tracking-tighter">Ajustes</h2>
                     <p className="text-sm text-gray-500 font-light">Configuración de presencia y comportamiento.</p>
                   </div>
-                  
+
                   <div className="space-y-4">
                     <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 flex items-center justify-between">
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold uppercase tracking-wider">Modo Shadow</h4>
                         <p className="text-[10px] text-gray-500 uppercase tracking-widest">Aeon visible sin fondo al minimizar.</p>
                       </div>
-                      <button 
+                      <button
                         onClick={() => {
                           const current = localStorage.getItem('shadow_mode') === 'true';
                           localStorage.setItem('shadow_mode', (!current).toString());
@@ -136,7 +136,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                     <h2 className="text-3xl font-black italic uppercase tracking-tighter text-indigo-400">Sincronización</h2>
                     <p className="text-sm text-gray-500 font-light">Respaldo soberano con encriptación Aegis.</p>
                   </div>
-                  
+
                   <div className="space-y-6">
                     <div className="p-6 rounded-3xl bg-white/[0.02] border border-white/10 space-y-4">
                       <div className="flex justify-between items-start">
@@ -163,7 +163,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                       </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleSync}
                         disabled={isSyncing || !syncStatus?.enabled}
                         className="w-full py-4 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 disabled:bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-500/20"
@@ -189,7 +189,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                     <h2 className="text-3xl font-black italic uppercase tracking-tighter text-indigo-400">Conexiones</h2>
                     <p className="text-sm text-gray-500 font-light">Sincroniza tus llaves maestras con el multiverso.</p>
                   </div>
-                  
+
                   <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 scrollbar-none">
                     {Object.keys(tokens).map(api => (
                       <div key={api} className="space-y-2">
@@ -197,7 +197,7 @@ export default function SettingsModal({ isOpen, onClose }: Props) {
                             <label className="text-[9px] font-mono uppercase tracking-[0.2em] text-gray-500">{api} Token</label>
                             {tokens[api] && <span className="text-[8px] font-black text-green-500 uppercase tracking-widest flex items-center gap-1"><Database size={8}/> Local Encrypted</span>}
                         </div>
-                        <input 
+                        <input
                           type="password"
                           value={tokens[api]}
                           onChange={(e) => saveToken(api, e.target.value)}

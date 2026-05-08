@@ -30,11 +30,11 @@ export default function ChatInterface({ stream }: { stream?: ReturnType<typeof u
       <div className="flex-1 overflow-hidden flex flex-col p-4">
         <ConversationFeed messages={streamMessages} />
       </div>
-      
+
       <div className="p-6 bg-black/20 border-t border-white/5 flex gap-4 items-center">
         <div className="relative flex-1">
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -46,7 +46,7 @@ export default function ChatInterface({ stream }: { stream?: ReturnType<typeof u
             <Sparkles size={16} />
           </div>
         </div>
-        <button 
+        <button
           onClick={handleSend}
           disabled={!connected || !input.trim()}
           className="p-4 bg-indigo-500 text-white rounded-2xl hover:bg-indigo-400 transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50"

@@ -61,11 +61,11 @@ def _env_check() -> list[tuple[str, str, str]]:
     env_file = Path(".env")
     # ZANA is LLM-agnostic: any one provider is sufficient
     llm_providers = [
-        ("ANTHROPIC_API_KEY",  "Anthropic Claude"),
-        ("OPENAI_API_KEY",     "OpenAI GPT"),
-        ("GEMINI_API_KEY",     "Google Gemini"),
-        ("GROQ_API_KEY",       "Groq"),
-        ("OLLAMA_BASE_URL",    "Ollama (local)"),
+        ("ANTHROPIC_API_KEY", "Anthropic Claude"),
+        ("OPENAI_API_KEY", "OpenAI GPT"),
+        ("GEMINI_API_KEY", "Google Gemini"),
+        ("GROQ_API_KEY", "Groq"),
+        ("OLLAMA_BASE_URL", "Ollama (local)"),
     ]
     optional = ["GOOGLE_API_KEY", "ZANA_PRIMARY_MODEL", "VAULT_PATH"]
     rows = []
@@ -80,33 +80,47 @@ def _env_check() -> list[tuple[str, str, str]]:
             present = bool(val) or key in content
             if present:
                 active_providers.append(label)
-            rows.append((
-                f"  {key}",
-                "[success]✓ Set[/success]" if present else "[muted]— not set[/muted]",
-                f"provider: {label}",
-            ))
+            rows.append(
+                (
+                    f"  {key}",
+                    "[success]✓ Set[/success]"
+                    if present
+                    else "[muted]— not set[/muted]",
+                    f"provider: {label}",
+                )
+            )
 
         if not active_providers:
-            rows.insert(1, (
-                "  LLM Provider",
-                "[error]✗ None configured[/error]",
-                "zana init OR set any provider key → ZSM mode active",
-            ))
+            rows.insert(
+                1,
+                (
+                    "  LLM Provider",
+                    "[error]✗ None configured[/error]",
+                    "zana init OR set any provider key → ZSM mode active",
+                ),
+            )
         else:
-            rows.insert(1, (
-                "  LLM Provider",
-                f"[success]✓ {active_providers[0]}[/success]",
-                f"{len(active_providers)} provider(s) available",
-            ))
+            rows.insert(
+                1,
+                (
+                    "  LLM Provider",
+                    f"[success]✓ {active_providers[0]}[/success]",
+                    f"{len(active_providers)} provider(s) available",
+                ),
+            )
 
         for key in optional:
             val = os.getenv(key, "")
             present = bool(val) or key in content
-            rows.append((
-                f"  {key}",
-                "[success]✓ Set[/success]" if present else "[muted]— not set[/muted]",
-                "optional",
-            ))
+            rows.append(
+                (
+                    f"  {key}",
+                    "[success]✓ Set[/success]"
+                    if present
+                    else "[muted]— not set[/muted]",
+                    "optional",
+                )
+            )
     else:
         rows.append((".env file", "[error]✗ Missing[/error]", "run: zana setup"))
     return rows
@@ -181,7 +195,6 @@ def cmd_doctor() -> None:
             "Sensory + Armor",
         ),
         (
-            
             "http",
             f"http://localhost:{CHROMA_PORT}/api/v1/heartbeat",
             None,

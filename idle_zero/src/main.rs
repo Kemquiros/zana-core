@@ -6,7 +6,7 @@ use std::io::{BufRead, BufReader};
 fn main() {
     println!("  [ R E D   Q U E E N   -   R E A L   W O R L D   ]  ");
     println!("=======================================================");
-    
+
     // 1. Cargar Datos Reales
     let file = File::open("real_data.txt").expect("No se pudo abrir real_data.txt");
     let reader = BufReader::new(file);
@@ -34,18 +34,18 @@ fn main() {
     // 2. Torneo de Evolución contra Realidad
     let mut laboratory = RedQueenIdle::new(30, 32); // 30 Warriors
     println!("🚀 Evolucionando Guerrero contra datos reales (1000 Gen)...");
-    
+
     let mut best_fitness = 0.0;
     for gen in 0..1000 {
         for i in 0..laboratory.active_population.len() {
             let mut warrior = laboratory.active_population[i].clone();
             laboratory.mutate(&mut warrior);
             laboratory.evaluate(&mut warrior, &training_values);
-            
+
             if warrior.fitness >= laboratory.active_population[i].fitness {
                 laboratory.active_population[i] = warrior;
             }
-            
+
             if laboratory.active_population[i].fitness > best_fitness {
                 best_fitness = laboratory.active_population[i].fitness;
                 if gen % 100 == 0 || gen == 0 {

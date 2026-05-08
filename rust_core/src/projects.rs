@@ -26,10 +26,10 @@ impl PyProjectProcessor {
         project_name.hash(&mut hasher);
         files_count.hash(&mut hasher);
         self.default_namespace.hash(&mut hasher);
-        
+
         Ok(format!("{:x}", hasher.finish()))
     }
-    
+
     /// Compute a deterministic hash for a file path to prevent duplicates
     fn compute_file_hash(&self, file_path: &str) -> String {
         let mut hasher = DefaultHasher::new();

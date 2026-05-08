@@ -76,6 +76,7 @@ async def browse(req: BrowseRequest):
 async def search_config():
     """Returns which provider is active and what env vars are configured."""
     import os
+
     return {
         "active_provider": active_provider(),
         "tavily": bool(os.getenv("TAVILY_API_KEY")),

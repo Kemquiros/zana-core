@@ -47,22 +47,22 @@ pub fn check_onboarding_status() -> Result<bool, String> {
 pub fn save_env_config(config: std::collections::HashMap<String, String>) -> Result<(), String> {
     let home = dirs::home_dir().ok_or("No home directory found")?;
     let zana_dir = home.join(".zana");
-    
+
     // Create ~/.zana if it doesn't exist
     if !zana_dir.exists() {
         fs::create_dir_all(&zana_dir).map_err(|e| e.to_string())?;
     }
-    
+
     let env_file = zana_dir.join(".env");
     let mut env_content = String::new();
-    
+
     if env_file.exists() {
         env_content = fs::read_to_string(&env_file).unwrap_or_default();
     }
-    
+
     let mut new_lines: Vec<String> = Vec::new();
     let mut written_keys = std::collections::HashSet::new();
-    
+
     for line in env_content.lines() {
         if line.contains('=') && !line.trim_start().starts_with('#') {
             let parts: Vec<&str> = line.splitn(2, '=').collect();
@@ -75,21 +75,21 @@ pub fn save_env_config(config: std::collections::HashMap<String, String>) -> Res
         }
         new_lines.push(line.to_string());
     }
-    
+
     for (k, v) in &config {
         if !written_keys.contains(k) {
             new_lines.push(format!("{}={}", k, v));
         }
     }
-    
+
     fs::write(&env_file, new_lines.join("\n")).map_err(|e| e.to_string())?;
-    
+
     // Also touch the .onboarded file to mark setup as complete
     let config_dir = home.join(".config").join("zana");
     if !config_dir.exists() {
         fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
     }
     fs::write(config_dir.join(".onboarded"), "").map_err(|e| e.to_string())?;
-    
+
     Ok(())
 }

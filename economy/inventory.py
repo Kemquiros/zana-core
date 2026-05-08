@@ -13,7 +13,7 @@ class InventoryService:
             now = datetime.datetime.now()
         time_diff = now - item.last_interaction
         hours_passed = time_diff.total_seconds() / 3600
-        
+
         if hours_passed > 0:
             # Simple linear decay
             decay_amount = self.decay_rate * hours_passed

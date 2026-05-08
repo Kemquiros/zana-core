@@ -112,9 +112,15 @@ class SkillCurator:
             skill["q_value"] = 0.5  # Reset neutral tras mejora
             self.registry.save()
             logger.info(f"Skill '{skill_id}' mejorada y reactivada.")
-            return {"skill_id": skill_id, "action": "improve", "new_steps": improved_steps}
+            return {
+                "skill_id": skill_id,
+                "action": "improve",
+                "new_steps": improved_steps,
+            }
         else:
-            self.registry.archive_skill(skill_id, reason="curator: no viable improvement")
+            self.registry.archive_skill(
+                skill_id, reason="curator: no viable improvement"
+            )
             logger.info(f"Skill '{skill_id}' archivada.")
             return {"skill_id": skill_id, "action": "archive"}
 
@@ -145,7 +151,6 @@ class SkillCurator:
             logger.warning(f"LLM call failed ({e}). Manteniendo skill activa.")
             return []  # Fallo de red/parse → conservar, no archivar
 
-
     async def mine_trajectories(
         self,
         trajectories_dir: Path = _TRAJECTORIES_DIR,
@@ -172,7 +177,9 @@ class SkillCurator:
                 logger.warning(f"Failed to read trajectory file {f}: {e}")
 
         if len(entries) < min_trajectories:
-            logger.info(f"Only {len(entries)} trajectories — need {min_trajectories} to mine patterns.")
+            logger.info(
+                f"Only {len(entries)} trajectories — need {min_trajectories} to mine patterns."
+            )
             return {"mined": len(entries), "proposed": 0}
 
         # Build summarized trajectory texts for LLM
@@ -180,14 +187,20 @@ class SkillCurator:
         for e in entries[-50:]:  # last 50 trajectories, most recent patterns
             task = e.get("task", "")[:120]
             outcome = e.get("outcome", {})
-            success = outcome.get("success", False) if isinstance(outcome, dict) else False
+            success = (
+                outcome.get("success", False) if isinstance(outcome, dict) else False
+            )
             plan = e.get("plan", [])
-            steps_preview = " → ".join(str(s)[:60] for s in (plan[:3] if isinstance(plan, list) else []))
-            summaries.append(f"Task: {task} | Steps: {steps_preview} | Success: {success}")
+            steps_preview = " → ".join(
+                str(s)[:60] for s in (plan[:3] if isinstance(plan, list) else [])
+            )
+            summaries.append(
+                f"Task: {task} | Steps: {steps_preview} | Success: {success}"
+            )
 
         prompt = _MINE_PROMPT.format(
             count=len(summaries),
-            trajectories="\n".join(f"{i+1}. {s}" for i, s in enumerate(summaries)),
+            trajectories="\n".join(f"{i + 1}. {s}" for i, s in enumerate(summaries)),
         )
 
         try:
@@ -216,31 +229,39 @@ class SkillCurator:
                 (name + datetime.now().isoformat()).encode()
             ).hexdigest()[:12]
 
-            inbox.setdefault("pending", []).append({
-                "id": wisdom_id,
-                "name": name,
-                "domain": proposal.get("domain", "general"),
-                "trigger": proposal.get("trigger", ""),
-                "steps": proposal.get("steps", []),
-                "confidence": proposal.get("confidence", 0.5),
-                "source": "trajectory_mining",
-                "proposed_at": datetime.now().isoformat(),
-                "status": "pending",
-            })
+            inbox.setdefault("pending", []).append(
+                {
+                    "id": wisdom_id,
+                    "name": name,
+                    "domain": proposal.get("domain", "general"),
+                    "trigger": proposal.get("trigger", ""),
+                    "steps": proposal.get("steps", []),
+                    "confidence": proposal.get("confidence", 0.5),
+                    "source": "trajectory_mining",
+                    "proposed_at": datetime.now().isoformat(),
+                    "status": "pending",
+                }
+            )
             existing_names.add(name.lower())
             added += 1
 
         _save_wisdom_inbox(inbox)
-        logger.info(f"Auto-WisdomRules: mined {len(entries)} trajectories → proposed {added} new rules")
+        logger.info(
+            f"Auto-WisdomRules: mined {len(entries)} trajectories → proposed {added} new rules"
+        )
 
         # Sentinel: ZSyncRequest — new wisdom rules ready for potential federation
         if added > 0:
             try:
                 from sentinel.event_bus import EventType, ZanaEvent, get_bus
+
                 await get_bus().emit(
                     ZanaEvent(
                         type=EventType.ZSYNC_REQUEST,
-                        payload={"proposed_rules": added, "source": "trajectory_mining"},
+                        payload={
+                            "proposed_rules": added,
+                            "source": "trajectory_mining",
+                        },
                     ),
                     fire_and_forget=True,
                 )
@@ -265,6 +286,7 @@ def _save_wisdom_inbox(inbox: dict) -> None:
 
 
 if __name__ == "__main__":
+
     async def _test():
         reg = SkillRegistry()
 

@@ -22,10 +22,10 @@ class SwarmDiscovery:
         # Use ZANA's internal tools (Exa/Tavily via Router) to find DNA specs
         prompt = f"""
         ZANA ARCHITECT COMMAND: GLOBAL SEARCH.
-        Find technical specifications, JSON DNAs, or GitHub repositories 
+        Find technical specifications, JSON DNAs, or GitHub repositories
         related to '{topic}' for ZANA-compatible cognitive architectures.
         Focus on: Rust modules, EML trees, and Bayesian filter optimizations.
-        
+
         Return a list of URLs and a summary of their architectural innovation.
         """
 

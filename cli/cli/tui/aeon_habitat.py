@@ -18,37 +18,37 @@ The 2.5D illusion comes from:
   - Shadow below the Aeon: dim block chars
   - Background chars are dimmer (Rich dim style)
 """
+
 from __future__ import annotations
 
-import math
 import time
-from dataclasses import dataclass, field
-from typing import Callable
+from dataclasses import dataclass
 
 from rich.console import Console
 from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
 
-from cli.tui.aeon_dna import AeonProfile, AeonArchetype, AeonStage
-from cli.tui.aeon_biomorph import render_biomorph, render_mini, GRID_H, GRID_W
+from cli.tui.aeon_biomorph import GRID_H, GRID_W, render_biomorph
+from cli.tui.aeon_dna import AeonArchetype, AeonProfile, AeonStage
 
-HAB_W = 42   # habitat panel width (chars)
-HAB_H = 18   # habitat panel height (rows)
+HAB_W = 42  # habitat panel width (chars)
+HAB_H = 18  # habitat panel height (rows)
 
 
 # ── Habitat definitions per archetype ─────────────────────────────────────────
 
+
 @dataclass
 class HabitatDef:
-    name:      str
-    sky_chars: list[str]          # chars that populate the sky layer
-    sky_rows:  int                # how many rows are "sky"
-    terrain:   list[str]          # static terrain silhouette rows
-    ground:    str                # ground line char
-    subground: str                # sub-ground fill char
-    particle_vel: float           # sky particle ascent speed (rows/tick)
-    atmosphere: str               # single char for atmospheric haze
+    name: str
+    sky_chars: list[str]  # chars that populate the sky layer
+    sky_rows: int  # how many rows are "sky"
+    terrain: list[str]  # static terrain silhouette rows
+    ground: str  # ground line char
+    subground: str  # sub-ground fill char
+    particle_vel: float  # sky particle ascent speed (rows/tick)
+    atmosphere: str  # single char for atmospheric haze
 
 
 HABITATS: dict[AeonArchetype, HabitatDef] = {
@@ -148,6 +148,7 @@ HABITATS: dict[AeonArchetype, HabitatDef] = {
 
 # ── Sky particle system ────────────────────────────────────────────────────────
 
+
 class SkyParticle:
     __slots__ = ("x", "y", "char", "speed")
 
@@ -163,12 +164,14 @@ class SkyParticle:
         if self.y < 0:
             self.y = float(hab.sky_rows)
             import random
+
             self.x = random.uniform(0, HAB_W - 1)
             self.char = random.choice(hab.sky_chars)
 
 
 def _init_particles(hab: HabitatDef, count: int = 12) -> list[SkyParticle]:
     import random
+
     particles = []
     for _ in range(count):
         x = random.uniform(0, HAB_W - 1)
@@ -181,16 +184,17 @@ def _init_particles(hab: HabitatDef, count: int = 12) -> list[SkyParticle]:
 
 # ── HUD overlay ───────────────────────────────────────────────────────────────
 
+
 def _render_hud(profile: AeonProfile, fps_actual: float) -> str:
     dna = profile.ensure_dna()
-    pc = profile.primary_color
+    pc = profile.primary_color  # noqa: F841
 
     # Vitality bar (based on memory_count / stage threshold)
     thresholds = {
-        AeonStage.ROOKIE:   100,
+        AeonStage.ROOKIE: 100,
         AeonStage.CHAMPION: 1000,
         AeonStage.ULTIMATE: 10000,
-        AeonStage.MEGA:     50000,
+        AeonStage.MEGA: 50000,
     }
     threshold = thresholds.get(profile.stage, 100)
     vitality = min(1.0, profile.memory_count / max(threshold, 1))
@@ -205,13 +209,14 @@ def _render_hud(profile: AeonProfile, fps_actual: float) -> str:
 
     return (
         f" {profile.name} · {profile.stage_label} · {profile.archetype_name}\n"
-        f" E:[{bar}] {int(vitality*100)}%  d:{profile.days_alive}  m:{profile.memory_count}\n"
+        f" E:[{bar}] {int(vitality * 100)}%  d:{profile.days_alive}  m:{profile.memory_count}\n"
         f" {traits}\n"
         f" {gene_sig} {entropy_str}"
     )
 
 
 # ── Habitat frame compositor ───────────────────────────────────────────────────
+
 
 def _compose_frame(
     profile: AeonProfile,
@@ -295,11 +300,12 @@ def _compose_frame(
 def run_habitat(
     profile: AeonProfile,
     fps: int = 4,
-    console: "Console | None" = None,
+    console: Console | None = None,
 ) -> None:
     """Run the 2.5D habitat animation. Blocks until Ctrl+C."""
     if console is None:
         from cli.tui.theme import console as _console
+
         console = _console
 
     hab = HABITATS.get(profile.archetype, HABITATS[AeonArchetype.UNKNOWN])
@@ -332,12 +338,14 @@ def run_habitat(
                 combined.append(content)
                 combined.append(hud_text, style="dim")
 
-                live.update(Panel(
-                    combined,
-                    title=f"[{pc}] ◈ {profile.name} · {hab_name} [/{pc}]",
-                    border_style=pc,
-                    padding=(0, 1),
-                ))
+                live.update(
+                    Panel(
+                        combined,
+                        title=f"[{pc}] ◈ {profile.name} · {hab_name} [/{pc}]",
+                        border_style=pc,
+                        padding=(0, 1),
+                    )
+                )
 
                 tick += 1
                 time.sleep(frame_delay)

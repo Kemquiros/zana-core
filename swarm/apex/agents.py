@@ -21,6 +21,7 @@ MODEL_ID = os.getenv("ZANA_PRIMARY_MODEL", "anthropic/claude-3-5-haiku-20241022"
 def get_llm():
     return LiteLLMModel(model_id=MODEL_ID)
 
+
 calculate_eml = CalculateEmlTool()
 kalman_filter_surprise = KalmanFilterSurpriseTool()
 audit_security_payload = AuditSecurityPayloadTool()

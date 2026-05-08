@@ -3,7 +3,6 @@ Tool integration with the Rust Steel Core.
 Uses smolagents Tool classes to register functions that the LLM can call.
 """
 
-
 from smolagents import Tool
 
 try:
@@ -21,12 +20,12 @@ class CalculateEmlTool(Tool):
     inputs = {
         "expression": {
             "type": "string",
-            "description": "The symbolic formula to calculate."
+            "description": "The symbolic formula to calculate.",
         },
         "variables": {
             "type": "object",
-            "description": "Dictionary of variables and their values."
-        }
+            "description": "Dictionary of variables and their values.",
+        },
     }
     output_type = "number"
 
@@ -43,16 +42,18 @@ class KalmanFilterSurpriseTool(Tool):
     inputs = {
         "new_data_embedding": {
             "type": "array",
-            "description": "Vector of the new data point."
+            "description": "Vector of the new data point.",
         },
         "state_embedding": {
             "type": "array",
-            "description": "Vector of the current state."
-        }
+            "description": "Vector of the current state.",
+        },
     }
     output_type = "number"
 
-    def forward(self, new_data_embedding: list[float], state_embedding: list[float]) -> float:
+    def forward(
+        self, new_data_embedding: list[float], state_embedding: list[float]
+    ) -> float:
         if RUST_CORE_AVAILABLE:
             return zana_steel_core.kalman_surprise(new_data_embedding, state_embedding)
         print("⚙️ [RUST-MOCK] Evaluating Bayesian Surprise...")
@@ -62,17 +63,13 @@ class KalmanFilterSurpriseTool(Tool):
 class AuditSecurityPayloadTool(Tool):
     name = "audit_security_payload"
     description = "Sentinel tool for scanning PII, API Keys, or prompt injections using the native security module (zana_armor.so)."
-    inputs = {
-        "payload_str": {
-            "type": "string",
-            "description": "Text to audit."
-        }
-    }
+    inputs = {"payload_str": {"type": "string", "description": "Text to audit."}}
     output_type = "boolean"
 
     def forward(self, payload_str: str) -> bool:
         try:
             import zana_armor
+
             return zana_armor.scan(payload_str)
         except ImportError:
             # Strict mock fallback

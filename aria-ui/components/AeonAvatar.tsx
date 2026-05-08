@@ -10,7 +10,7 @@ import { AeonVisualDNA } from '../lib/koru-types';
 function GenerativeCore({ dna }: { dna: AeonVisualDNA | null }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const groupRef = useRef<THREE.Group>(null!);
-  
+
   const primaryColor = dna?.chroma_spectrum?.[0] ?? '#4F46E5';
   const secondaryColor = dna?.chroma_spectrum?.[1] ?? '#1E1B4B';
   const mutation = dna?.mutation_factor ?? 0.5;
@@ -38,11 +38,11 @@ function GenerativeCore({ dna }: { dna: AeonVisualDNA | null }) {
     if (meshRef.current) {
         meshRef.current.rotation.y = t * 0.2 * (1 + mutation);
         meshRef.current.rotation.z = t * 0.1 * mutation;
-        
+
         // Tamagotchi-style "life" vibration
         const scaleVal = 1 + Math.sin(t * pulseSpeed) * 0.05;
         meshRef.current.scale.setScalar(scaleVal * (dna?.scale ?? 1));
-        
+
         // Vertex jitter simulation via group rotation
         if (groupRef.current) {
             groupRef.current.rotation.x = Math.sin(t * 0.5) * 0.1 * mutation;
@@ -91,9 +91,9 @@ export default function AeonAvatar({ dna, audioLevel = 0 }: { dna: Record<string
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1.5} />
         <Stars radius={100} depth={50} count={visualDna?.particle_density ?? 5000} factor={4} saturation={0} fade speed={1} />
-        
+
         <AeonEntity dna={visualDna} audioLevel={audioLevel} />
-        
+
         {/* Dynamic Orbital rings based on base_model_index */}
         <mesh rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[2, 0.01, 16, 100]} />

@@ -81,7 +81,8 @@ class SkillRegistry:
     def get_best_skill(self, domain: str) -> str | None:
         """Returns the skill_id with highest Q-value in a given domain."""
         domain_skills = [
-            s_id for s_id, s in self.skills.items()
+            s_id
+            for s_id, s in self.skills.items()
             if s["domain"] == domain and s.get("lifecycle_state", "active") == "active"
         ]
         if not domain_skills:
@@ -99,6 +100,7 @@ class SkillRegistry:
             import asyncio
 
             from sentinel.event_bus import EventType, ZanaEvent, get_bus
+
             skill = self.skills[skill_id]
             event = ZanaEvent(
                 type=EventType.SKILL_ACTIVATION,
@@ -118,7 +120,9 @@ class SkillRegistry:
         except Exception:
             pass
 
-    def get_stale_skills(self, days_inactive: int = 7, q_threshold: float = 0.5) -> list[str]:
+    def get_stale_skills(
+        self, days_inactive: int = 7, q_threshold: float = 0.5
+    ) -> list[str]:
         """Retorna skill_ids activos que están degradados por inactividad o bajo rendimiento."""
         stale = []
         cutoff = datetime.now() - timedelta(days=days_inactive)
@@ -156,7 +160,6 @@ class SkillRegistry:
             state = skill.get("lifecycle_state", "active")
             summary[state] = summary.get(state, 0) + 1
         return summary
-
 
     # ── Z-Skill v1.0: SKILL.md I/O ────────────────────────────────────────────
 
@@ -260,7 +263,7 @@ class SkillRegistry:
         successes = metrics.get("successes", 0)
         success_rate = successes / executions if executions > 0 else 0.0
 
-        numbered_steps = "\n".join(f"{i+1}. {s}" for i, s in enumerate(steps))
+        numbered_steps = "\n".join(f"{i + 1}. {s}" for i, s in enumerate(steps))
 
         content = f"""---
 name: {name}

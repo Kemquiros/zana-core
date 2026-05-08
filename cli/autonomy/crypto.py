@@ -10,6 +10,7 @@ class AegisCrypto:
     Aegis Zero-Knowledge Encryption Engine.
     Uses AES-256-GCM for authenticated encryption.
     """
+
     def __init__(self, seed_phrase: str, salt: bytes = b"ZANA_AEGIS_V1_SALT"):
         self.key = self._derive_key(seed_phrase, salt)
 
@@ -28,7 +29,7 @@ class AegisCrypto:
         Encrypts data and returns nonce + ciphertext.
         """
         aesgcm = AESGCM(self.key)
-        nonce = os.urandom(12) # GCM standard nonce length
+        nonce = os.urandom(12)  # GCM standard nonce length
         ciphertext = aesgcm.encrypt(nonce, data, None)
         return nonce + ciphertext
 
@@ -38,7 +39,7 @@ class AegisCrypto:
         """
         if len(encrypted_data) < 13:
             raise ValueError("Invalid encrypted data format (too short)")
-        
+
         nonce = encrypted_data[:12]
         ciphertext = encrypted_data[12:]
         aesgcm = AESGCM(self.key)

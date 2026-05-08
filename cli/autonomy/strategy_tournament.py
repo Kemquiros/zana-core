@@ -197,5 +197,5 @@ if __name__ == "__main__":
 
     print("\n--- 🏁 THE SURVIVORS: TOP 5 DEPLOYMENT ARCHITECTURES ---")
     for i, w in enumerate(winners):
-        print(f"\nRANK {i+1} [Fitness: {w['fitness']:.2f}]")
+        print(f"\nRANK {i + 1} [Fitness: {w['fitness']:.2f}]")
         print(json.dumps(w["traits"], indent=2))

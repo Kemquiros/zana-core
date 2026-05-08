@@ -23,6 +23,7 @@ def _sync_emit(event_type_value: str, payload: dict[str, Any]) -> None:
     """Fire a sentinel event from a synchronous context (best-effort, never raises)."""
     try:
         from sentinel.event_bus import EventType, ZanaEvent, get_bus
+
         event = ZanaEvent(
             type=EventType(event_type_value),
             payload=payload,
@@ -46,14 +47,19 @@ def fire_pre_tool_use(command: str, params: dict[str, Any] | None = None) -> Non
     _sync_emit("PreToolUse", {"tool": f"zana:{command}", "params": params or {}})
 
 
-def fire_post_tool_use(command: str, success: bool = True, elapsed_ms: float = 0.0) -> None:
+def fire_post_tool_use(
+    command: str, success: bool = True, elapsed_ms: float = 0.0
+) -> None:
     if command in _EXCLUDED:
         return
-    _sync_emit("PostToolUse", {
-        "tool": f"zana:{command}",
-        "success": success,
-        "elapsed_ms": round(elapsed_ms, 2),
-    })
+    _sync_emit(
+        "PostToolUse",
+        {
+            "tool": f"zana:{command}",
+            "success": success,
+            "elapsed_ms": round(elapsed_ms, 2),
+        },
+    )
 
 
 @contextmanager

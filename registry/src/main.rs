@@ -24,7 +24,7 @@ struct Node {
 struct SyncBlob {
     user_id: String,
     device_id: String,
-    payload: String, 
+    payload: String,
     timestamp: DateTime<Utc>,
 }
 

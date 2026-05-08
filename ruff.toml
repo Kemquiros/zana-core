@@ -1,3 +1,5 @@
 line-length = 88
+
+[lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "ASYNC"]
 ignore = ["E501"]

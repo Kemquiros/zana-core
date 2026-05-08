@@ -1,4 +1,5 @@
 """Vault domain models — pure data, no I/O."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -6,16 +7,16 @@ from enum import Enum
 from pathlib import Path
 
 
-class SourceKind(str, Enum):
-    FOLDER    = "folder"
-    OBSIDIAN  = "obsidian"
-    LOGSEQ    = "logseq"
-    GIT_REPO  = "git_repo"
-    CHATGPT   = "chatgpt"
-    CLAUDE    = "claude"
-    NOTION    = "notion"
-    ROAM      = "roam"
-    EMPTY     = "empty"
+class SourceKind(str, Enum):  # noqa: UP042
+    FOLDER = "folder"
+    OBSIDIAN = "obsidian"
+    LOGSEQ = "logseq"
+    GIT_REPO = "git_repo"
+    CHATGPT = "chatgpt"
+    CLAUDE = "claude"
+    NOTION = "notion"
+    ROAM = "roam"
+    EMPTY = "empty"
 
 
 @dataclass
@@ -29,7 +30,11 @@ class VaultSource:
 
     @property
     def display(self) -> str:
-        size_str = f"{self.size_mb:.1f} MB" if self.size_mb >= 1 else f"{int(self.size_mb * 1024)} KB"
+        size_str = (
+            f"{self.size_mb:.1f} MB"
+            if self.size_mb >= 1
+            else f"{int(self.size_mb * 1024)} KB"
+        )
         return f"{self.label} ({self.file_count:,} archivos · {size_str})"
 
 

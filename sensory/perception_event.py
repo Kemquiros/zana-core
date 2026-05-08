@@ -45,9 +45,7 @@ class PerceptionEvent:
     """
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(UTC).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     modality: Modality = "text"
     session_id: str | None = None
 

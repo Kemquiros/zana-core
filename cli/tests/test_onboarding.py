@@ -28,7 +28,7 @@ ZANA_GATEWAY_PORT=54446
     assert "change_me_strong_password" not in content
     assert "zana_neo4j" not in content
     assert "zana_n8n_secure" not in content
-    
+
     # Parse the generated .env
     env_dict = {}
     for line in content.splitlines():
@@ -41,8 +41,11 @@ ZANA_GATEWAY_PORT=54446
     assert len(env_dict["N8N_PASSWORD"]) == 32
     assert len(env_dict["TELEGRAM_WEBHOOK_SECRET"]) == 32
     assert env_dict["N8N_USER"] == "zana_admin"
-    assert env_dict["ANTHROPIC_API_KEY"] == "your_key_here"  # Should not be changed by auto-generator
+    assert (
+        env_dict["ANTHROPIC_API_KEY"] == "your_key_here"
+    )  # Should not be changed by auto-generator
     assert env_dict["ZANA_GATEWAY_PORT"] == "54446"
+
 
 def test_ensure_env_configured_preserves_existing_secrets(tmp_path: Path):
     # Setup: Create a .env file with existing valid secrets

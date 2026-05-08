@@ -65,11 +65,11 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("telegram").setLevel(logging.WARNING)
 logger = logging.getLogger("zana.telegram.bot")
 
-BOT_TOKEN    = os.getenv("TELEGRAM_BOT_TOKEN", "")
-WEBHOOK_URL  = os.getenv("TELEGRAM_WEBHOOK_URL", "")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "")
 WEBHOOK_PORT = int(os.getenv("TELEGRAM_WEBHOOK_PORT", "8443"))
 WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
-GATEWAY_URL  = os.getenv("ZANA_GATEWAY_URL", "http://localhost:54446")
+GATEWAY_URL = os.getenv("ZANA_GATEWAY_URL", "http://localhost:54446")
 HEALTH_INTERVAL = int(os.getenv("ZANA_TG_HEALTH_INTERVAL", "60"))
 NOTIFY_ADMIN = os.getenv("ZANA_TG_NOTIFY_ADMIN", "")
 
@@ -92,15 +92,15 @@ def _validate_env() -> None:
 async def _post_init(app: Application) -> None:
     """Set bot commands and start background health monitor."""
     commands = [
-        BotCommand("start",  "Iniciar ZANA"),
-        BotCommand("help",   "Lista de comandos"),
+        BotCommand("start", "Iniciar ZANA"),
+        BotCommand("help", "Lista de comandos"),
         BotCommand("status", "Salud del sistema, ZFI y Sentinel"),
         BotCommand("recall", "Últimos N recuerdos episódicos"),
         BotCommand("reason", "Razonamiento simbólico: /reason fact=value"),
-        BotCommand("swarm",  "Estado del enjambre Red Queen"),
-        BotCommand("aeon",   "Flota de Aeons disponibles"),
+        BotCommand("swarm", "Estado del enjambre Red Queen"),
+        BotCommand("aeon", "Flota de Aeons disponibles"),
         BotCommand("wisdom", "Wisdom inbox: /wisdom [mine|approve|reject]"),
-        BotCommand("clear",  "Limpiar contexto de sesión"),
+        BotCommand("clear", "Limpiar contexto de sesión"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("✓  Bot commands registered (%d)", len(commands))
@@ -110,6 +110,7 @@ async def _post_init(app: Application) -> None:
 
 
 # ── Background health monitor ─────────────────────────────────────────────────
+
 
 async def _health_monitor(app: Application) -> None:
     """
@@ -150,6 +151,7 @@ async def _health_monitor(app: Application) -> None:
 
 # ── App builder ───────────────────────────────────────────────────────────────
 
+
 def build_app() -> Application:
     from telegram_bot.handlers import (
         cmd_aeon,
@@ -172,19 +174,19 @@ def build_app() -> Application:
         Application.builder()
         .token(BOT_TOKEN)
         .post_init(_post_init)
-        .concurrent_updates(True)   # handle multiple users simultaneously
+        .concurrent_updates(True)  # handle multiple users simultaneously
         .build()
     )
 
     # ── Commands ──────────────────────────────────────────────────────────────
-    app.add_handler(CommandHandler("start",  cmd_start))
-    app.add_handler(CommandHandler("help",   cmd_help))
-    app.add_handler(CommandHandler("clear",  cmd_clear))
+    app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("help", cmd_help))
+    app.add_handler(CommandHandler("clear", cmd_clear))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("recall", cmd_recall))
     app.add_handler(CommandHandler("reason", cmd_reason))
-    app.add_handler(CommandHandler("swarm",  cmd_swarm))
-    app.add_handler(CommandHandler("aeon",   cmd_aeon))
+    app.add_handler(CommandHandler("swarm", cmd_swarm))
+    app.add_handler(CommandHandler("aeon", cmd_aeon))
     app.add_handler(CommandHandler("wisdom", cmd_wisdom))
 
     # ── Inline callbacks ──────────────────────────────────────────────────────

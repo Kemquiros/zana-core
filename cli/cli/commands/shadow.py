@@ -68,7 +68,7 @@ def cmd_shadow_enable() -> None:
     if shadow_py.exists():
         proc = subprocess.Popen(
             [sys.executable, str(shadow_py)],
-            stdout=open(SHADOW_LOG_FILE, "a"),
+            stdout=open(SHADOW_LOG_FILE, "a"),  # noqa: SIM115
             stderr=subprocess.STDOUT,
             start_new_session=True,
         )

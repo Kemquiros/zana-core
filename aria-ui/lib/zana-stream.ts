@@ -29,7 +29,7 @@ interface PerceptionEvent {
 
 const wsUrl = (httpUrl?: string) => {
   if (httpUrl) return httpUrl.replace("http://", "ws://").replace("https://", "wss://") + "/sense/stream";
-  
+
   if (typeof window !== "undefined") {
     const envUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
     if (envUrl && envUrl.startsWith("http")) {
