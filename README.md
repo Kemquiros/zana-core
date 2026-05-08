@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-v2.9.12-7c3aed?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-v3.0.1-10b981?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![ZFI](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](#zfi--zana-fitness-index)
@@ -49,7 +49,21 @@ No one should own your soul.**
 
 ## Quick Start
 
-**Linux / macOS** — one command, no Docker required:
+**Option A — pip (Python)**
+```bash
+pip install vecanova-zana
+zana init
+zana start
+```
+
+**Option B — npm (Node)**
+```bash
+npm install -g @vecanova/zana
+zana init
+zana start
+```
+
+**Option C — curl (Linux / macOS)**
 ```bash
 bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 ```
@@ -61,19 +75,12 @@ wsl --install
 ```
 ```bash
 # Step 2 — Ubuntu terminal
-bash <(curl -LsSf https://zana.vecanova.com/install.sh)
-```
-
-**Alternative — direct from GitHub:**
-```bash
-bash <(curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/install.sh)
+pip install vecanova-zana && zana init
 ```
 
 Then run `zana init` to create your Aeon (≤ 4 questions), then `zana start`.
 
 > **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows/WSL](docs/INSTALL_WSL.md) · [User Manual](docs/USER_MANUAL.md)
-
-> `npm install -g @vecanova/zana` — coming in v3.1 after registry review.
 
 ---
 
@@ -222,15 +229,16 @@ ZANA scores itself across 7 cognitive pillars on every boot:
 
 ---
 
-## What's New — v2.9
+## What's New — v3.0
 
-- **Sovereign Inference Wizard** — `zana setup` guides you through Ollama in 3 steps: verify → pick model → live test. Zero config files.
-- **Hardware Intelligence** — `zana hardware --recommend` uses llmfit to find the best model for your exact RAM + GPU.
-- **Windows / WSL 2** — full Windows support, vault on Windows-side path, Rust auto-installed.
-- **Self-healing Upgrade** — `zana upgrade` works without GitHub Releases. Always current from main.
-- **Trajectory Capture** — every session saved to `data/trajectories/` in ZANA native + ShareGPT JSONL for future fine-tuning.
-- **Skill Lifecycle (Curator)** — skills auto-reviewed every 30 min. Degraded skills improved by Haiku; irrecoverable ones archived.
-- **Context Compression** — sessions never slow down. Orchestrator auto-summarizes history before context grows too large.
+- **Zero Friction Install** — `pip install vecanova-zana` / `npm install -g @vecanova/zana`. No Docker required.
+- **Sentinel Event Bus** — 8 lifecycle events with SHA-256 Civic Ledger: `PreToolUse · PostToolUse · SkillActivation · MemoryWrite · CivicLedgerEntry · AeonEvolution`.
+- **Aeon DNA v2** — 35 genes, 9 evolution stages (Huevo → Sovereign). Nanosecond-seeded entropy. No two Aeons are identical.
+- **Coliseo AEON** — 6-world battle engine driven by your Obsidian Vault. Your notes shape the arena.
+- **Z-Skill v1.0** — open skill format, agentskills.io compatible. Drop a `SKILL.md` in `~/.zana/skills/` to activate.
+- **Background Scheduler** — auto-mines sessions into WisdomRules every 24h while you sleep.
+- **SQLite episodic backend** — zero-config, stores at `~/.zana/episodic.db`. PostgreSQL optional for power users.
+- **Herald Telegram Gateway** — circuit breaker, retry, rate limiting, webhook mode.
 
 ---
 
@@ -238,14 +246,17 @@ ZANA scores itself across 7 cognitive pillars on every boot:
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
 
-**Next — v3.0 "Zero Friction" (Q3 2026)**
+**v3.0 "Zero Friction" — Live ✅**
 
-- `zana init` wizard — any person, any hardware, under 3 minutes
-- Z-Skill v1.0 — open skill format, agentskills.io compatible
-- Auto-WisdomRules — Aeon mines past sessions, proposes skills automatically
-- Herald Gateway — Telegram, WhatsApp, Discord
+`pip install vecanova-zana` · `npm install -g @vecanova/zana`
+
+**Next — v3.5 "Federation"**
+
+- Z-Sync — privacy-preserving WisdomRule federation between Aeons
+- Z-DNA — portable Aeon serialization (`.zaeon.enc`)
+- `zaeon://` — universal Aeon identity URI
+- WhatsApp + Discord Herald channels
 - 12 languages
-- Sentinel Event Bus — 8 lifecycle events for policy control
 
 ---
 
