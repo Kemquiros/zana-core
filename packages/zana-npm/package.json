@@ -2,7 +2,15 @@
   "name": "@vecanova/zana",
   "version": "3.0.0",
   "description": "ZANA — Zero Autonomous Neural Architecture. Every person deserves their own Aeon.",
-  "keywords": ["ai", "agent", "cognitive", "sovereign", "aeon", "llm", "local-ai"],
+  "keywords": [
+    "ai",
+    "agent",
+    "cognitive",
+    "sovereign",
+    "aeon",
+    "llm",
+    "local-ai"
+  ],
   "author": "John Tapias <absurdoeco@gmail.com> (https://vecanova.com)",
   "license": "MIT",
   "homepage": "https://github.com/Kemquiros/zana-core",
