@@ -551,3 +551,208 @@ def cmd_summon(aeon_file: Path) -> None:
 
     except Exception as e:
         console.print(f"[error]Failed to summon Aeon: {e}[/error]")
+
+
+# ── Gene metadata for tune ────────────────────────────────────────────────────
+
+_GENE_META: list[tuple[str, str, str, float, float, type]] = [
+    # (field, label, layer, min, max, type)
+    ("g0_branch_angle", "branch_angle", "Fenotipo", 10.0, 75.0, float),
+    ("g1_depth", "depth", "Fenotipo", 2.0, 7.0, int),
+    ("g2_trunk_length", "trunk_length", "Fenotipo", 3.0, 10.0, float),
+    ("g3_attenuation", "attenuation", "Fenotipo", 0.40, 0.85, float),
+    ("g4_symmetry", "symmetry", "Fenotipo", 0.0, 3.0, int),
+    ("g5_fork", "fork", "Fenotipo", 2.0, 3.0, int),
+    ("g6_bend_drift", "bend_drift", "Fenotipo", -15.0, 15.0, float),
+    ("g7_terminal_form", "terminal_form", "Fenotipo", 0.0, 5.0, int),
+    ("g8_armor_density", "armor_density", "Fenotipo", 0.0, 1.0, float),
+    ("g9_curiosity", "curiosity", "Cognitivo", 0.0, 9.0, float),
+    ("g10_tenacity", "tenacity", "Cognitivo", 0.0, 9.0, float),
+    ("g11_empathy", "empathy", "Cognitivo", 0.0, 9.0, float),
+    ("g12_creativity", "creativity", "Cognitivo", 0.0, 9.0, float),
+    ("g13_precision", "precision", "Cognitivo", 0.0, 9.0, float),
+    ("g14_resilience", "resilience", "Cognitivo", 0.0, 9.0, float),
+    ("g15_sovereignty", "sovereignty", "Cognitivo", 0.0, 9.0, float),
+    ("g16_growth_rate", "growth_rate", "Evolutivo", 0.5, 2.0, float),
+    ("g17_memory_affinity", "memory_affinity", "Evolutivo", 0.0, 1.0, float),
+    ("g18_skill_absorption", "skill_absorption", "Evolutivo", 0.0, 1.0, float),
+    ("g19_ledger_depth", "ledger_depth", "Evolutivo", 3.0, 21.0, int),
+    ("g20_social_vector", "social_vector", "Evolutivo", 0.0, 1.0, float),
+]
+
+_GENE_LABELS = {
+    label: (field, gmin, gmax, gtype)
+    for field, label, _, gmin, gmax, gtype in _GENE_META
+}
+
+
+def cmd_tune(gene: str | None = None) -> None:
+    """Interactive DNA tuner — adjust individual Aeon genes."""
+    from rich import box as rbox
+
+    from cli.tui.aeon_dna import AeonProfile
+
+    profile = AeonProfile.load()
+    dna = profile.ensure_dna()
+    pc = profile.primary_color
+
+    if gene:
+        # Single-gene mode: tune one gene directly
+        gene = gene.lower().lstrip("g")
+        # Normalize: accept "curiosity", "g9", "g9_curiosity", "9"
+        target_field: str | None = None
+        target_min = target_max = 0.0
+        target_type: type = float
+
+        for field, label, _layer, gmin, gmax, gtype in _GENE_META:
+            gene_num = field[1:].split("_")[0]
+            if gene in (label, field, gene_num, f"g{gene_num}"):
+                target_field, target_min, target_max, target_type = (
+                    field,
+                    gmin,
+                    gmax,
+                    gtype,
+                )
+                break
+
+        if not target_field:
+            console.print(
+                f"[error]Gen desconocido: '{gene}'. "
+                f"Usa el nombre (ej. curiosity) o número (ej. 9).[/error]"
+            )
+            valid_names = ", ".join(label for _, label, *_ in _GENE_META)
+            console.print(f"[muted]Genes disponibles: {valid_names}[/muted]")
+            raise typer.Exit(1)
+
+        current = getattr(dna, target_field)
+        console.print(
+            f"\n[{pc}]◈ Tuning[/{pc}] [white]{target_field}[/white]  "
+            f"[muted]actual=[/muted][accent]{current}[/accent]  "
+            f"[muted]rango=[/muted][dim][{target_min}, {target_max}][/dim]"
+        )
+
+        try:
+            raw = typer.prompt(f"  Nuevo valor [{target_min}–{target_max}]")
+            new_val = target_type(float(raw))
+        except (ValueError, KeyboardInterrupt):
+            console.print("[muted]Cancelado.[/muted]")
+            return
+
+        if not (target_min <= new_val <= target_max):
+            console.print(
+                f"[error]Valor {new_val} fuera del rango [{target_min}, {target_max}].[/error]"
+            )
+            raise typer.Exit(1)
+
+        setattr(dna, target_field, new_val)
+        dna.generation += 1
+        dna.entropy = dna._compute_entropy()
+        dna.save()
+        profile.dna = dna
+        profile.save()
+
+        console.print(
+            f"[success]✓[/success] [white]{target_field}[/white] "
+            f"[muted]{current}[/muted] → [accent]{new_val}[/accent]  "
+            f"[muted]Generación {dna.generation} · H={dna.entropy}[/muted]\n"
+        )
+        return
+
+    # Interactive mode: browse all genes
+    table = Table(
+        show_header=True,
+        header_style="bold white",
+        box=rbox.SIMPLE_HEAD,
+        padding=(0, 1),
+        title=f"[{pc}]◈ {profile.name} — DNA Tune[/{pc}]",
+    )
+    table.add_column("#", style="dim", width=3)
+    table.add_column("Gen", style="bold white", width=20)
+    table.add_column("Capa", style="dim", width=10)
+    table.add_column("Actual", style="accent", width=8)
+    table.add_column("Rango", style="dim", width=14)
+
+    for i, (field, label, layer, gmin, gmax, gtype) in enumerate(_GENE_META):
+        current = getattr(dna, field)
+        fmt = str(int(current)) if gtype is int else f"{current:.2f}"
+        table.add_row(
+            str(i),
+            f"g{field[1:].split('_')[0]} {label}",
+            layer,
+            fmt,
+            f"[{gmin}, {gmax}]",
+        )
+
+    console.print()
+    console.print(table)
+    console.print(
+        "\n[muted]Escribe el nombre del gen a modificar (ej. [accent]curiosity[/accent]) "
+        "o [accent]q[/accent] para salir:[/muted]"
+    )
+
+    while True:
+        try:
+            gene_input = typer.prompt("  Gen").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            console.print("[muted]Saliendo del tuner.[/muted]")
+            break
+
+        if gene_input in ("q", "quit", "exit", "salir"):
+            break
+
+        # Re-invoke single-gene logic
+        target_field = None
+        target_min = target_max = 0.0
+        target_type_local: type = float
+
+        for field, label, _layer, gmin, gmax, gtype in _GENE_META:
+            gene_num = field[1:].split("_")[0]
+            if gene_input in (label, field, gene_num, f"g{gene_num}"):
+                target_field, target_min, target_max, target_type_local = (
+                    field,
+                    gmin,
+                    gmax,
+                    gtype,
+                )
+                break
+
+        if not target_field:
+            console.print(
+                f"[warning]Gen '{gene_input}' no encontrado. Intenta de nuevo.[/warning]"
+            )
+            continue
+
+        current = getattr(dna, target_field)
+        console.print(
+            f"  [muted]actual=[/muted][accent]{current}[/accent]  "
+            f"[muted]rango=[/muted][dim][{target_min}, {target_max}][/dim]"
+        )
+
+        try:
+            raw = typer.prompt(f"  Nuevo valor [{target_min}–{target_max}]")
+            new_val = target_type_local(float(raw))
+        except (ValueError, KeyboardInterrupt):
+            console.print("[muted]Omitido.[/muted]")
+            continue
+
+        if not (target_min <= new_val <= target_max):
+            console.print(
+                f"[warning]Fuera de rango. Debe estar en [{target_min}, {target_max}].[/warning]"
+            )
+            continue
+
+        setattr(dna, target_field, new_val)
+        dna.generation += 1
+        dna.entropy = dna._compute_entropy()
+
+        console.print(
+            f"  [success]✓[/success] [white]{target_field}[/white] → [accent]{new_val}[/accent]"
+        )
+
+    dna.save()
+    profile.dna = dna
+    profile.save()
+    console.print(
+        f"\n[success]✓[/success] DNA guardado — "
+        f"[muted]Generación {dna.generation} · H={dna.entropy}[/muted]\n"
+    )

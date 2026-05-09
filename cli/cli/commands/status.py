@@ -61,7 +61,35 @@ def _probe(probe_type: str, target: str, port: int | None) -> tuple[bool, float 
     return _probe_http(target)
 
 
+def _tier_header() -> str:
+    try:
+        import os
+
+        from cli.core.tier import detect_tier, tier_desc, tier_label, tier_progress_bar
+        from cli.core.zsm import load_env_file
+        from cli.tui.aeon_dna import AeonProfile
+
+        load_env_file()
+        tier = detect_tier()
+        lang = os.environ.get("ZANA_LANG", "es")
+        profile = AeonProfile.load()
+        name = profile.name if profile else "ZANA"
+        arch = (
+            profile.archetype.value if profile and hasattr(profile, "archetype") else ""
+        )
+        arch_str = f" · {arch.upper()}" if arch and arch != "unknown" else ""
+        gen = f" · Gen {profile.dna.generation}" if profile and profile.dna else ""
+        bar = tier_progress_bar(tier)
+        label = tier_label(tier, lang)
+        desc = tier_desc(tier, lang)
+        return f"[{bar}] [bold white]{label}[/bold white] — [muted]{desc}[/muted]\n  [accent]{name}[/accent]{arch_str}{gen}"
+    except Exception:
+        return ""
+
+
 def _build_table(statuses: list[ServiceStatus], zfi: int) -> Panel:
+    tier_hdr = _tier_header()
+
     table = Table(show_header=True, header_style="header", box=None, padding=(0, 1))
     table.add_column("Component", style="bold white", width=14)
     table.add_column("Status", width=10)
@@ -80,8 +108,13 @@ def _build_table(statuses: list[ServiceStatus], zfi: int) -> Panel:
     zfi_label = f"[{zfi_color}]ZFI {zfi}/100[/{zfi_color}]"
     footer = f"  {online_count}/{len(statuses)} services online  ·  {zfi_label}"
 
+    from rich.console import Group
+    from rich.text import Text
+
+    content: object = Group(Text.from_markup(f"  {tier_hdr}\n"), table) if tier_hdr else table
+
     return Panel(
-        table,
+        content,
         title="[header] ZANA STATUS [/header]",
         subtitle=footer,
         border_style="magenta",

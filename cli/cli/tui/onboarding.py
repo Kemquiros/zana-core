@@ -909,39 +909,159 @@ _AEON_NAMES = [
 ]
 
 
-def run_init_wizard() -> bool:
-    """Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.
+def _typewriter(text: str, delay: float = 0.025) -> None:
+    """Print text char by char — only when interactive."""
+    if not _is_interactive():
+        console.print(text)
+        return
+    import time
 
-    Questions:
-    1. Aeon name
-    2. Provider (Anthropic / OpenAI / Gemini / Groq / Ollama)
-    3. API key (if cloud provider)
-    4. (if Ollama) connection + model selection (counts as 1 flow)
-    5. —done— (vault defaults silently)
-    """
-    console.clear()
-    console.print(BANNER)
-    console.print(
-        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    for ch in text:
+        console.print(ch, end="")
+        time.sleep(delay)
+    console.print()
+
+
+def _render_awakening(aeon_name: str, lang: str) -> None:
+    """Post-init storytelling: tier reveal + one action."""
+    # Derive a basic birth hash from name + timestamp
+    import hashlib
+    import time
+
+    from cli.core.i18n import t as _t
+    from cli.core.tier import (
+        detect_tier,
+        tier_capabilities_text,
+        tier_label,
+        tier_locked_text,
+        tier_next_action,
+        tier_progress_bar,
     )
-    console.print("[bold white]  ZANA init — Tu Aeon despierta[/bold white]")
+
+    birth_hash = hashlib.sha256(f"{aeon_name}{time.time()}".encode()).hexdigest()[:8]
+
+    console.print()
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+
+    tier = detect_tier()
+    _typewriter(
+        f"  {_t('onboarding.awakening_line1', lang=lang, name=aeon_name)}", delay=0.03
+    )
+    _typewriter(
+        f"  {_t('onboarding.awakening_line2', lang=lang, hash=birth_hash)}", delay=0.02
+    )
+    _typewriter(
+        f"  {_t('onboarding.awakening_line3', lang=lang, tier=tier_label(tier, lang))}",
+        delay=0.02,
+    )
+
+    console.print()
+    bar = tier_progress_bar(tier)
+    console.print(
+        f"  [primary]{bar}[/primary] [bold white]{tier_label(tier, lang)}[/bold white]"
+    )
+    console.print()
+
+    # Unlocked capabilities
+    caps = tier_capabilities_text(tier, lang)
+    if caps:
+        console.print(f"  [bold]{_t('onboarding.unlocked_title', lang=lang)}[/bold]")
+        for line in caps.splitlines():
+            color = "success" if line.startswith("✓") else "muted"
+            console.print(f"  [{color}]{line}[/{color}]")
+
+    # Locked (next tier)
+    locked = tier_locked_text(tier, lang)
+    if locked:
+        console.print()
+        console.print(f"  [bold]{_t('onboarding.next_tier_title', lang=lang)}[/bold]")
+        for line in locked.splitlines():
+            console.print(f"  [muted]{line}[/muted]")
+
+    # Single next action
+    console.print()
     console.print(
         "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
     )
     console.print(
-        "\n  [muted]5 preguntas. Menos de 3 minutos. Tu Aeon, tu hardware, tu soberanía.[/muted]\n"
+        f"  [success]{_t('onboarding.done', lang=lang, name=aeon_name)}[/success]"
+    )
+    console.print()
+    console.print(f"  [accent]→ {tier_next_action(tier, lang)}[/accent]")
+    console.print("  [muted]zana aeon sigil  ·  zana aeon card  ·  zana next[/muted]")
+    console.print()
+
+
+def run_init_wizard() -> bool:
+    """Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.
+
+    Questions:
+    0. Language (NEW — first question)
+    1. Aeon name
+    2. Provider (Anthropic / OpenAI / Gemini / Groq / Ollama)
+    3. API key (if cloud provider)
+    [vault defaults silently]
+    """
+    console.clear()
+    console.print(BANNER)
+
+    # ── Multilingual welcome banner ────────────────────────────────────────────
+    console.print(
+        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        "[muted]  Tu Aeon despierta  ·  Your Aeon awakens  ·  Seu Aeon desperta[/muted]"
+    )
+    console.print(
+        "[muted]  Ton Aeon s'éveille  ·  Il tuo Aeon si risveglia  ·  Dein Aeon erwacht[/muted]"
+    )
+    console.print(
+        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+    )
+    console.print(
+        "\n  [muted]5 questions · 3 min · Your Aeon, your hardware, your sovereignty.[/muted]\n"
     )
 
     if not _is_interactive():
         console.print(
-            "[muted]Modo no-interactivo: ejecuta[/muted] [accent]zana init[/accent] [muted]en una terminal real.[/muted]"
+            "[muted]Non-interactive mode: run[/muted] [accent]zana init[/accent] [muted]in a real terminal.[/muted]"
         )
         return False
 
     import questionary
 
+    from cli.core.i18n import set_lang
+    from cli.core.i18n import t as _t
+
+    # ── Q0: Language ───────────────────────────────────────────────────────────
+    console.print("[bold cyan]0 / 4[/bold cyan]  Language / Idioma / Langue / Sprache")
+    lang_choices = [
+        ("es", "🇪🇸 Español"),
+        ("en", "🇺🇸 English"),
+        ("pt", "🇧🇷 Português"),
+        ("fr", "🇫🇷 Français"),
+        ("it", "🇮🇹 Italiano"),
+        ("de", "🇩🇪 Deutsch"),
+    ]
+    lang_answer = questionary.select(
+        "  Select / Elige / Selecione:",
+        choices=[label for _, label in lang_choices],
+        style=_q_style(),
+    ).ask()
+
+    selected_lang = next(
+        (code for code, label in lang_choices if label == lang_answer), "es"
+    )
+    set_lang(selected_lang)
+    env_keys: dict = {"ZANA_LANG": selected_lang}
+    console.print(f"\n  [success]✓[/success]  {lang_answer}\n")
+
     # ── Q1: Aeon name ──────────────────────────────────────────────────────────
-    console.print("[bold cyan]1 / 4[/bold cyan]  ¿Cómo llamarás a tu Aeon?")
+    console.print(
+        f"[bold cyan]1 / 4[/bold cyan]  {_t('onboarding.q1_name', lang=selected_lang)}"
+    )
     name_choice = questionary.select(
         "  Elige un nombre:",
         choices=_AEON_NAMES,
@@ -1065,6 +1185,7 @@ def run_init_wizard() -> bool:
         "name": aeon_name,
         "init_at": datetime.now().isoformat(),
         "archetype": "unknown",
+        "language": selected_lang,
     }
     aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
 
@@ -1148,21 +1269,7 @@ def run_init_wizard() -> bool:
             "  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]"
         )
 
-    console.print(
-        "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
-    )
-    console.print(f"[success]  {aeon_name} ha despertado.[/success]")
-    console.print(
-        "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
-    )
-    console.print("\n  [accent]zana aeon sigil[/accent]  — ver tu Aeón vivo")
-    console.print(
-        "  [accent]zana aeon card[/accent]   — tarjeta de identidad compartible"
-    )
-    console.print(
-        f"  [accent]zana chat[/accent]        — primera conversación con {aeon_name}"
-    )
-    console.print("\n[muted]Juntos hacemos temblar los cielos.[/muted]\n")
+    _render_awakening(aeon_name, selected_lang)
     return True
 
 

@@ -9,7 +9,7 @@ from cli.tui.theme import BANNER, console
 app = typer.Typer(
     name="zana",
     help="ZANA — Zero Autonomous Neural Architecture",
-    no_args_is_help=True,
+    no_args_is_help=False,
     rich_markup_mode="rich",
     add_completion=True,
 )
@@ -103,12 +103,45 @@ def main(
         return
 
     console.print(BANNER)
-    console.print(
-        "[primary]ZANA en línea. Sensores activos. ¿Qué imperio construiremos hoy?[/primary]"
-    )
-    console.print(
-        "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
-    )
+    try:
+        import os as _os
+
+        from cli.core.tier import detect_tier as _dt
+        from cli.core.tier import tier_label as _tl
+        from cli.core.tier import tier_next_action as _tna
+        from cli.core.tier import tier_progress_bar as _tpb
+        from cli.core.zsm import load_env_file as _lef
+        from cli.tui.aeon_dna import AeonProfile as _AeonProfile
+
+        _lef()
+        _tier = _dt()
+        _lang = _os.environ.get("ZANA_LANG", "es")
+        _profile = _AeonProfile.load()
+        _name = _profile.name if _profile else "ZANA"
+        _raw_arch = (
+            _profile.archetype.value
+            if _profile and hasattr(_profile, "archetype")
+            else ""
+        )
+        _arch = _raw_arch.capitalize() if _raw_arch and _raw_arch != "unknown" else ""
+        _bar = _tpb(_tier)
+        _label = _tl(_tier, _lang)
+        _action = _tna(_tier, _lang)
+        _arch_str = f" · {_arch}" if _arch else ""
+        console.print(
+            f"[primary]{_name}[/primary]{_arch_str}  [muted][{_bar}] {_label}[/muted]"
+        )
+        console.print(f"[muted]→ {_action}[/muted]")
+        console.print(
+            "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
+        )
+    except Exception:
+        console.print(
+            "[primary]ZANA en línea. Sensores activos. ¿Qué imperio construiremos hoy?[/primary]"
+        )
+        console.print(
+            "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
+        )
 
 
 @app.command(help="Boot the full ZANA stack (Docker services).")
@@ -213,6 +246,13 @@ def setup() -> None:
 )
 def init() -> None:
     run_init_wizard()
+
+
+@app.command(help="Show the single next action to advance to the next tier.")
+def next() -> None:
+    from cli.commands.next import cmd_next
+
+    cmd_next()
 
 
 @app.command(help="Full system health audit — environment, services, config.")
@@ -431,6 +471,20 @@ def aeon_dna() -> None:
     from cli.commands.aeon import cmd_dna
 
     cmd_dna()
+
+
+@aeon_app.command("tune", help="Interactively tune your Aeon's DNA genes.")
+def aeon_tune(
+    gene: Annotated[
+        str | None,
+        typer.Argument(
+            help="Gene name or number to tune (e.g. curiosity, g9, 9). Omit for full interactive mode."
+        ),
+    ] = None,
+) -> None:
+    from cli.commands.aeon import cmd_tune
+
+    cmd_tune(gene=gene)
 
 
 # ── Memory sub-commands ───────────────────────────────────────────────────────

@@ -87,7 +87,7 @@ async def _chat_loop() -> None:
         "\n[primary]ZANA REPL activo. Escribe un mensaje o usa [accent]/help[/accent] para ver comandos. [accent]Ctrl+C[/accent] para salir.[/primary]\n"
     )
 
-    history_file = os.path.expanduser("~/.zana/.chat_history")  # noqa: ASYNC240
+    history_file = os.path.expanduser("~/.zana/.chat_history")
     os.makedirs(os.path.dirname(history_file), exist_ok=True)
 
     if PromptSession is not None:
@@ -146,44 +146,48 @@ async def _chat_loop() -> None:
                         break
 
     except OSError:
-        console.print(
-            "[error]No se pudo conectar al ZANA Gateway (ws://localhost:54446).[/error]"
-        )
-        console.print(
-            "[muted]Asegúrate de ejecutar `zana start` primero para iniciar el contenedor del Engine.[/muted]"
-        )
+        from rich.panel import Panel
 
-        # If in debug or simulation mode, let's still run the REPL without the websocket for testing the UI
-        if os.getenv("ZANA_DEBUG_REPL") == "1":
-            console.print(
-                "[warning]ZANA_DEBUG_REPL activo. Corriendo en modo offline (Mock).[/warning]"
+        from cli.core.zsm import respond as zsm_respond
+
+        console.print(
+            Panel(
+                "[dim]Gateway no disponible en [white]ws://localhost:54446[/white].\n\n"
+                "Activando [bold magenta]Modo Soberano (ZSM)[/bold magenta] — sin LLM, sin red.\n"
+                "Memoria local · Skills · Ledger · Vault — todo disponible.\n\n"
+                "[dim]Ejecuta [cyan]zana start[/cyan] para conectar el Engine completo.[/dim]",
+                title="[bold magenta] ◈ ZANA MODO SOBERANO ◈ [/bold magenta]",
+                border_style="magenta",
+                padding=(1, 2),
             )
-            while True:
-                try:
-                    if session:
-                        user_input = await asyncio.get_event_loop().run_in_executor(
-                            None, lambda: session.prompt("You> ")
-                        )
-                    else:
-                        user_input = await asyncio.get_event_loop().run_in_executor(
-                            None, lambda: input("You> ")
-                        )
-                except (EOFError, KeyboardInterrupt):
-                    console.print(
-                        "\n[muted]Saliendo del Córtex. Hasta la próxima, John.[/muted]"
+        )
+        console.print(
+            "\n[primary]ZANA Soberano activo. Escribe un mensaje o [accent]/help[/accent] para comandos. [accent]Ctrl+C[/accent] para salir.[/primary]\n"
+        )
+
+        while True:
+            try:
+                if session:
+                    user_input = await asyncio.get_event_loop().run_in_executor(
+                        None, lambda: session.prompt("You> ")
                     )
-                    break
-
-                if not user_input.strip():
-                    continue
-                if _handle_slash_command(user_input.strip()):
-                    continue
-
+                else:
+                    user_input = await asyncio.get_event_loop().run_in_executor(
+                        None, lambda: input("You> ")
+                    )
+            except (EOFError, KeyboardInterrupt):
                 console.print(
-                    f"[secondary]ZANA (Mock)>[/secondary] Entendido. (Recibí: {user_input})"
+                    "\n[muted]Saliendo del Córtex Soberano. Hasta la próxima.[/muted]"
                 )
-        else:
-            raise typer.Exit(1)  # noqa: B904
+                break
+
+            if not user_input.strip():
+                continue
+            if _handle_slash_command(user_input.strip()):
+                continue
+
+            console.print("[secondary]ZANA (Soberano)>[/secondary]")
+            zsm_respond(user_input.strip())
 
 
 def cmd_chat() -> None:
