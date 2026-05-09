@@ -111,7 +111,9 @@ def _build_table(statuses: list[ServiceStatus], zfi: int) -> Panel:
     from rich.console import Group
     from rich.text import Text
 
-    content: object = Group(Text.from_markup(f"  {tier_hdr}\n"), table) if tier_hdr else table
+    content: object = (
+        Group(Text.from_markup(f"  {tier_hdr}\n"), table) if tier_hdr else table
+    )
 
     return Panel(
         content,
