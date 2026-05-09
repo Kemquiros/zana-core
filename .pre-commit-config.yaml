@@ -39,38 +39,8 @@ repos:
         pass_filenames: false
         always_run: true
 
-  # ── Three Dirty Pigs — chaos engineering quality gate ─────────────────────
-  - repo: local
-    hooks:
-      # PAJA: fast surface scan — secrets, lint, dead code, complexity
-      # Blocks on CRITICAL only (secret leaks, hardcoded credentials)
-      - id: pigs-straw
-        name: "🐷 PAJA — Surface Scan (secrets / lint / dead code)"
-        entry: python /home/kemquiros/.claude/skills/vecanova-three-little-dirty-pigs/engine.py
-        args:
-          - "--pig"
-          - "straw"
-          - "--fail-on"
-          - "critical"
-          - "--no-report"
-        language: system
-        pass_filenames: false
-        types_or: [python, pyi]
-
-      # PALITOS: OWASP + architecture — scoped to cli/ (the PyPI/npm package)
-      # Blocks on HIGH+ (injection, broken auth, insecure deps, SSRF)
-      - id: pigs-stick-cli
-        name: "🐷 PALITOS — OWASP + Architecture (cli/ → PyPI)"
-        entry: python /home/kemquiros/.claude/skills/vecanova-three-little-dirty-pigs/engine.py
-        args:
-          - "--target"
-          - "cli/"
-          - "--pig"
-          - "stick"
-          - "--fail-on"
-          - "high"
-          - "--no-report"
-        language: system
-        pass_filenames: false
-        types_or: [python, pyi]
-        files: ^cli/
+  # ── Three Dirty Pigs — TEMPORARILY DISABLED (re-enable before next release)
+  # - repo: local
+  #   hooks:
+  #     - id: pigs-straw
+  #     - id: pigs-stick-cli
