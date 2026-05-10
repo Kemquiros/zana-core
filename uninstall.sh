@@ -44,9 +44,9 @@ remove_system_package() {
 remove_cli_tools() {
     echo -e "${CYAN}▶ Limpiando herramientas CLI (uv)...${RESET}"
     if command -v uv &>/dev/null; then
-        if uv tool list 2>/dev/null | grep -q "zana"; then
-            uv tool uninstall zana --quiet || true
-            echo -e "${GREEN}✓ CLI 'zana' eliminado.${RESET}"
+        if uv tool list 2>/dev/null | grep -q "vecanova-zana"; then
+            uv tool uninstall vecanova-zana --quiet || true
+            echo -e "${GREEN}✓ CLI 'vecanova-zana' eliminado.${RESET}"
         fi
     fi
 
@@ -59,8 +59,8 @@ remove_cli_tools() {
     esac
 
     if [ -f "$shell_rc" ]; then
-        if grep -q "ZANA_CORE_DIR" "$shell_rc"; then
-            sed -i '/ZANA_CORE_DIR/d' "$shell_rc"
+        if grep -q "ZANA" "$shell_rc"; then
+            sed -i '/ZANA/d' "$shell_rc"
             echo -e "${GREEN}✓ Variables de ZANA removidas de $shell_rc${RESET}"
         fi
     fi
@@ -69,18 +69,15 @@ remove_cli_tools() {
 remove_user_data() {
     echo -e "${RED}▶ ADVERTENCIA: Eliminando bóveda de conocimientos y base de datos local...${RESET}"
 
-    # Tauri / Desktop App SQLite Data
-    local data_dir="$HOME/.local/share/ZANA"
-    if [ -d "$data_dir" ]; then
-        rm -rf "$data_dir"
-        echo -e "${GREEN}✓ Bóveda SQLite de Tauri eliminada ($data_dir).${RESET}"
-    fi
-
-    # CLI Data
+    # CLI Data (Sovereign Core)
     local cli_dir="$HOME/.zana"
     if [ -d "$cli_dir" ]; then
+        # Secure shredding of keys/secrets
+        if command -v shred &>/dev/null; then
+            find "$cli_dir" -type f -name ".env" -exec shred -u {} \;
+        fi
         rm -rf "$cli_dir"
-        echo -e "${GREEN}✓ Datos de CLI y repositorios cacheados eliminados ($cli_dir).${RESET}"
+        echo -e "${GREEN}✓ Datos de CLI, ADN y Ledger eliminados ($cli_dir).${RESET}"
     fi
 
     echo -e "${GREEN}✓ Toda tu memoria y configuración ha sido erradicada.${RESET}"

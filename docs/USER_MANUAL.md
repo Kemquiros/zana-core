@@ -20,35 +20,35 @@ ZANA is a personal AI cognitive system. It perceives audio, images, and text; re
 
 ## Quick Start
 
-### 1. Clone and configure
+ZANA v3.1.0 is **zero-friction**. You can start chatting in under 3 minutes without Docker.
 
+### 1. Install the CLI
+
+**Option A — npm (Node)**
 ```bash
-git clone https://github.com/kemquiros/zana-core.git
-cd zana-core
-cp .env.example .env
-# Edit .env and fill in your API keys
+npm install -g @vecanova/zana
+zana init
 ```
 
-### 2. Start the infrastructure
-
+**Option B — pipx (Python)**
 ```bash
-docker compose up -d chromadb postgres redis neo4j
+pipx install vecanova-zana
+zana init
 ```
 
-### 3. Start the sensory gateway
+### 2. Start your Aeon
 
 ```bash
-cd sensory
-uv run uvicorn multimodal_gateway:app --host 0.0.0.0 --port 54446
+zana chat
 ```
+This opens the terminal chat immediately.
 
-### 4. Verify health
-
+### 3. Full Visual Stack (Optional)
+If you want the Aria UI and graph memory, you'll need Docker:
 ```bash
-curl http://localhost:54446/health
+zana start
 ```
-
-You should see backends listed as `online`.
+Then navigate to `http://localhost:54448`.
 
 ---
 
@@ -168,7 +168,34 @@ This deploys 5 specialized agents:
 
 ---
 
-## Troubleshooting
+## Uninstallation Protocols
+
+ZANA gives you complete control over your hardware and data. We offer two distinct uninstallation paths:
+
+### 1. Sovereign Preservation (Upgrade/Transfer)
+Use this if you are upgrading your hardware or moving to a different installation method.
+- **What it does**: Removes the ZANA CLI and associated system binaries.
+- **What it keeps**: Your `~/.zana/` directory (Aeon DNA, Ledger, Memory) remains intact.
+- **Command**:
+  ```bash
+  # Via pipx
+  pipx uninstall vecanova-zana
+
+  # Via npm
+  npm uninstall -g @vecanova/zana
+  ```
+
+### 2. Total Obliteration (Security Wipe)
+Use this if you are selling your hardware or need to ensure your data is permanently removed.
+- **What it does**: Removes the CLI, binaries, AND destroys all memory, DNA, and Civic Ledger files.
+- **Security**: Key files (like `.env` containing API keys) are shredded before deletion.
+- **Command**:
+  ```bash
+  bash <(curl -LsSf https://zana.vecanova.com/uninstall.sh)
+  # Select option [2] and confirm with 'ZANA'
+  ```
+
+---
 
 **Health endpoint shows backends as `not_loaded`**
 → Check that Docker services are running: `docker compose ps`

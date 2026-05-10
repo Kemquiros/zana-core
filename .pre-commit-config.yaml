@@ -19,9 +19,9 @@ repos:
     rev: v0.11.12
     hooks:
       - id: ruff
-        name: ruff lint (cli/)
+        name: ruff lint (zana CLI)
         args: ["--fix", "--config", "ruff.toml"]
-        files: ^cli/
+        files: ^cli/zana/
         types_or: [python, pyi]
 
   # ── Ruff: format (all Python files) ────────────────────────────────────────
