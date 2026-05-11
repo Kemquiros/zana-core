@@ -50,6 +50,10 @@ Thumbs.db
 .vscode/
 *.swp
 
+# Analysis caches
+.ruff_cache/
+.pytest_cache/
+
 # Utility / one-off scripts (not part of public API)
 convert_docs.py
 convert_pdfs.py

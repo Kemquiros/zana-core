@@ -46,15 +46,33 @@ sudo apt install python3.12 python3.12-venv
 
 ## 2. Install ZANA
 
+### Option A — Official Installer (Recommended)
 Run the official installation script:
 ```bash
-bash <(curl -LsSf https://zana.vecanova.com/install.sh)
+curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
-The script will download the necessary containers and initialize the virtual environments.
+The script will check dependencies and install the ZANA CLI via `uv tool`.
+
+### Option B — pipx (Python)
+```bash
+pipx install vecanova-zana
+zana init
+```
+
+### Option C — npm (Node)
+```bash
+npm install -g @vecanova/zana
+zana init
+```
 
 ## 3. Next Steps
-Once installed, start the system:
+ZANA v3.1.0 is **zero-friction**: you don't need Docker to start chatting.
 ```bash
-zana start
+zana init   # create your Aeon
+zana chat   # start talking
 ```
-Then navigate to `http://localhost:54448` to access Aria UI and complete the Sovereign Login setup.
+If you want the full visual experience and graph memory, then run:
+```bash
+zana start  # boots the Docker stack
+```
+Then navigate to `http://localhost:54448` to access Aria UI.

@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: zana-smoke
         name: zana CLI smoke tests
-        entry: python tests/cli_e2e_engine.py --smoke
+        entry: python3 tests/cli_e2e_engine.py --smoke
         language: system
         pass_filenames: false
         always_run: true

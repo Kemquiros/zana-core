@@ -4,7 +4,7 @@ import sys
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), "../cli/cli/tui"))
 )
-from cli.tui.aeon_dna import AeonArchetype, derive_dna
+from zana.tui.aeon_dna import AeonArchetype, derive_dna
 
 
 def test_archetypes_exist():

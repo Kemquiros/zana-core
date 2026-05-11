@@ -29,15 +29,35 @@ brew install python@3.12
 
 ## 2. Install ZANA
 
-With Docker running, open your terminal and execute the official installation script:
+### Option A — Official Installer (Recommended)
+With Python 3.12 ready, execute the official installation script:
 ```bash
-bash <(curl -LsSf https://zana.vecanova.com/install.sh)
+curl -LsSf https://zana.vecanova.com/install.sh | bash
 ```
-The script will clone the repositories, setup the Python virtual environments, and pull the required Docker images.
+The script will check dependencies and install the ZANA CLI via `uv tool`.
+
+### Option B — pipx (Python)
+```bash
+brew install pipx
+pipx ensurepath
+pipx install vecanova-zana
+zana init
+```
+
+### Option C — npm (Node)
+```bash
+npm install -g @vecanova/zana
+zana init
+```
 
 ## 3. Next Steps
-Once the installation completes, start the Sovereign Cognitive Architecture:
+ZANA v3.1.0 is **zero-friction**: you don't need Docker to start chatting.
 ```bash
-zana start
+zana init   # create your Aeon
+zana chat   # start talking
 ```
-Open your browser and navigate to `http://localhost:54448` to access Aria UI and initialize your Master Archon identity.
+If you want the full visual experience and graph memory, then run:
+```bash
+zana start  # boots the Docker stack
+```
+Then navigate to `http://localhost:54448` to access Aria UI.

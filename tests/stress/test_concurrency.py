@@ -1,6 +1,6 @@
 import pytest
 
-from cli.tui.aeon_dna import AeonArchetype, derive_dna
+from zana.tui.aeon_dna import AeonArchetype, derive_dna
 
 
 @pytest.mark.asyncio

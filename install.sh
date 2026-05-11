@@ -398,7 +398,7 @@ install_core() {
     fi
 
     echo -e "${CYAN}  ▶ Deploying ZANA CLI v3.0.0...${RESET}"
-    uv tool uninstall zana 2>/dev/null || true
+    uv tool uninstall vecanova-zana 2>/dev/null || true
     uv tool install "$ZANA_REPO_DIR/cli" --force --quiet
     echo -e "${GREEN}  ✓ CLI installed.${RESET}\n"
 

@@ -30,7 +30,7 @@ ZANA inverts this with one architectural principle: **the memory stays with you.
 ## Quick start
 
 ```bash
-pip install vecanova-zana
+pipx install vecanova-zana
 zana init
 zana chat
 ```
@@ -72,7 +72,7 @@ zana chat
 ```
 
 ### Zero-Docker, Local-First
-Runs on your machine as a standard Python process. SQLite for episodic memory. No containers, no cloud sync, no telemetry.
+Runs on your machine as a standard isolated Python package. SQLite for episodic memory. No containers, no cloud sync, no telemetry.
 
 ---
 

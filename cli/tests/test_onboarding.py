@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from cli.tui.onboarding import ensure_env_configured
+from zana.tui.onboarding import ensure_env_configured
 
 
 def test_ensure_env_configured_creates_missing_secrets(tmp_path: Path):

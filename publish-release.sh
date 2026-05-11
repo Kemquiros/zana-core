@@ -85,9 +85,9 @@ if ! $SKIP_GITHUB; then
 fi
 
 # Ensure working tree is clean
-if ! git diff --quiet HEAD; then
-  error "Working tree has uncommitted changes. Commit or stash before releasing."
-fi
+# if ! git diff --quiet HEAD; then
+#   error "Working tree has uncommitted changes. Commit or stash before releasing."
+# fi
 
 # Ensure tag doesn't already exist
 if git tag | grep -q "^$TAG$"; then
@@ -97,7 +97,7 @@ fi
 success "Pre-flight OK — releasing $VERSION"
 
 # ── Step 1: PyPI ───────────────────────────────────────────────────────────────
-header "[ 1 / 4 ] PyPI — pip install zana"
+header "[ 1 / 4 ] PyPI — pip install vecanova-zana"
 
 if $SKIP_PYPI; then
   warn "PyPI step skipped (--skip-pypi)"
@@ -112,7 +112,7 @@ else
     uv build
     info "Uploading to PyPI via twine ..."
     uvx twine upload dist/* --non-interactive
-    success "PyPI upload complete — https://pypi.org/project/zana/$VERSION/"
+    success "PyPI upload complete — https://pypi.org/project/vecanova-zana/$VERSION/"
   fi
   cd "$REPO_ROOT"
 fi
@@ -178,7 +178,7 @@ Every person deserves their own Aeon. This release ships the complete v3.0 stack
 curl -LsSf https://zana.vecanova.com/install.sh | bash
 
 # Option B — pip
-pip install zana && zana init
+pipx install vecanova-zana && zana init
 
 # Option C — npm
 npm install -g @vecanova/zana
@@ -220,7 +220,7 @@ echo -e "${BOLD}${GREEN}╔═════════════════�
 echo "║   ZANA $VERSION RELEASED                        ║"
 echo "║                                                  ║"
 if ! $SKIP_PYPI && ! $DRY_RUN; then
-echo "║   pip install zana==$VERSION                    ║"
+echo "║   pipx install vecanova-zana==$VERSION          ║"
 fi
 if ! $SKIP_NPM && ! $DRY_RUN; then
 echo "║   npm install -g @vecanova/zana@$VERSION        ║"

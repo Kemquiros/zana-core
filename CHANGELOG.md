@@ -7,6 +7,19 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.1.0] — 2026-05-09
+
+### Added
+- **Global Release Infrastructure** — Unified release pipeline for PyPI (`vecanova-zana`) and npm (`@vecanova/zana`).
+- **Sovereign Isolation (pipx/uv)** — The CLI now promotes and enforces isolated installation via `pipx install` or `uv tool install` to prevent dependency pollution.
+- **npm Wrapper v3** — New global npm installer that handles Python environment detection and isolated package deployment automatically.
+
+### Changed
+- **Module Identity Refactor** — Internal Python module renamed from `cli` to `zana` to avoid namespace collisions and align with the project's sovereign identity.
+- **Unified CLI Entry Point** — The binary `zana` now consistently points to the isolated Python application across all platforms and installation methods.
+
+---
+
 ## [2.9.15] — 2026-05-01
 
 ### Fixed

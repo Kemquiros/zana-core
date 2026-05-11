@@ -32,21 +32,25 @@ function findPython() {
 
 function isZanaInstalled(python) {
   try {
-    execFileSync(python, ["-c", "import cli.main"], {
+    execFileSync(python, ["-c", "import zana.main"], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
       timeout: 5000,
     });
     return true;
   } catch (_) {}
-  try {
-    execFileSync(python, ["-m", "pip", "show", "zana"], {
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-      timeout: 5000,
-    });
-    return true;
-  } catch (_) {}
+  for (const bin of ["zana", "uv", "pipx"]) {
+    try {
+      const tool = bin === "zana" ? "uv" : bin;
+      const cmd = bin === "zana" ? ["tool", "list"] : ["list"];
+      const out = execFileSync(tool, cmd, {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+        timeout: 5000,
+      });
+      if (out.includes("vecanova-zana")) return true;
+    } catch (_) {}
+  }
   return false;
 }
 
@@ -68,22 +72,37 @@ if (!python) {
 console.log(`✓  Python found: ${python}`);
 
 if (isZanaInstalled(python)) {
-  console.log("✓  ZANA Python package already installed.\n");
+  console.log("✓  ZANA is already installed and isolated.\n");
   console.log("   Run: zana init   — to create your Aeon");
   console.log("   Run: zana --help — to explore commands\n");
   process.exit(0);
 }
 
-console.log("⚙️  Installing ZANA Python package via pip...");
-console.log("   This may take 1-2 minutes on first install.\n");
+console.log("⚙️  Installing ZANA CLI (isolated environment)...");
+console.log("   This ensures ZANA won't interfere with your system Python.\n");
 
-const result = spawnSync(
-  python,
-  ["-m", "pip", "install", "--upgrade", "--quiet", "zana"],
-  { stdio: "inherit", timeout: 300_000 }
-);
+// Strategy: 1. uv tool (fastest), 2. pipx (isolated), 3. pip --user (last resort)
+let installed = false;
 
-if (result.status === 0) {
+for (const method of ["uv", "pipx", "pip"]) {
+  try {
+    if (method === "uv") {
+      spawnSync("uv", ["tool", "install", "vecanova-zana", "--force"], { stdio: "inherit" });
+      installed = true;
+      break;
+    } else if (method === "pipx") {
+      spawnSync("pipx", ["install", "vecanova-zana", "--force"], { stdio: "inherit" });
+      installed = true;
+      break;
+    } else {
+      spawnSync(python, ["-m", "pip", "install", "--user", "--upgrade", "vecanova-zana"], { stdio: "inherit" });
+      installed = true;
+      break;
+    }
+  } catch (_) {}
+}
+
+if (installed) {
   console.log("\n✅ ZANA installed successfully!\n");
   console.log("╔══════════════════════════════════════════════════╗");
   console.log("║   Quick start:                                   ║");
@@ -97,9 +116,8 @@ if (result.status === 0) {
 } else {
   console.warn(
     "\n⚠️  Could not auto-install ZANA Python package.\n" +
-    "   Run manually: pip install zana\n" +
+    "   Run manually: pipx install vecanova-zana\n" +
     "   Or: bash <(curl -LsSf https://zana.vecanova.com/install.sh)\n"
   );
-  // non-fatal exit
   process.exit(0);
 }

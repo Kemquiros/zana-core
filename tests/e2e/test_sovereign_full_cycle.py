@@ -1,4 +1,4 @@
-from cli.tui.aeon_dna import AeonArchetype, derive_dna
+from zana.tui.aeon_dna import AeonArchetype, derive_dna
 
 
 def test_sovereign_full_cycle():

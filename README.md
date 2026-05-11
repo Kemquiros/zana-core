@@ -49,9 +49,9 @@ No one should own your soul.**
 
 ## Quick Start
 
-**Option A — pip (Python)**
+**Option A — pipx (Python)**
 ```bash
-pip install vecanova-zana
+pipx install vecanova-zana
 zana init
 zana start
 ```
@@ -75,7 +75,7 @@ wsl --install
 ```
 ```bash
 # Step 2 — Ubuntu terminal
-pip install vecanova-zana && zana init
+pipx install vecanova-zana && zana init
 ```
 
 Then run `zana init` to create your Aeon (≤ 4 questions), then `zana start`.

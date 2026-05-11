@@ -19,18 +19,18 @@ function findZanaBinary() {
   // 1. Check if already in PATH
   const which = process.platform === "win32" ? "where" : "which";
   try {
-    const found = execFileSync(which, ["zana-py"], { encoding: "utf8" }).trim().split("\n")[0];
-    if (found) return found;
+    const found = execFileSync(which, ["zana"], { encoding: "utf8" }).trim().split("\n")[0];
+    // Avoid infinite recursion if 'zana' points to this script
+    if (found && !found.includes("node") && !found.includes("zana-npm")) return found;
   } catch (_) {}
 
-  // 2. Check common pip/uv install locations
+  // 2. Check common pipx/uv tool install locations
   const candidates = [
     path.join(os.homedir(), ".local", "bin", "zana"),
     path.join(os.homedir(), ".cargo", "bin", "zana"),
+    path.join(os.homedir(), ".local", "pipx", "venvs", "vecanova-zana", "bin", "zana"),
     "/usr/local/bin/zana",
     "/usr/bin/zana",
-    // Windows pip
-    path.join(os.homedir(), "AppData", "Local", "Programs", "Python", "Python312", "Scripts", "zana.exe"),
   ];
 
   for (const c of candidates) {
@@ -66,17 +66,31 @@ function bootstrap() {
     process.exit(1);
   }
 
-  console.log("⚙️  Installing ZANA Python package (first run)...");
-  const result = spawnSync(
-    python,
-    ["-m", "pip", "install", "--quiet", "--upgrade", "zana"],
-    { stdio: "inherit" }
-  );
+  console.log("⚙️  Installing ZANA (isolated environment)...");
 
-  if (result.status !== 0) {
+  let success = false;
+  // Try uv tool install first (fastest)
+  try {
+    spawnSync("uv", ["tool", "install", "vecanova-zana", "--force"], { stdio: "inherit" });
+    success = true;
+  } catch (_) {
+    try {
+      // Fallback to pipx
+      spawnSync("pipx", ["install", "vecanova-zana", "--force"], { stdio: "inherit" });
+      success = true;
+    } catch (__) {
+      try {
+        // Last resort: pip --user
+        spawnSync(python, ["-m", "pip", "install", "--user", "vecanova-zana"], { stdio: "inherit" });
+        success = true;
+      } catch (___) {}
+    }
+  }
+
+  if (!success) {
     console.error(
-      "\n❌ Failed to install ZANA Python package.\n" +
-      "   Try manually: pip install zana\n" +
+      "\n❌ Failed to install ZANA.\n" +
+      "   Try manually: pipx install vecanova-zana\n" +
       "   Or run the installer: bash <(curl -LsSf https://zana.vecanova.com/install.sh)\n"
     );
     process.exit(1);
@@ -94,23 +108,22 @@ if (!zanaBin) {
   zanaBin = findZanaBinary();
 }
 
+const args = process.argv.slice(2);
+
 if (!zanaBin) {
-  // Last resort: run via python -m cli.main
+  // Last resort: run via python -m zana.main
   const python = findPython();
   if (!python) {
-    console.error("❌ Could not locate ZANA. Run: pip install zana");
+    console.error("❌ Could not locate ZANA. Run: pipx install vecanova-zana");
     process.exit(1);
   }
-  zanaBin = null;
-  const args = process.argv.slice(2);
-  const result = spawnSync(python, ["-m", "cli.main", ...args], {
+  const result = spawnSync(python, ["-m", "zana.main", ...args], {
     stdio: "inherit",
     env: process.env,
   });
   process.exit(result.status ?? 1);
 }
 
-const args = process.argv.slice(2);
 const result = spawnSync(zanaBin, args, {
   stdio: "inherit",
   env: process.env,

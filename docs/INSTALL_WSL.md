@@ -107,20 +107,24 @@ bash <(curl -LsSf https://zana.vecanova.com/install.sh)
 The installer:
 - Checks dependencies (Python, Git, Docker, uv)
 - Clones the repository to `~/.zana/core-repo`
-- Installs the `zana` CLI via `uv tool install`
+- Installs the `zana` CLI via `uv tool install` (package: `vecanova-zana`)
 - Adds `zana` to your `PATH` in `~/.bashrc`
-
-> **Rust / Steel Core:** ZANA compiles native `.so` binaries on first boot. If Rust is not installed, `zana start` installs it automatically via `rustup` (one-time, ~2 minutes). No manual action required.
 
 ---
 
 ## Step 7 — Complete interactive setup
 
-After installation, `zana start` launches the first-run wizard:
+ZANA v3.1.0 is **zero-friction**: you don't need Docker to start.
 
+```bash
+zana init   # create your Aeon
+zana chat   # start talking
 ```
-Configuración de Bóveda Soberana
-? Ruta a tu bóveda de Obsidian (donde ZANA leerá/escribirá):
+
+If you want the full Docker stack (visual UI, graph memory):
+
+```bash
+zana start
 ```
 
 Type your vault path (Tab autocompletes):
