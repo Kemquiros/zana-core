@@ -10,12 +10,12 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-v3.0.1-10b981?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-v3.1.1-10b981?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![ZFI](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](#zfi--zana-fitness-index)
 [![Paper](https://img.shields.io/badge/📄_Paper-arXiv-7c3aed?style=for-the-badge)](docs/paper/zana_paper.pdf)
-[![Platform](https://img.shields.io/badge/Linux_·_macOS_·_Windows_WSL-6d28d9?style=for-the-badge)](#quick-start)
+[![Platform](https://img.shields.io/badge/Linux_·_macOS_·_Windows-6d28d9?style=for-the-badge)](#quick-start)
 
 </div>
 
@@ -49,38 +49,32 @@ No one should own your soul.**
 
 ## Quick Start
 
-**Option A — pipx (Python)**
+### Linux / macOS — un solo comando
 ```bash
+curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.sh | sh
+```
+
+### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.ps1 | iex
+```
+
+### Manual (pip)
+```bash
+pip install pipx
 pipx install vecanova-zana
 zana init
-zana start
 ```
 
-**Option B — npm (Node)**
-```bash
-npm install -g @vecanova/zana
-zana init
-zana start
-```
-
-**Option C — curl (Linux / macOS)**
-```bash
-bash <(curl -LsSf https://zana.vecanova.com/install.sh)
-```
-
-**Windows (WSL 2)**
-```powershell
-# Step 1 — PowerShell (Admin)
-wsl --install
-```
-```bash
-# Step 2 — Ubuntu terminal
-pipx install vecanova-zana && zana init
-```
+### Binarios standalone (sin Python)
+Descarga el ejecutable para tu plataforma desde [GitHub Releases](https://github.com/Kemquiros/zana-core/releases/latest):
+- `zana-linux-x86_64` — Linux
+- `zana-windows-x86_64.exe` — Windows
+- `zana-macos-arm64` — macOS Apple Silicon
 
 Then run `zana init` to create your Aeon (≤ 4 questions), then `zana start`.
 
-> **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows/WSL](docs/INSTALL_WSL.md) · [User Manual](docs/USER_MANUAL.md)
+> **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows](docs/INSTALL_WINDOWS.md) · [User Manual](docs/USER_MANUAL.md)
 
 ---
 

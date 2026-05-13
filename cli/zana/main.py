@@ -8,7 +8,7 @@ from zana.tui.theme import BANNER, console
 
 app = typer.Typer(
     name="zana",
-    help="ZANA — Zero Autonomous Neural Architecture",
+    help="ZANA — Zero Autonomous Neural Architecture · Works offline · No Docker required",
     no_args_is_help=False,
     rich_markup_mode="rich",
     add_completion=True,
@@ -135,12 +135,18 @@ def main(
         console.print(
             "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
         )
+        console.print(
+            "[muted]Modo Soberano disponible sin Docker — escribe [accent]zana chat[/accent] para comenzar.[/muted]"
+        )
     except Exception:
         console.print(
             "[primary]ZANA en línea. Sensores activos. ¿Qué imperio construiremos hoy?[/primary]"
         )
         console.print(
             "\n[muted]Run [accent]zana --help[/accent] to see available commands.[/muted]"
+        )
+        console.print(
+            "[muted]Modo Soberano disponible sin Docker — escribe [accent]zana chat[/accent] para comenzar.[/muted]"
         )
 
 
@@ -241,6 +247,25 @@ def setup() -> None:
     run_onboarding()
 
 
+@app.command(help="Uninstall ZANA CLI from this system.")
+def uninstall(
+    purge: Annotated[
+        bool,
+        typer.Option(
+            "--purge",
+            help="Complete removal: package + all local data (~/.zana, app dirs).",
+        ),
+    ] = False,
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Skip confirmation prompt."),
+    ] = False,
+) -> None:
+    from zana.commands.uninstall import cmd_uninstall
+
+    cmd_uninstall(purge=purge, yes=yes)
+
+
 @app.command(
     help="Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation."
 )
@@ -256,10 +281,15 @@ def next() -> None:
 
 
 @app.command(help="Full system health audit — environment, services, config.")
-def doctor() -> None:
+def doctor(
+    fix: Annotated[
+        bool,
+        typer.Option("--fix", help="Interactively repair detected issues after audit."),
+    ] = False,
+) -> None:
     from zana.commands.doctor import cmd_doctor
 
-    cmd_doctor()
+    cmd_doctor(fix=fix)
 
 
 @app.command(

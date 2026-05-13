@@ -922,6 +922,59 @@ def _typewriter(text: str, delay: float = 0.025) -> None:
     console.print()
 
 
+def _render_zsm_capabilities(aeon_name: str, lang: str) -> None:
+    """Show a 'capabilities available right now' screen before the awakening reveal."""
+    from rich.panel import Panel
+    from rich.table import Table
+
+    time.sleep(0.3)
+
+    table = Table(
+        show_header=True,
+        header_style="bold magenta",
+        border_style="magenta",
+        expand=True,
+    )
+    table.add_column("Qué puedes hacer", style="bold white", ratio=2)
+    table.add_column("Ejemplo", style="bold bright_magenta", ratio=3)
+
+    capabilities = [
+        ("Compañía y chat",        "hola, ¿cómo estás?"),
+        ("Matemáticas",            "calcula 15% de 340"),
+        ("Recordatorios",          "recuérdame llamar a mamá mañana"),
+        ("Economía doméstica",     "gasté $45 en mercado"),
+        ("Idiomas y traducciones", "traduce hello al francés"),
+        ("Memoria de sesión",      "¿qué recuerdas de antes?"),
+        ("Vault / Notas",          "busca nota sobre proyecto"),
+        ("Recetas y cocina",       "receta con pollo y arroz"),
+        ("Hora y fecha",           "¿qué hora es?"),
+        ("Tu Aeon (identidad)",    "muéstrame mi ADN / sigilo"),
+        ("Nivel y progresión",     "¿cuál es mi siguiente nivel?"),
+        ("Civic Ledger",           "muestra el audit"),
+        ("Skills y workflows",     "¿qué habilidades tienes?"),
+        ("Chat libre",             "cualquier pregunta"),
+    ]
+
+    for capability, example in capabilities:
+        table.add_row(capability, f'"{example}"')
+
+    panel = Panel(
+        table,
+        title="[bold magenta]🛡️  Ya puedes usar ZANA — sin Docker, sin internet[/bold magenta]",
+        border_style="magenta",
+        padding=(1, 2),
+    )
+
+    console.print()
+    console.print(panel)
+    console.print()
+    console.print(
+        f"  [muted]→ Ejecuta:[/muted] [bold bright_magenta]zana chat[/bold bright_magenta]"
+        "   [muted](funciona ahora mismo)[/muted]"
+    )
+    console.print()
+
+
 def _render_awakening(aeon_name: str, lang: str) -> None:
     """Post-init storytelling: tier reveal + one action."""
     # Derive a basic birth hash from name + timestamp
@@ -1269,6 +1322,7 @@ def run_init_wizard() -> bool:
             "  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]"
         )
 
+    _render_zsm_capabilities(aeon_name, selected_lang)
     _render_awakening(aeon_name, selected_lang)
     return True
 

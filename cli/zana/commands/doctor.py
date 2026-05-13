@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 
 import httpx
+import typer
 from rich import box
 from rich.panel import Panel
 from rich.table import Table
@@ -126,7 +127,7 @@ def _env_check() -> list[tuple[str, str, str]]:
     return rows
 
 
-def cmd_doctor() -> None:
+def cmd_doctor(fix: bool = False) -> None:
     console.print("\n[primary]ZANA DOCTOR[/primary] [muted]— System Audit[/muted]\n")
 
     # ── 1. Runtime Environment ────────────────────────────────────────────────
@@ -195,6 +196,7 @@ def cmd_doctor() -> None:
             "Sensory + Armor",
         ),
         (
+            "ChromaDB",
             "http",
             f"http://localhost:{CHROMA_PORT}/api/v1/heartbeat",
             None,
@@ -306,3 +308,181 @@ def cmd_doctor() -> None:
         )
     else:
         console.print("[error]✗ Critical services offline. Run: zana start[/error]\n")
+
+    if fix:
+        issues = _collect_fixable_issues()
+        if not issues:
+            console.print("[success]✓ No se detectaron problemas reparables.[/success]")
+        else:
+            console.print(
+                f"\n[warning]Se encontraron {len(issues)} problema(s) reparable(s):[/warning]"
+            )
+            _run_fixes(issues)
+            console.print("\n[primary]Re-auditando tras los fixes...[/primary]\n")
+            for row in _env_check():
+                console.print(f"  {row[0]}  {row[1]}  [muted]{row[2]}[/muted]")
+
+
+# ── Fix helpers ───────────────────────────────────────────────────────────────
+
+
+def _upsert_env_var(key: str, value: str) -> None:
+    """Read ~/.zana/.env, replace existing key or append, then write back."""
+    env_file = Path.home() / ".zana" / ".env"
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+    lines = env_file.read_text().splitlines() if env_file.exists() else []
+    new_lines = [ln for ln in lines if not ln.startswith(f"{key}=")]
+    new_lines.append(f'{key}="{value}"')
+    env_file.write_text("\n".join(new_lines) + "\n")
+
+
+def _collect_fixable_issues() -> list[dict]:
+    """Inspect the environment and return a list of actionable issue dicts."""
+    issues: list[dict] = []
+
+    # --- no_llm_key: none of the known provider keys is set ------------------
+    llm_keys = [
+        "ANTHROPIC_API_KEY",
+        "OPENAI_API_KEY",
+        "GEMINI_API_KEY",
+        "GROQ_API_KEY",
+        "OLLAMA_BASE_URL",
+    ]
+    zana_env = Path.home() / ".zana" / ".env"
+    env_content = zana_env.read_text() if zana_env.exists() else ""
+    has_llm = any(bool(os.getenv(k)) or k in env_content for k in llm_keys)
+    if not has_llm:
+        issues.append(
+            {
+                "id": "no_llm_key",
+                "label": "No hay API key de LLM configurada",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- no_vault_path -------------------------------------------------------
+    vault_set = bool(os.getenv("VAULT_PATH")) or "VAULT_PATH" in env_content
+    if not vault_set:
+        issues.append(
+            {
+                "id": "no_vault_path",
+                "label": "VAULT_PATH no configurado",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- pipx_missing --------------------------------------------------------
+    if not shutil.which("pipx"):
+        issues.append(
+            {
+                "id": "pipx_missing",
+                "label": "pipx no encontrado",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- zana_outdated -------------------------------------------------------
+    if shutil.which("pipx"):
+        issues.append(
+            {
+                "id": "zana_outdated",
+                "label": "vecanova-zana puede tener actualizaciones",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- path_missing_local_bin ----------------------------------------------
+    local_bin = str(Path.home() / ".local" / "bin")
+    if local_bin not in os.environ.get("PATH", ""):
+        issues.append(
+            {
+                "id": "path_missing_local_bin",
+                "label": "~/.local/bin no está en PATH",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- python_old ----------------------------------------------------------
+
+    return issues
+
+
+def _run_fixes(issues: list[dict]) -> None:
+    """Iterate over detected issues and interactively fix each one."""
+    import questionary
+
+    for issue in issues:
+        console.print(f"\n[warning]Problema:[/warning] {issue['label']}")
+
+        if not issue["fixable"]:
+            console.print(f"[muted]Instrucción: {issue['fix_hint']}[/muted]")
+            continue
+
+        if not typer.confirm("  ¿Intentar reparar automáticamente?", default=True):
+            continue
+
+        try:
+            _apply_fix(issue["id"], questionary)
+            console.print("[success]  ✓ Fix aplicado correctamente.[/success]")
+        except Exception as exc:  # noqa: BLE001
+            console.print(f"[error]  ✗ Fix fallido: {exc}[/error]")
+
+
+def _apply_fix(issue_id: str, questionary) -> None:  # noqa: ANN001
+    """Execute the automated repair for a single issue id."""
+    provider_key_map = {
+        "Anthropic (Claude)": "ANTHROPIC_API_KEY",
+        "OpenAI": "OPENAI_API_KEY",
+        "Google Gemini": "GEMINI_API_KEY",
+        "Groq": "GROQ_API_KEY",
+        "Ollama (local)": "OLLAMA_BASE_URL",
+    }
+
+    if issue_id == "no_llm_key":
+        provider = questionary.select(
+            "¿Qué proveedor LLM quieres configurar?",
+            choices=list(provider_key_map.keys()),
+        ).ask()
+        if provider is None:
+            raise RuntimeError("Operación cancelada por el usuario.")
+        key_name = provider_key_map[provider]
+        api_key = questionary.password("Ingresa tu API key:").ask()
+        if not api_key:
+            raise RuntimeError("API key vacía — operación cancelada.")
+        _upsert_env_var(key_name, api_key)
+
+    elif issue_id == "no_vault_path":
+        path_str = questionary.text(
+            "Ruta a tu vault (Obsidian o carpeta de notas):"
+        ).ask()
+        if not path_str:
+            raise RuntimeError("Ruta vacía — operación cancelada.")
+        vault_path = Path(path_str).expanduser()
+        if not vault_path.exists():
+            raise RuntimeError(f"El directorio no existe: {vault_path}")
+        _upsert_env_var("VAULT_PATH", str(vault_path))
+
+    elif issue_id == "pipx_missing":
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--user", "pipx"], check=True
+        )
+
+    elif issue_id == "zana_outdated":
+        pipx_bin = shutil.which("pipx")
+        if pipx_bin:
+            subprocess.run([pipx_bin, "upgrade", "vecanova-zana"], check=True)
+        else:
+            raise RuntimeError("pipx no encontrado — instálalo primero.")
+
+    elif issue_id == "path_missing_local_bin":
+        local_bin = str(Path.home() / ".local" / "bin")
+        path_line = f'\nexport PATH="{local_bin}:$PATH"\n'
+        for rc in ["~/.bashrc", "~/.zshrc", "~/.profile"]:
+            rc_path = Path(rc).expanduser()
+            if rc_path.exists() and local_bin not in rc_path.read_text():
+                rc_path.write_text(rc_path.read_text() + path_line)

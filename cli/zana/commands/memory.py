@@ -20,6 +20,15 @@ CHROMA_URL = os.getenv("ZANA_CHROMA_URL", "http://localhost:58001")
 GATEWAY_URL = f"http://localhost:{os.getenv('ZANA_GATEWAY_PORT', '54446')}"
 
 
+def _is_chroma_online() -> bool:
+    """Return True if ChromaDB heartbeat responds within 2 seconds."""
+    try:
+        httpx.get(f"{CHROMA_URL}/api/v1/heartbeat", timeout=2).raise_for_status()
+        return True
+    except Exception:
+        return False
+
+
 def _chroma_collections() -> list[dict]:
     try:
         r = httpx.get(f"{CHROMA_URL}/api/v1/collections", timeout=5)
@@ -57,6 +66,58 @@ def cmd_memory_search(query: str, collection: str = "zana_vault", n: int = 5) ->
         f"[muted](collection: {collection}, top-{n})[/muted]\n"
     )
 
+    # ------------------------------------------------------------------
+    # SPROUT fallback: ChromaDB offline → SQLite FTS5
+    # ------------------------------------------------------------------
+    if not _is_chroma_online():
+        console.print(
+            "[muted]ChromaDB offline — usando SQLite FTS5 (Modo Soberano)[/muted]\n"
+        )
+        from zana.core.memory_lite import get_db
+
+        db = get_db()
+        results = db.search(query, collection=collection, n=n)
+        db.close()
+
+        if not results:
+            console.print(
+                "[muted]Sin resultados en memoria local. "
+                "Añade documentos con: zana embed[/muted]"
+            )
+            return
+
+        table = Table(
+            show_header=True, header_style="header", box=box.ROUNDED, padding=(0, 1)
+        )
+        table.add_column("#", style="muted", width=3)
+        table.add_column("Score", style="accent", width=7)
+        table.add_column("Source", style="bold white", width=22)
+        table.add_column("Excerpt", style="white")
+
+        for i, result in enumerate(results, 1):
+            score = f"{result['score']:.3f}"
+            source = result["source"]
+            if len(source) > 22:
+                source = "…" + source[-19:]
+            content = result["content"]
+            excerpt = content[:120].replace("\n", " ") + (
+                "…" if len(content) > 120 else ""
+            )
+            table.add_row(str(i), score, source, excerpt)
+
+        console.print(
+            Panel(
+                table,
+                title="[header] Semantic Search Results [/header]",
+                border_style="magenta",
+                padding=(0, 1),
+            )
+        )
+        return
+
+    # ------------------------------------------------------------------
+    # ChromaDB path (online)
+    # ------------------------------------------------------------------
     result = _chroma_query(collection, query, n)
 
     if result is None:
@@ -110,21 +171,43 @@ def cmd_memory_search(query: str, collection: str = "zana_vault", n: int = 5) ->
 
 
 def cmd_memory_recall(n: int = 10) -> None:
-    """Retrieve last N episodic memories via Gateway endpoint."""
+    """Retrieve last N episodic memories via Gateway, or SQLite FTS5 fallback."""
     console.print(
         f"\n[primary]EPISODIC RECALL[/primary] [muted]— last {n} memories[/muted]\n"
     )
+
+    records: list[dict] = []
+    gateway_ok = False
 
     try:
         r = httpx.get(f"{GATEWAY_URL}/memory/episodic?limit={n}", timeout=5)
         r.raise_for_status()
         records = r.json()
+        gateway_ok = True
     except httpx.HTTPStatusError as e:
         console.print(f"[error]Gateway error {e.response.status_code}[/error]")
-        return
     except Exception:
-        console.print("[error]Gateway offline. Run: zana start[/error]")
-        return
+        pass  # fall through to SQLite fallback below
+
+    if not gateway_ok:
+        console.print(
+            "[muted]Gateway offline — usando SQLite FTS5 (Modo Soberano)[/muted]\n"
+        )
+        from zana.core.memory_lite import get_db
+
+        db = get_db()
+        lite_records = db.recall(n)
+        db.close()
+
+        # Normalise field names to match the Gateway shape consumed below
+        records = [
+            {
+                "timestamp": rec["created_at"],
+                "role": rec["source"],
+                "content": rec["content"],
+            }
+            for rec in lite_records
+        ]
 
     if not records:
         console.print("[muted]No episodic records yet.[/muted]")
@@ -165,14 +248,15 @@ def cmd_memory_stats() -> None:
         show_header=True, header_style="header", box=box.ROUNDED, padding=(0, 1)
     )
     table.add_column("Store", style="bold white", width=16)
-    table.add_column("Backend", style="muted", width=16)
+    table.add_column("Backend", style="muted", width=18)
     table.add_column("Collections", width=13)
     table.add_column("Records", width=10)
-    table.add_column("Status", width=12)
+    table.add_column("Status", width=16)
 
     # ChromaDB
-    cols = _chroma_collections()
-    if cols is not None:
+    chroma_online = _is_chroma_online()
+    if chroma_online:
+        cols = _chroma_collections()
         total_docs = 0
         for c in cols:
             try:
@@ -190,7 +274,7 @@ def cmd_memory_stats() -> None:
             "[success]✓ Online[/success]",
         )
     else:
-        table.add_row("Semantic", "ChromaDB", "—", "—", "[error]✗ Offline[/error]")
+        table.add_row("Semantic", "ChromaDB", "—", "—", "[muted]✗ Offline[/muted]")
 
     # Episodic via gateway
     try:
@@ -206,11 +290,31 @@ def cmd_memory_stats() -> None:
         )
     except Exception:
         table.add_row(
-            "Episodic", "PostgreSQL+pgvector", "—", "—", "[error]✗ Offline[/error]"
+            "Episodic", "PostgreSQL+pgvector", "—", "—", "[muted]✗ Offline[/muted]"
         )
 
     table.add_row("World Model", "Neo4j", "—", "—", "[muted]via Gateway[/muted]")
     table.add_row("Procedural", "JSON files", "—", "—", "[success]✓ Local[/success]")
+
+    # SQLite FTS5 — always available (SPROUT tier, no external deps)
+    from zana.core.memory_lite import get_db
+
+    try:
+        db = get_db()
+        lite_stats = db.stats()
+        db.close()
+        col_count = str(len(lite_stats["collections"]))
+        rec_count = str(lite_stats["total"])
+        size_label = f"{lite_stats['db_size_mb']} MB"
+        table.add_row(
+            "SQLite FTS5",
+            f"SQLite ({size_label})",
+            col_count,
+            rec_count,
+            "[success]✓ Local[/success]",
+        )
+    except Exception as exc:
+        table.add_row("SQLite FTS5", "SQLite", "—", "—", f"[error]✗ {exc}[/error]")
 
     console.print(
         Panel(

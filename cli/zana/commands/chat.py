@@ -1,9 +1,10 @@
 import asyncio
 import json
-import os
 import shlex
+from pathlib import Path
 
 import typer
+from rich.table import Table
 
 from zana.tui.theme import console
 
@@ -87,8 +88,8 @@ async def _chat_loop() -> None:
         "\n[primary]ZANA REPL activo. Escribe un mensaje o usa [accent]/help[/accent] para ver comandos. [accent]Ctrl+C[/accent] para salir.[/primary]\n"
     )
 
-    history_file = os.path.expanduser("~/.zana/.chat_history")
-    os.makedirs(os.path.dirname(history_file), exist_ok=True)
+    history_file = Path.home() / ".zana" / ".chat_history"
+    history_file.parent.mkdir(parents=True, exist_ok=True)
 
     if PromptSession is not None:
         style = Style.from_dict(
@@ -161,8 +162,36 @@ async def _chat_loop() -> None:
                 padding=(1, 2),
             )
         )
+
+        _cap_table = Table(
+            show_header=True,
+            header_style="bold magenta",
+            border_style="dim magenta",
+            padding=(0, 1),
+            expand=False,
+        )
+        _cap_table.add_column("Capacidad", style="bold bright_magenta", no_wrap=True)
+        _cap_table.add_column("Ejemplo de uso", style="dim white")
+        _cap_table.add_row("🤝  Compañía", "hola, cómo estás")
+        _cap_table.add_row("🔢  Matemáticas", "calcula 15% de 340")
+        _cap_table.add_row("⏰  Recordatorios", "recuérdame llamar a mamá mañana")
+        _cap_table.add_row("💰  Economía", "gasté $45 en mercado")
+        _cap_table.add_row("🌍  Idiomas", "traduce hello al francés")
+        _cap_table.add_row("🧠  Memoria sesión", "qué recuerdas de antes")
+        _cap_table.add_row("📂  Vault / Notas", "busca nota sobre proyecto")
+        _cap_table.add_row("🍳  Recetas", "receta con pollo y arroz")
+        _cap_table.add_row("🕐  Hora y fecha", "qué hora es / qué día es hoy")
+        _cap_table.add_row("✨  Tu Aeon", "muéstrame mi Aeon / dna")
+        _cap_table.add_row("📊  Nivel actual", "qué nivel tengo / siguiente nivel")
+        _cap_table.add_row("🔐  Civic Ledger", "muestra el audit / ledger")
+        _cap_table.add_row("⚙️  Skills", "qué habilidades tienes")
+        _cap_table.add_row("💬  Chat general", "cualquier pregunta libre")
+        console.print(_cap_table)
+
         console.print(
-            "\n[primary]ZANA Soberano activo. Escribe un mensaje o [accent]/help[/accent] para comandos. [accent]Ctrl+C[/accent] para salir.[/primary]\n"
+            "\n[primary]ZANA Soberano activo. Prueba: [accent]calcula 15% de 340[/accent]"
+            " o [accent]recuérdame estudiar mañana[/accent] · [muted][accent]/help[/accent]"
+            " para comandos · [accent]Ctrl+C[/accent] para salir[/muted][/primary]\n"
         )
 
         while True:

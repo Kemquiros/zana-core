@@ -1,0 +1,112 @@
+name: Release Binaries
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} binary
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact_name: zana-linux-x86_64
+            asset_ext: ""
+          - os: windows-latest
+            artifact_name: zana-windows-x86_64
+            asset_ext: ".exe"
+          - os: macos-latest
+            artifact_name: zana-macos-arm64
+            asset_ext: ""
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install CLI + PyInstaller
+        run: |
+          pip install pyinstaller
+          pip install ./cli
+
+      - name: Extract version from tag
+        id: version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Build binary (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          pyinstaller \
+            --onefile \
+            --name zana \
+            --strip \
+            --clean \
+            $(python -c "import zana.main; print(zana.main.__file__)") \
+            --hidden-import zana \
+            --hidden-import zana.commands \
+            --collect-all zana \
+            --exclude-module tkinter \
+            --exclude-module matplotlib \
+            --exclude-module numpy \
+            --exclude-module PIL \
+            -y
+          mv dist/zana dist/${{ matrix.artifact_name }}
+
+      - name: Build binary (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $zanaMain = python -c "import zana.main; print(zana.main.__file__)"
+          pyinstaller `
+            --onefile `
+            --name zana `
+            --strip `
+            --clean `
+            $zanaMain `
+            --hidden-import zana `
+            --hidden-import zana.commands `
+            --collect-all zana `
+            --exclude-module tkinter `
+            --exclude-module matplotlib `
+            --exclude-module numpy `
+            --exclude-module PIL `
+            -y
+          Move-Item dist\zana.exe dist\${{ matrix.artifact_name }}.exe
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}${{ matrix.asset_ext }}
+          path: dist/${{ matrix.artifact_name }}${{ matrix.asset_ext }}
+          retention-days: 7
+
+  attach-to-release:
+    name: Attach binaries to GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: binaries/
+          merge-multiple: true
+
+      - name: List binaries
+        run: ls -lh binaries/
+
+      - name: Attach to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: binaries/*
+          fail_on_unmatched_files: false
