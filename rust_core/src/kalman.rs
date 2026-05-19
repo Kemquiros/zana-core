@@ -1,6 +1,7 @@
 //! ZANA Steel Core: Cognitive Kalman Filter
 //! Optimized linear algebra for Bayesian surprise detection.
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FilterMode {
     Precision,
