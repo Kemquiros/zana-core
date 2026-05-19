@@ -4,6 +4,7 @@ import json
 import os
 import time
 from dataclasses import asdict, dataclass
+from datetime import UTC
 from pathlib import Path
 
 USER_DIR = Path.home() / ".zana" / "users"
@@ -58,9 +59,9 @@ class UserRegistry:
         archetype: str = "unknown",
     ) -> UserProfile:
         import secrets
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         seed = secrets.token_hex(16)
         profile = UserProfile(
             platform=platform,
@@ -79,11 +80,11 @@ class UserRegistry:
         return UserProfile.load(platform, str(user_id))
 
     def touch(self, platform: str, user_id: str) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         profile = self.get(platform, user_id)
         if profile:
-            profile.last_seen = datetime.now(timezone.utc).isoformat()
+            profile.last_seen = datetime.now(UTC).isoformat()
             profile.save()
 
     def list_all(self) -> list[UserProfile]:
@@ -104,7 +105,7 @@ class UserRegistry:
         return False
 
     def generate_invite_code(self, secret: str = "") -> str:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         ts = str(int(time.time()))
         key = (secret or os.urandom(16).hex()).encode()
@@ -113,7 +114,7 @@ class UserRegistry:
         expires = int(time.time()) + _INVITE_TTL
         invites[code] = {
             "expires": expires,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
         self._save_invites(invites)
         return code
