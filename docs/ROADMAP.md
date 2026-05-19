@@ -130,17 +130,35 @@ curl -fsSL zana.io/install | bash
 | npm auto-sync in CI | ✅ Done | `publish-npm` job — bumps version from tag, publishes `@vecanova/zana` |
 | `zana satellite configure` | → existing | Already implemented in `commands/satellite.py` — Telegram + Discord |
 
-**Sprint 8 — next up:**
+**Sprint 8 — shipped in v3.4.0:**
+
+| Item | Status | Description |
+|---|---|---|
+| `zana memory clear` + `memory delete <id>` | ✅ Done | Full CRUD on SQLite FTS5 — right to be forgotten |
+| `zana memory export` / `import` | ✅ Done | JSON + CSV export, bulk JSON import — Aeon portability |
+| ZSM intent test suite (44 tests) | ✅ Done | `tests/test_zsm_intents.py` — 15 intents, math correctness, fallback |
+| QA runner `--local` flag | ✅ Done | `run_qa.sh --local` installs from source, no PyPI required |
+| `zana mcp` auto-register on `zana init` | ✅ Done | Detects Claude Desktop config, offers MCP block injection |
+| CI/CD restructure (quality→test→rust→release→npm) | ✅ Done | Parallel stages, Cargo cache, coverage artifact, per-tag CHANGELOG |
+| `scripts/sync-release.sh` | ✅ Done | Multi-channel release sync: pyproject + npm + landing + git tag |
+
+**Sprint 9 — next up (v3.4.0 → v3.5.0):**
+
+> **Theme: "Offline Sovereignty"** — Every command that currently requires Docker/Gateway must have a working SPROUT fallback. Z-Skill v1.0 ships.
 
 | Item | Priority | Description |
 |---|---|---|
-| `zana memory clear` + `memory delete <id>` | 🔴 P0 | Users need to manage their memory — no delete command exists |
-| `zana memory export` / `import` | 🟠 P1 | Portable backup of SQLite FTS5 store as JSON/CSV — Aeon portability |
-| `zana chat` ZSM intent coverage | 🟠 P1 | 15 intents declared, test coverage = 0. Add `tests/test_zsm_intents.py` |
-| QA runner: PyPI fallback to local source | 🟠 P1 | Runner fails hard when version not on PyPI — add `--local` flag or auto-fallback |
-| `zana mcp` auto-register on `zana init` | 🟡 P2 | Detect if Claude Desktop config exists → offer to add MCP block during onboarding |
+| Test suite: memory CRUD | 🔴 P0 | No tests for `delete/clear/export/import` — Sprint 8 APIs shipped without coverage. Add `tests/test_memory_crud.py` (≥20 checks) |
+| `develop → main` PR + tag `v3.4.0` | 🔴 P0 | Sprint 8 work is on `develop`, unreleased. Merge + tag triggers full CI/CD pipeline |
+| Z-Skill v1.0 — `zana skill create/list/run` | 🟠 P1 | SKILL.md format (agentskills.io compatible). Local registry at `~/.zana/skills/`. `zana skill run <name> "<prompt>"` executes offline. No Gateway required |
+| Wisdom offline fallback | 🟠 P1 | `zana wisdom inbox` / `mine` / `approve` depend 100% on Gateway. Add SQLite-backed local queue at `~/.zana/wisdom_queue.json` — works without Docker |
+| Sentinel offline event log | 🟠 P1 | `zana sentinel events` / `ledger` require Gateway. Add ring buffer to SQLite (`memory_lite` extension or separate `sentinel_lite.db`). Offline read of Civic Ledger |
+| Satellite smoke tests | 🟡 P2 | `commands/satellite.py` has 0 tests. Add `tests/test_satellite.py` — mock Telegram/Discord, verify config write/read, no real tokens needed |
+| `zana doctor --fix` extended | 🟡 P2 | Add 3 new auto-fix cases: `wisdom_queue.json` missing, `skills/` dir missing, `memory_lite.db` corrupted (auto-rebuild FTS5 index) |
 
-**v3.0 feature queue:**
+**v3.0 feature queue (post Sprint 9):**
+
+> Items below enter sprint planning once Sprint 9 ships.
 
 | Feature | Description |
 |---|---|
