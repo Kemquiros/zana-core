@@ -7,13 +7,18 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
-## [3.3.0] — 2026-05-19
+## [3.3.0] — 2026-05-19 *(Sprint 6 + Sprint 7)*
 
 ### Added
 - **`zana memory add <text>`** — New CLI command that writes directly to the SQLite FTS5 store (SPROUT tier, no Docker required). Options: `--source` (label), `--collection` (namespace), `--tag` (optional metadata). Closes the "second brain" loop: `add → search → recall` now works end-to-end without any external service. (`cli/zana/commands/memory.py`, `cli/zana/main.py`)
 - **REPL `/memory "<fact>"`** — The `zana chat` slash command now actually persists the fact: writes to SQLite FTS5 (`zana_vault` collection) and records an episodic entry simultaneously. Previously showed a success message but discarded the data. (`cli/zana/commands/chat.py:52-64`)
 - **REPL `/query "<question>"`** — The `zana chat` slash command now performs a live FTS5 search and prints ranked results with BM25 scores inline. Previously a no-op. (`cli/zana/commands/chat.py:66-91`)
 - **Security test suite (`cli/tests/test_security.py`)** — 43 automated tests covering: prompt injection (10 payloads × 2 stores), path traversal in `source` and `collection` fields (5 payloads × 2 checks), SQL/FTS5 injection (5 payloads × 2 checks), API key leakage via `stats()`, null byte handling, and 1 MB stress input. All 43 pass.
+- **`zana mcp start`** — Launches the ZANA MCP memory server. Default transport: stdio (for Claude Code, Cline). Options: `--port N` (SSE transport), `--background` (daemon mode). (`cli/zana/main.py`, `mcp/zana-memory/server.py`)
+- **`zana mcp config`** — Prints the ready-to-paste JSON block for `claude_desktop_config.json`. Includes config file locations for macOS, Windows, and Linux. (`cli/zana/main.py`)
+- **MCP server SPROUT-compatible (`mcp/zana-memory/server.py`)** — Full rewrite with tier detection. GROVE+: `zana_steel_core` Rust vector embeddings. SPROUT (no Docker): `memory_lite` SQLite FTS5. New MCP tools: `memory_add()`, `memory_stats()`. SSE transport via `ZANA_MCP_PORT` env var. (`mcp/zana-memory/server.py`)
+- **CI auto-publish PyPI** — `ci.yml` release job now runs `twine upload` automatically on every `v*.*.*` tag using `PYPI_TOKEN` secret. No more manual PyPI publish step. (`.github/workflows/ci.yml`)
+- **CI auto-publish npm** — New `publish-npm` job in `ci.yml`: bumps `packages/zana-npm/package.json` version from tag, then publishes `@vecanova/zana` to npm using `NPM_TOKEN` secret. (`.github/workflows/ci.yml`)
 
 ---
 
