@@ -120,14 +120,25 @@ curl -fsSL zana.io/install | bash
 | Security tests (43) | ✅ Done | Prompt injection, path traversal, SQL injection, API key exposure, stress |
 | MCP server | → Sprint 7 | Adapt `mcp/zana-memory` to SQLite SPROUT + `zana mcp start` CLI command |
 
-**Sprint 7 — next up:**
+**Sprint 7 — shipped in v3.3.0:**
+
+| Item | Status | Description |
+|---|---|---|
+| Auto-publish PyPI on `v*` tag | ✅ Done | `twine upload` in release job — tag = publish |
+| MCP server SPROUT-compatible | ✅ Done | `mcp/zana-memory/server.py` rewritten — GROVE+ Rust or SPROUT SQLite FTS5 |
+| `zana mcp start` / `zana mcp config` | ✅ Done | Full CLI for launching MCP server and generating config block |
+| npm auto-sync in CI | ✅ Done | `publish-npm` job — bumps version from tag, publishes `@vecanova/zana` |
+| `zana satellite configure` | → existing | Already implemented in `commands/satellite.py` — Telegram + Discord |
+
+**Sprint 8 — next up:**
 
 | Item | Priority | Description |
 |---|---|---|
-| Auto-publish PyPI on `v*` tag | 🔴 P0 | Add `publish-pypi` job to CI — eliminates ~30min manual step per release |
-| MCP server SPROUT-compatible | 🟠 P1 | Adapt `mcp/zana-memory/server.py` to `memory_lite` — any MCP client connects offline |
-| `zana satellite configure` | 🟠 P1 | Wizard to configure Telegram bot token → Aeon responds via Telegram |
-| npm auto-sync in CI | 🟡 P2 | Add `publish-npm` job alongside PyPI — uses existing `NPM_TOKEN` secret |
+| `zana memory clear` + `memory delete <id>` | 🔴 P0 | Users need to manage their memory — no delete command exists |
+| `zana memory export` / `import` | 🟠 P1 | Portable backup of SQLite FTS5 store as JSON/CSV — Aeon portability |
+| `zana chat` ZSM intent coverage | 🟠 P1 | 15 intents declared, test coverage = 0. Add `tests/test_zsm_intents.py` |
+| QA runner: PyPI fallback to local source | 🟠 P1 | Runner fails hard when version not on PyPI — add `--local` flag or auto-fallback |
+| `zana mcp` auto-register on `zana init` | 🟡 P2 | Detect if Claude Desktop config exists → offer to add MCP block during onboarding |
 
 **v3.0 feature queue:**
 
