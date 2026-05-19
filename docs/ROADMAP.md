@@ -1,6 +1,6 @@
 # ZANA Roadmap
 **"Every person in the world can have their own Aeon"**
-Last updated: 2026-05-02 | Version: 3.0
+Last updated: 2026-05-19 | Version: 3.2
 
 ---
 
@@ -110,6 +110,17 @@ curl -fsSL zana.io/install | bash
 # → first conversation in < 3 minutes
 # → zero API keys required
 ```
+
+**Sprint 6 — v3.2.x critical gaps (identified via QA audit):**
+
+| Item | Priority | Description |
+|---|---|---|
+| `zana memory add <text>` | 🔴 P0 | Missing CLI command to populate SQLite FTS5 from the terminal — closes the SPROUT "second brain" loop |
+| REPL `/memory` + `/query` | 🟠 P1 | Handlers have explicit `# TODO` in `chat.py:55,64` — backend ready, just needs wiring |
+| Security test automation | 🟠 P1 | Zero automated coverage for prompt injection, path traversal, API key exposure |
+| MCP server | 🟡 P2 | `mcp/` directory exists but no functional server exposed — scheduled for v3.5 |
+
+**v3.0 feature queue:**
 
 | Feature | Description |
 |---|---|
