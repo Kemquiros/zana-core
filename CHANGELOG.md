@@ -7,6 +7,13 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.2.1] — 2026-05-19
+
+### Fixed
+- **`zana --version`** — resolvía `version("zana")` (siempre fallaba → mostraba "2.0.0"). Corregido a `version("vecanova-zana")`. Detectado en QA post-release v3.2.0.
+
+---
+
 ## [3.2.0] — 2026-05-18
 
 ### Added
