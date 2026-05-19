@@ -520,6 +520,26 @@ def aeon_tune(
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 
+@memory_app.command(
+    "add", help="Add a document to local SQLite FTS5 memory (no Docker required)."
+)
+def memory_add(
+    text: Annotated[str, typer.Argument(help="Text to store in memory.")],
+    source: Annotated[
+        str, typer.Option("--source", "-s", help="Source label.")
+    ] = "cli",
+    collection: Annotated[
+        str, typer.Option("--collection", "-c", help="Collection name.")
+    ] = "zana_vault",
+    tag: Annotated[
+        str | None, typer.Option("--tag", "-t", help="Optional tag.")
+    ] = None,
+) -> None:
+    from zana.commands.memory import cmd_memory_add
+
+    cmd_memory_add(text, source=source, collection=collection, tag=tag)
+
+
 @memory_app.command("search", help="Semantic search in ChromaDB vault.")
 def memory_search(
     query: Annotated[str, typer.Argument(help="Natural language query.")],

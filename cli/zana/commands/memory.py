@@ -60,6 +60,37 @@ def _chroma_query(collection: str, query_text: str, n_results: int = 5) -> dict 
         return {"error": str(e)}
 
 
+def cmd_memory_add(
+    text: str,
+    source: str = "cli",
+    collection: str = "zana_vault",
+    tag: str | None = None,
+) -> None:
+    """Add a document to SQLite FTS5 memory (SPROUT tier — no Docker required)."""
+    console.print("\n[primary]MEMORY ADD[/primary]\n")
+
+    metadata: dict = {}
+    if tag:
+        metadata["tag"] = tag
+
+    from zana.core.memory_lite import get_db
+
+    db = get_db()
+    doc_id = db.add(text, source=source, collection=collection, metadata=metadata)
+    db.close()
+
+    console.print(
+        Panel(
+            f"[success]✓ Guardado[/success]  ID: [accent]{doc_id}[/accent]\n"
+            f"[muted]Colección:[/muted] {collection}   [muted]Fuente:[/muted] {source}"
+            + (f"   [muted]Tag:[/muted] {tag}" if tag else ""),
+            title="[header] SQLite FTS5 — Modo Soberano [/header]",
+            border_style="magenta",
+            padding=(0, 1),
+        )
+    )
+
+
 def cmd_memory_search(query: str, collection: str = "zana_vault", n: int = 5) -> None:
     console.print(
         f'\n[primary]MEMORY SEARCH[/primary] [muted]→ "{query}"[/muted] '

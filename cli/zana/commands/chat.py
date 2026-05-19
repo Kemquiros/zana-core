@@ -49,10 +49,18 @@ def _handle_slash_command(command: str) -> bool:
             console.print('[warning]Usage: /memory "<fact>"[/warning]')
             return True
         fact = " ".join(cmd_parts[1:])
-        console.print(
-            f"[success]Memory injected to the Episodic Store:[/success] [muted]{fact}[/muted]"
-        )
-        # TODO: send special memory payload to websocket or invoke memory module
+        try:
+            from zana.core.memory_lite import get_db
+
+            db = get_db()
+            doc_id = db.add(fact, source="repl", collection="zana_vault")
+            db.add_episodic("user", fact)
+            db.close()
+            console.print(
+                f"[success]✓ Memory saved[/success] [muted](id:{doc_id})[/muted] — [muted]{fact[:80]}[/muted]"
+            )
+        except Exception as exc:
+            console.print(f"[error]Memory write failed: {exc}[/error]")
         return True
 
     elif base_cmd == "/query":
@@ -60,10 +68,26 @@ def _handle_slash_command(command: str) -> bool:
             console.print('[warning]Usage: /query "<question>"[/warning]')
             return True
         q = " ".join(cmd_parts[1:])
-        console.print(
-            f"[secondary]Searching Z-Network for:[/secondary] [muted]{q}[/muted]"
-        )
-        # TODO: Send query payload
+        try:
+            from zana.core.memory_lite import get_db
+
+            db = get_db()
+            results = db.search(q, collection="zana_vault", n=5)
+            db.close()
+            if results:
+                console.print(
+                    f"\n[secondary]Memory results for:[/secondary] [muted]{q}[/muted]\n"
+                )
+                for i, r in enumerate(results, 1):
+                    excerpt = r["content"][:120].replace("\n", " ")
+                    console.print(
+                        f"  [accent]{i}.[/accent] [muted]({r['score']:.3f})[/muted] {excerpt}"
+                    )
+                console.print()
+            else:
+                console.print(f"[muted]No memories found for: {q}[/muted]")
+        except Exception as exc:
+            console.print(f"[error]Memory query failed: {exc}[/error]")
         return True
 
     elif base_cmd.startswith("/"):
