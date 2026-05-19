@@ -272,6 +272,119 @@ def cmd_memory_recall(n: int = 10) -> None:
     )
 
 
+def cmd_memory_delete(doc_id: int) -> None:
+    """Delete a single document by ID."""
+    console.print(f"\n[primary]MEMORY DELETE[/primary] [muted]id={doc_id}[/muted]\n")
+    from zana.core.memory_lite import get_db
+
+    db = get_db()
+    deleted = db.delete(doc_id)
+    db.close()
+
+    if deleted:
+        console.print(f"[success]✓ Documento {doc_id} eliminado.[/success]")
+    else:
+        console.print(f"[error]✗ No existe ningún documento con id={doc_id}.[/error]")
+
+
+def cmd_memory_clear(collection: str | None = None) -> None:
+    """Delete all documents — optionally scoped to one collection."""
+    target = f"colección '{collection}'" if collection else "TODAS las colecciones"
+    console.print(f"\n[primary]MEMORY CLEAR[/primary] [muted]→ {target}[/muted]\n")
+
+    from zana.core.memory_lite import get_db
+
+    db = get_db()
+    count = db.clear(collection=collection)
+    db.close()
+
+    console.print(f"[success]✓ {count} documentos eliminados de {target}.[/success]")
+
+
+def cmd_memory_export(
+    collection: str | None = None,
+    fmt: str = "json",
+    output: str | None = None,
+) -> None:
+    """Export SQLite FTS5 memory to JSON or CSV."""
+    import csv
+    import json as _json
+    import sys
+
+    console.print(f"\n[primary]MEMORY EXPORT[/primary] [muted]format={fmt}[/muted]\n")
+
+    from zana.core.memory_lite import get_db
+
+    db = get_db()
+    docs = db.export_docs(collection=collection)
+    db.close()
+
+    if not docs:
+        console.print("[muted]Sin documentos para exportar.[/muted]")
+        return
+
+    dest = open(output, "w", encoding="utf-8") if output else sys.stdout  # noqa: SIM115
+
+    if fmt == "csv":
+        writer = csv.DictWriter(
+            dest,
+            fieldnames=[
+                "id",
+                "collection",
+                "source",
+                "content",
+                "metadata",
+                "created_at",
+            ],
+        )
+        writer.writeheader()
+        for doc in docs:
+            doc["metadata"] = _json.dumps(doc["metadata"], ensure_ascii=False)
+            writer.writerow(doc)
+    else:
+        _json.dump(docs, dest, ensure_ascii=False, indent=2)
+        dest.write("\n")
+
+    if output:
+        dest.close()
+        console.print(
+            f"[success]✓ {len(docs)} documentos exportados → {output}[/success]"
+        )
+    else:
+        console.print(f"\n[muted]— {len(docs)} documentos —[/muted]")
+
+
+def cmd_memory_import(path: str) -> None:
+    """Import documents from a JSON file into SQLite FTS5 memory."""
+    import json as _json
+
+    console.print(f"\n[primary]MEMORY IMPORT[/primary] [muted]{path}[/muted]\n")
+
+    from zana.core.memory_lite import get_db
+
+    try:
+        with open(path, encoding="utf-8") as f:
+            docs = _json.load(f)
+    except FileNotFoundError:
+        console.print(f"[error]✗ Archivo no encontrado: {path}[/error]")
+        return
+    except _json.JSONDecodeError as e:
+        console.print(f"[error]✗ JSON inválido: {e}[/error]")
+        return
+
+    if not isinstance(docs, list):
+        console.print(
+            "[error]✗ El archivo debe contener una lista JSON de documentos.[/error]"
+        )
+        return
+
+    db = get_db()
+    inserted = db.import_docs(docs)
+    db.close()
+
+    console.print(f"[success]✓ {inserted} documentos importados.[/success]")
+
+
 def cmd_memory_stats() -> None:
     console.print("\n[primary]MEMORY STATS[/primary]\n")
 

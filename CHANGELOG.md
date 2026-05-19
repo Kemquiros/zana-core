@@ -7,6 +7,30 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.4.0] — 2026-05-19 *(Sprint 8)*
+
+### Added
+- **`zana memory delete <id>`** — Delete a single document from local SQLite FTS5 memory by ID. Right-to-be-forgotten at record level. (`cli/zana/commands/memory.py`, `cli/zana/main.py`)
+- **`zana memory clear [--collection] [--yes]`** — Bulk delete all documents, optionally scoped to one collection. Requires confirmation prompt unless `--yes` is passed. FTS5 index is rebuilt after delete. (`cli/zana/core/memory_lite.py:delete()`, `clear()`)
+- **`zana memory export [--output] [--collection] [--format json|csv]`** — Export SQLite FTS5 memory to JSON (default) or CSV. Streams to stdout if no `--output` given. Enables portable Aeon backups. (`cli/zana/commands/memory.py:cmd_memory_export()`)
+- **`zana memory import <file>`** — Bulk import documents from a JSON file exported by `zana memory export`. Validates format before insert. (`cli/zana/commands/memory.py:cmd_memory_import()`)
+- **`memory_lite` CRUD methods** — `delete(id)`, `clear(collection)`, `export_docs(collection)`, `import_docs(docs)` added to `MemoryLiteDB`. (`cli/zana/core/memory_lite.py`)
+- **ZSM intent test suite (`cli/tests/test_zsm_intents.py`)** — 44 automated tests covering all 15 ZSM intent buckets (companion, help, math, reminder, economy, language, memory, vault, cook, time, tier, aeon, ledger, skill), math result correctness, and unknown query fallback. 0% → 100% intent coverage.
+- **QA runner `--local` flag (`scripts/run_qa.sh`)** — `bash run_qa.sh 3.4.0 --local` installs from local source via `pip install -e cli/` instead of failing when the version is not yet on PyPI. Resolves pre-release QA blocker.
+- **MCP auto-register on `zana init`** — `_offer_mcp_registration()` in `onboarding.py` detects Claude Desktop config file (macOS/Linux/Windows paths), offers to inject the `"zana"` MCP server block, or prints the manual snippet if no config is found.
+- **CI/CD restructure** — Pipeline split into 4 focused jobs: `quality` (ruff lint + format + mypy + secrets scan), `test` (pytest with coverage XML artifact), `rust` (fmt + clippy + build with Cargo cache), `release` (GitHub Release + PyPI with per-tag CHANGELOG extraction), `publish-npm`. `test` and `rust` run in parallel. (`.github/workflows/ci.yml`)
+- **`scripts/sync-release.sh`** — Multi-channel release sync script (not CI). Bumps `cli/pyproject.toml`, `packages/zana-npm/package.json`, updates `zana-landing` version badges (Navbar + capabilities page), creates annotated git tag, pushes to origin. Flags: `--dry-run`, `--no-push`. Guards: semver validation, uncommitted changes check, CHANGELOG entry verification.
+- **Git branching strategy** — `main` (production, PR + CI required) → `develop` (integration, CI required) → `feat/*`, `fix/*`, `hotfix/*`, `chore/*`, `release/*` (short-lived). Branch protection rules set on GitHub. All Sprint 8 work shipped via PR #1.
+
+### Fixed
+- **ZSM language lesson crash in CI** — `_exec_language_lesson()` wrote to `~/.zana/vocab_ptr_en.txt` without creating the parent directory first, causing `FileNotFoundError` in clean CI environments. Fixed with `ZANA_HOME.mkdir(parents=True, exist_ok=True)` + silent except on write failure. (`cli/zana/core/zsm.py:819`)
+- **Rust `FilterMode` dead-code warning** — Variants `Precision`, `Temporal`, `Hybrid` flagged by `cargo clippy -D warnings`. Added `#[allow(dead_code)]` to preserve the public API. (`rust_core/src/kalman.rs`)
+- **Rust formatting drift** — `cargo fmt -- --check` was failing in CI due to style differences in `brain.rs`, `kalman.rs`, `main.rs`, `lib.rs`, `memory.rs`, `armor/src/lib.rs`. Applied `cargo fmt` across both crates. (`rust_core/src/`, `armor/src/`)
+- **Ruff UP017** — `timezone.utc` → `datetime.UTC` in 3 locations in `cli/zana/core/multiuser.py`.
+- **GitHub Actions Node.js 20 deprecation** — Added `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` as workflow-level env var to opt into Node.js 24 before the forced migration on 2026-06-02.
+
+---
+
 ## [3.3.0] — 2026-05-19 *(Sprint 6 + Sprint 7)*
 
 ### Added

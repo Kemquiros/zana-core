@@ -569,6 +569,66 @@ def memory_stats() -> None:
     cmd_memory_stats()
 
 
+@memory_app.command("delete", help="Delete a document by ID from local SQLite memory.")
+def memory_delete(
+    doc_id: int = typer.Argument(
+        ..., help="Document ID to delete (see: zana memory search)"
+    ),
+) -> None:
+    from zana.commands.memory import cmd_memory_delete
+
+    cmd_memory_delete(doc_id)
+
+
+@memory_app.command(
+    "clear", help="Delete all documents — optionally from one collection only."
+)
+def memory_clear(
+    collection: str | None = typer.Option(
+        None, "--collection", "-c", help="Collection to clear (omit = all)."
+    ),
+    yes: bool = typer.Option(False, "--yes", "-y", help="Skip confirmation prompt."),
+) -> None:
+    from zana.commands.memory import cmd_memory_clear
+
+    if not yes:
+        target = f"'{collection}'" if collection else "ALL collections"
+        confirm = typer.confirm(f"Delete all documents from {target}?", default=False)
+        if not confirm:
+            raise typer.Abort()
+    cmd_memory_clear(collection=collection)
+
+
+@memory_app.command("export", help="Export SQLite FTS5 memory to JSON or CSV.")
+def memory_export(
+    output: str | None = typer.Option(
+        None, "--output", "-o", help="Output file path (default: stdout)."
+    ),
+    collection: str | None = typer.Option(
+        None, "--collection", "-c", help="Export only this collection."
+    ),
+    fmt: str = typer.Option(
+        "json", "--format", "-f", help="Output format: json or csv."
+    ),
+) -> None:
+    from zana.commands.memory import cmd_memory_export
+
+    cmd_memory_export(collection=collection, fmt=fmt, output=output)
+
+
+@memory_app.command(
+    "import", help="Import documents from a JSON file into SQLite FTS5 memory."
+)
+def memory_import(
+    path: str = typer.Argument(
+        ..., help="Path to the JSON file exported by 'zana memory export'."
+    ),
+) -> None:
+    from zana.commands.memory import cmd_memory_import
+
+    cmd_memory_import(path)
+
+
 # ── Shadow sub-commands ───────────────────────────────────────────────────────
 
 

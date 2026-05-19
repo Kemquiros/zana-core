@@ -212,6 +212,86 @@ class MemoryLiteDB:
             for row in rows
         ]
 
+    def delete(self, doc_id: int) -> bool:
+        """Delete a document by ID.
+
+        Returns True if a row was deleted, False if the ID did not exist.
+        """
+        cur = self._conn.execute("DELETE FROM documents WHERE id = ?", (doc_id,))
+        self._conn.commit()
+        return cur.rowcount > 0
+
+    def clear(self, collection: str | None = None) -> int:
+        """Delete all documents in *collection*, or every document if collection is None.
+
+        Returns the number of rows deleted.
+        """
+        if collection is None:
+            cur = self._conn.execute("DELETE FROM documents")
+        else:
+            cur = self._conn.execute(
+                "DELETE FROM documents WHERE collection = ?", (collection,)
+            )
+        self._conn.commit()
+        # Keep FTS5 index in sync after bulk delete
+        self._conn.execute(
+            "INSERT INTO documents_fts(documents_fts) VALUES ('rebuild')"
+        )
+        self._conn.commit()
+        return cur.rowcount
+
+    def export_docs(self, collection: str | None = None) -> list[dict]:
+        """Return all documents (optionally filtered by collection) as plain dicts."""
+        if collection is None:
+            rows = self._conn.execute(
+                "SELECT id, collection, source, content, metadata, created_at FROM documents"
+                " ORDER BY created_at"
+            ).fetchall()
+        else:
+            rows = self._conn.execute(
+                "SELECT id, collection, source, content, metadata, created_at FROM documents"
+                " WHERE collection = ? ORDER BY created_at",
+                (collection,),
+            ).fetchall()
+
+        result = []
+        for row in rows:
+            try:
+                meta = json.loads(row["metadata"] or "{}")
+            except (json.JSONDecodeError, TypeError):
+                meta = {}
+            result.append(
+                {
+                    "id": row["id"],
+                    "collection": row["collection"],
+                    "source": row["source"],
+                    "content": row["content"],
+                    "metadata": meta,
+                    "created_at": row["created_at"],
+                }
+            )
+        return result
+
+    def import_docs(self, docs: list[dict]) -> int:
+        """Bulk-insert documents from a list of dicts.
+
+        Accepted keys: collection, source, content, metadata (optional).
+        Returns the number of documents inserted.
+        """
+        inserted = 0
+        for doc in docs:
+            content = doc.get("content", "")
+            if not content:
+                continue
+            self.add(
+                content=content,
+                source=doc.get("source", ""),
+                collection=doc.get("collection", "zana_vault"),
+                metadata=doc.get("metadata") or {},
+            )
+            inserted += 1
+        return inserted
+
     def stats(self) -> dict:
         """Return aggregate statistics for the database.
 
