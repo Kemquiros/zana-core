@@ -111,14 +111,23 @@ curl -fsSL zana.io/install | bash
 # → zero API keys required
 ```
 
-**Sprint 6 — v3.2.x critical gaps (identified via QA audit):**
+**Sprint 6 — shipped in v3.3.0:**
+
+| Item | Status | Description |
+|---|---|---|
+| `zana memory add <text>` | ✅ Done | CLI command populates SQLite FTS5 directly — SPROUT "second brain" loop closed |
+| REPL `/memory` + `/query` | ✅ Done | Both commands now persist and search via `memory_lite` — no more no-ops |
+| Security tests (43) | ✅ Done | Prompt injection, path traversal, SQL injection, API key exposure, stress |
+| MCP server | → Sprint 7 | Adapt `mcp/zana-memory` to SQLite SPROUT + `zana mcp start` CLI command |
+
+**Sprint 7 — next up:**
 
 | Item | Priority | Description |
 |---|---|---|
-| `zana memory add <text>` | 🔴 P0 | Missing CLI command to populate SQLite FTS5 from the terminal — closes the SPROUT "second brain" loop |
-| REPL `/memory` + `/query` | 🟠 P1 | Handlers have explicit `# TODO` in `chat.py:55,64` — backend ready, just needs wiring |
-| Security test automation | 🟠 P1 | Zero automated coverage for prompt injection, path traversal, API key exposure |
-| MCP server | 🟡 P2 | `mcp/` directory exists but no functional server exposed — scheduled for v3.5 |
+| Auto-publish PyPI on `v*` tag | 🔴 P0 | Add `publish-pypi` job to CI — eliminates ~30min manual step per release |
+| MCP server SPROUT-compatible | 🟠 P1 | Adapt `mcp/zana-memory/server.py` to `memory_lite` — any MCP client connects offline |
+| `zana satellite configure` | 🟠 P1 | Wizard to configure Telegram bot token → Aeon responds via Telegram |
+| npm auto-sync in CI | 🟡 P2 | Add `publish-npm` job alongside PyPI — uses existing `NPM_TOKEN` secret |
 
 **v3.0 feature queue:**
 
