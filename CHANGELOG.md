@@ -7,6 +7,30 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.2.0] — 2026-05-18
+
+### Added
+- **Universal installer `scripts/install.sh`** — One-liner for Linux and macOS. Detects OS and package manager (apt/dnf/pacman/brew), installs Python 3.12 via pyenv if missing, installs pipx, installs `vecanova-zana`, and launches `zana init` automatically. Usage: `curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.sh | sh`
+- **Windows installer `scripts/install.ps1`** — PowerShell 5.1+/7+ script. Uses winget to install Python 3.12, then pipx, then `vecanova-zana`. Sets PATH and launches `zana init`. Usage: `irm https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.ps1 | iex`
+- **`zana uninstall`** — New CLI command for controlled uninstallation. Default (partial) removes only the package. `--purge` removes package + all data directories (`~/.zana/`, `~/.local/share/com.vecanova.zana/`). Purge mode requires typing the exact phrase `eliminar zana` as an anti-typo confirmation guard. Supports `--yes` for scripted/CI usage.
+- **`zana doctor --fix`** — Extends the existing audit command with interactive auto-remediation. Detects 6 fixable issues (missing LLM key, invalid vault path, pipx not found, outdated package, PATH not set, missing API key env var) and offers to fix each in-session via `typer.confirm`. Writes env vars to `~/.zana/.env` via `_upsert_env_var()`.
+- **Offline memory — SQLite FTS5 (`cli/zana/core/memory_lite.py`)** — Zero-dependency local memory backend using Python's built-in SQLite FTS5. DB at `~/.zana/memory_lite.db` (WAL mode). Supports `add()`, `add_episodic()`, `search()` (BM25 ranking, score 0→1), `recall()`, `stats()`. Enables `zana memory search` and `zana memory recall` without Docker or ChromaDB.
+- **`zana memory` offline fallback** — `cmd_memory_search`, `cmd_memory_recall`, and `cmd_memory_stats` now automatically fall back to SQLite FTS5 when ChromaDB/Gateway are offline (Modo Soberano / SPROUT tier).
+- **Standalone binary pipeline (`.github/workflows/release-binaries.yml`)** — GitHub Actions matrix (ubuntu-22.04, windows-latest, macos-latest) builds PyInstaller `--onefile` binaries on every `v*.*.*` tag and attaches them to the GitHub Release. Artifacts: `zana-linux-x86_64`, `zana-windows-x86_64.exe`, `zana-macos-arm64`.
+- **Local binary build script (`scripts/build-binary.sh`)** — Reproducible local build using the same PyInstaller flags as CI. Detects Linux/macOS, installs PyInstaller, and outputs the binary to `dist/`.
+- **Real hardware detection (`zana hardware`)** — Full rewrite without `psutil`. Detects RAM via `/proc/meminfo` (Linux), `sysctl hw.memsize` (macOS), `wmic` (Windows). GPU via `nvidia-smi` or Apple Silicon arm64 detection. 14 LLM models across 5 RAM tiers with fit labels (✓ Encaja / ⚠ Justo / ✗ No alcanza). Three Rich panels with `box.ROUNDED` and `border_style="magenta"`.
+- **ZSM capabilities screen in `zana chat`** — When the offline ZSM fallback activates, a Rich table with 14 intent categories is now shown, replacing the previous silent activation. Users immediately see what works without internet or LLM.
+- **ZSM capabilities screen in `zana init`** — Post-wizard screen (`_render_zsm_capabilities()` in `onboarding.py`) shows the same 14 capabilities with "→ Ejecuta: zana chat" call-to-action. No longer silently hidden from new users.
+
+### Changed
+- **`zana --help`** — Description updated to `"ZANA — Zero Autonomous Neural Architecture · Works offline · No Docker required"`.
+- **`README.md`** — Badge updated to v3.1.1 → v3.2.0. Platform badge: `Linux · macOS · Windows WSL` → `Linux · macOS · Windows`. Quick Start section now has 4 install methods: curl one-liner, PowerShell iex, pip manual, standalone binary download.
+
+### Fixed
+- **`zana doctor` ChromaDB tuple** — The `services` list had a 4-element entry missing the service name. Fixed to 5-element tuple: `("ChromaDB", "http", url, None, "Semantic Memory")`.
+
+---
+
 ## [3.1.0] — 2026-05-09
 
 ### Added

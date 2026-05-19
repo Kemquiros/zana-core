@@ -134,7 +134,8 @@ jobs:
           files: |
             cli/dist/*.whl
             cli/dist/*.tar.gz
-            install.sh
+            scripts/install.sh
+            scripts/install.ps1
             zana_steel_core.so
             zana_armor.so
           draft: false
