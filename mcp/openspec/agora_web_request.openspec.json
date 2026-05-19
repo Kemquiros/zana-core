@@ -1,0 +1,18 @@
+{
+  "name": "agora_web_request",
+  "version": "1.0.0",
+  "description": "Standardized interface for outbound web requests within ZANA.",
+  "interface": {
+    "request": {
+      "url": "string",
+      "method": "string",
+      "headers": "object",
+      "body": "object"
+    },
+    "response": {
+      "status": "integer",
+      "data": "object",
+      "error": "string"
+    }
+  }
+}

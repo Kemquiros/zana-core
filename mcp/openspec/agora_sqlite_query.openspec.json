@@ -1,0 +1,16 @@
+{
+  "name": "agora_sqlite_query",
+  "version": "1.0.0",
+  "description": "Standardized interface for local SQLite FTS5 memory queries.",
+  "interface": {
+    "request": {
+      "query": "string",
+      "collection": "string",
+      "limit": "integer"
+    },
+    "response": {
+      "results": "array",
+      "error": "string"
+    }
+  }
+}

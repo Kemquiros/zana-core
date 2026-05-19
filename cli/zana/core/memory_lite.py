@@ -9,7 +9,6 @@ import json
 import sqlite3
 from pathlib import Path
 
-
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS documents (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,

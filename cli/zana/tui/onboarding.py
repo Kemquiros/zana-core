@@ -939,20 +939,20 @@ def _render_zsm_capabilities(aeon_name: str, lang: str) -> None:
     table.add_column("Ejemplo", style="bold bright_magenta", ratio=3)
 
     capabilities = [
-        ("Compañía y chat",        "hola, ¿cómo estás?"),
-        ("Matemáticas",            "calcula 15% de 340"),
-        ("Recordatorios",          "recuérdame llamar a mamá mañana"),
-        ("Economía doméstica",     "gasté $45 en mercado"),
+        ("Compañía y chat", "hola, ¿cómo estás?"),
+        ("Matemáticas", "calcula 15% de 340"),
+        ("Recordatorios", "recuérdame llamar a mamá mañana"),
+        ("Economía doméstica", "gasté $45 en mercado"),
         ("Idiomas y traducciones", "traduce hello al francés"),
-        ("Memoria de sesión",      "¿qué recuerdas de antes?"),
-        ("Vault / Notas",          "busca nota sobre proyecto"),
-        ("Recetas y cocina",       "receta con pollo y arroz"),
-        ("Hora y fecha",           "¿qué hora es?"),
-        ("Tu Aeon (identidad)",    "muéstrame mi ADN / sigilo"),
-        ("Nivel y progresión",     "¿cuál es mi siguiente nivel?"),
-        ("Civic Ledger",           "muestra el audit"),
-        ("Skills y workflows",     "¿qué habilidades tienes?"),
-        ("Chat libre",             "cualquier pregunta"),
+        ("Memoria de sesión", "¿qué recuerdas de antes?"),
+        ("Vault / Notas", "busca nota sobre proyecto"),
+        ("Recetas y cocina", "receta con pollo y arroz"),
+        ("Hora y fecha", "¿qué hora es?"),
+        ("Tu Aeon (identidad)", "muéstrame mi ADN / sigilo"),
+        ("Nivel y progresión", "¿cuál es mi siguiente nivel?"),
+        ("Civic Ledger", "muestra el audit"),
+        ("Skills y workflows", "¿qué habilidades tienes?"),
+        ("Chat libre", "cualquier pregunta"),
     ]
 
     for capability, example in capabilities:
@@ -969,7 +969,7 @@ def _render_zsm_capabilities(aeon_name: str, lang: str) -> None:
     console.print(panel)
     console.print()
     console.print(
-        f"  [muted]→ Ejecuta:[/muted] [bold bright_magenta]zana chat[/bold bright_magenta]"
+        "  [muted]→ Ejecuta:[/muted] [bold bright_magenta]zana chat[/bold bright_magenta]"
         "   [muted](funciona ahora mismo)[/muted]"
     )
     console.print()
