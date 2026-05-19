@@ -63,9 +63,9 @@ def _version_callback(value: bool) -> None:
         from importlib.metadata import version
 
         try:
-            v = version("zana")
+            v = version("vecanova-zana")
         except Exception:
-            v = "2.0.0"
+            v = "3.2.0"
         console.print(f"[primary]ZANA[/primary] [muted]v{v}[/muted]")
         raise typer.Exit()
 
