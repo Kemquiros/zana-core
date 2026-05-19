@@ -9,9 +9,9 @@ Verifica todas las entradas y salidas del sistema contra:
 - Payload size limits
 */
 
-use std::borrow::Cow;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 use std::sync::OnceLock;
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -43,12 +43,12 @@ pub struct ArmorVerdict {
 // ── Compiled patterns (initialized once) ─────────────────────────────────────
 
 struct Patterns {
-    injection:  Vec<Regex>,
-    pii_email:  Regex,
-    pii_phone:  Regex,
-    pii_cc:     Regex,
-    api_key:    Regex,
-    banned_fx:  Vec<Regex>,
+    injection: Vec<Regex>,
+    pii_email: Regex,
+    pii_phone: Regex,
+    pii_cc: Regex,
+    api_key: Regex,
+    banned_fx: Vec<Regex>,
 }
 
 static PATTERNS: OnceLock<Patterns> = OnceLock::new();
@@ -73,8 +73,11 @@ fn patterns() -> &'static Patterns {
 
         pii_email: Regex::new(r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}").unwrap(),
         pii_phone: Regex::new(r"\b(\+?[\d\s\-().]{10,17})\b").unwrap(),
-        pii_cc:    Regex::new(r"\b(?:\d[ -]?){13,16}\b").unwrap(),
-        api_key:   Regex::new(r"(?i)(sk-[a-zA-Z0-9]{32,}|AIza[0-9A-Za-z\-_]{35}|ya29\.[0-9A-Za-z\-_]+)").unwrap(),
+        pii_cc: Regex::new(r"\b(?:\d[ -]?){13,16}\b").unwrap(),
+        api_key: Regex::new(
+            r"(?i)(sk-[a-zA-Z0-9]{32,}|AIza[0-9A-Za-z\-_]{35}|ya29\.[0-9A-Za-z\-_]+)",
+        )
+        .unwrap(),
 
         banned_fx: [
             r"(?i)EMERGENCY_SHUTDOWN",
@@ -141,7 +144,11 @@ pub fn inspect_input(text: &str) -> ArmorVerdict {
             severity: ThreatLevel::Dangerous,
             detail: "API key / token detected in input".into(),
         });
-        sanitized = Cow::Owned(p.api_key.replace_all(&sanitized, "[REDACTED_KEY]").into_owned());
+        sanitized = Cow::Owned(
+            p.api_key
+                .replace_all(&sanitized, "[REDACTED_KEY]")
+                .into_owned(),
+        );
     }
 
     // 5. PII (warn, don't block — user may legitimately share their own data)
@@ -165,7 +172,11 @@ pub fn inspect_input(text: &str) -> ArmorVerdict {
             severity: ThreatLevel::Dangerous,
             detail: "Credit card number pattern detected".into(),
         });
-        sanitized = Cow::Owned(p.pii_cc.replace_all(&sanitized, "[REDACTED_CC]").into_owned());
+        sanitized = Cow::Owned(
+            p.pii_cc
+                .replace_all(&sanitized, "[REDACTED_CC]")
+                .into_owned(),
+        );
     }
 
     let threat_level = aggregate_threat(&violations);
@@ -221,9 +232,15 @@ pub fn inspect_output(text: &str) -> ArmorVerdict {
 }
 
 fn aggregate_threat(violations: &[Violation]) -> ThreatLevel {
-    if violations.iter().any(|v| v.severity == ThreatLevel::Dangerous) {
+    if violations
+        .iter()
+        .any(|v| v.severity == ThreatLevel::Dangerous)
+    {
         ThreatLevel::Dangerous
-    } else if violations.iter().any(|v| v.severity == ThreatLevel::Suspicious) {
+    } else if violations
+        .iter()
+        .any(|v| v.severity == ThreatLevel::Suspicious)
+    {
         ThreatLevel::Suspicious
     } else {
         ThreatLevel::Safe
@@ -234,8 +251,8 @@ fn aggregate_threat(violations: &[Violation]) -> ThreatLevel {
 
 #[cfg(feature = "python")]
 mod python {
-    use pyo3::prelude::*;
     use super::*;
+    use pyo3::prelude::*;
 
     #[pyfunction]
     fn py_inspect_input(text: &str) -> PyResult<PyObject> {

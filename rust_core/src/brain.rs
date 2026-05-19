@@ -6,7 +6,7 @@
 //! sub-5µs forward pass on a 384→64→4 network.
 
 use rand::prelude::*;
-use rand_distr::{Normal, Distribution};
+use rand_distr::{Distribution, Normal};
 
 /// Dot product of two f64 slices — LLVM auto-vectorizes with AVX2+FMA when
 /// this function is compiled with those target features enabled.
@@ -21,8 +21,12 @@ unsafe fn dot(a: *const f64, b: *const f64, n: usize) -> f64 {
 /// Scalar fallback (non-x86_64 or missing AVX2).
 #[allow(dead_code)]
 unsafe fn matvec_relu_scalar(
-    w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
-    rows: usize, cols: usize,
+    w: *const f64,
+    x: *const f64,
+    b: *const f64,
+    out: *mut f64,
+    rows: usize,
+    cols: usize,
 ) {
     for j in 0..rows {
         let d = dot(w.add(j * cols), x, cols);
@@ -32,8 +36,12 @@ unsafe fn matvec_relu_scalar(
 
 #[allow(dead_code)]
 unsafe fn matvec_scalar(
-    w: *const f64, x: *const f64, b: *const f64, out: *mut f64,
-    rows: usize, cols: usize,
+    w: *const f64,
+    x: *const f64,
+    b: *const f64,
+    out: *mut f64,
+    rows: usize,
+    cols: usize,
 ) {
     for k in 0..rows {
         let d = dot(w.add(k * cols), x, cols);
@@ -42,7 +50,7 @@ unsafe fn matvec_scalar(
 }
 
 pub struct PolicyBrain {
-    pub input_dim:  usize,
+    pub input_dim: usize,
     pub hidden_dim: usize,
     pub output_dim: usize,
     /// W1: [hidden_dim × input_dim] — row h = weights for hidden neuron h
@@ -99,7 +107,7 @@ impl PolicyBrain {
         let w2 = self.w2.as_ptr();
         let b1 = self.b1.as_ptr();
         let b2 = self.b2.as_ptr();
-        let s  = state.as_ptr();
+        let s = state.as_ptr();
         let sh = self.scratch_h.as_mut_ptr();
         let so = self.scratch_o.as_mut_ptr();
 
@@ -113,7 +121,7 @@ impl PolicyBrain {
             for c in 0..chunks {
                 let base = c * 8;
                 unsafe {
-                    a0 += *w1.add(row + base)     * *s.add(base);
+                    a0 += *w1.add(row + base) * *s.add(base);
                     a1 += *w1.add(row + base + 1) * *s.add(base + 1);
                     a2 += *w1.add(row + base + 2) * *s.add(base + 2);
                     a3 += *w1.add(row + base + 3) * *s.add(base + 3);
@@ -138,7 +146,7 @@ impl PolicyBrain {
             for c in 0..chunks {
                 let base = c * 4;
                 unsafe {
-                    a0 += *w2.add(row + base)     * *sh.add(base);
+                    a0 += *w2.add(row + base) * *sh.add(base);
                     a1 += *w2.add(row + base + 1) * *sh.add(base + 1);
                     a2 += *w2.add(row + base + 2) * *sh.add(base + 2);
                     a3 += *w2.add(row + base + 3) * *sh.add(base + 3);
@@ -160,7 +168,9 @@ impl PolicyBrain {
             probs[k] = (scratch_o[k] - max).exp();
             sum += probs[k];
         }
-        for p in probs.iter_mut() { *p /= sum; }
+        for p in probs.iter_mut() {
+            *p /= sum;
+        }
         probs
     }
 
@@ -172,7 +182,9 @@ impl PolicyBrain {
         let mut cumulative = 0.0;
         for (i, &p) in probs.iter().enumerate() {
             cumulative += p;
-            if r <= cumulative { return i; }
+            if r <= cumulative {
+                return i;
+            }
         }
         self.output_dim - 1
     }
@@ -188,7 +200,9 @@ impl PolicyBrain {
         // dL/dz2 = (probs - one_hot(action)) * -reward
         let mut d_z2 = probs.clone();
         d_z2[action] -= 1.0;
-        for v in d_z2.iter_mut() { *v *= -reward; }
+        for v in d_z2.iter_mut() {
+            *v *= -reward;
+        }
 
         // dW2, db2
         for (k, d_z2_val) in d_z2.iter().enumerate().take(o) {

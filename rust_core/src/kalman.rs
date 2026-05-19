@@ -13,8 +13,8 @@ pub struct CognitiveKalmanFilter {
     pub dim: usize,
     pub state: Vec<f64>,
     pub uncertainty: Vec<f64>, // Flattened diagonal for simplicity in this prototype
-    pub q: f64, // Process noise
-    pub r: f64, // Measurement noise
+    pub q: f64,                // Process noise
+    pub r: f64,                // Measurement noise
     pub mode: FilterMode,
 }
 
@@ -42,7 +42,7 @@ impl CognitiveKalmanFilter {
     pub fn update(&mut self, observation: &[f64]) -> f64 {
         let n = self.dim;
         let r = self.r;
-        let state       = &mut self.state[..n];
+        let state = &mut self.state[..n];
         let uncertainty = &mut self.uncertainty[..n];
         let mode = self.mode;
 

@@ -1,7 +1,7 @@
-use wasm_bindgen::prelude::*;
+use crate::brain;
 use crate::eml;
 use crate::kalman;
-use crate::brain;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn wasm_eml_op(x: f64, y: f64) -> f64 {

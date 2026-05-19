@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -24,7 +24,13 @@ impl VectorIndex {
         }
     }
 
-    pub fn add(&mut self, id: String, project_id: Option<String>, embedding: Vec<f64>, metadata: String) {
+    pub fn add(
+        &mut self,
+        id: String,
+        project_id: Option<String>,
+        embedding: Vec<f64>,
+        metadata: String,
+    ) {
         self.documents.push(Document {
             id,
             project_id,
@@ -56,8 +62,14 @@ impl VectorIndex {
         }
     }
 
-    pub fn search(&self, query: &[f64], top_k: usize, project_id: Option<String>) -> Vec<(String, f64, String)> {
-        let mut results: Vec<(String, f64, String)> = self.documents
+    pub fn search(
+        &self,
+        query: &[f64],
+        top_k: usize,
+        project_id: Option<String>,
+    ) -> Vec<(String, f64, String)> {
+        let mut results: Vec<(String, f64, String)> = self
+            .documents
             .iter()
             .filter(|doc| {
                 if let Some(ref pid) = project_id {

@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -14,7 +14,9 @@ pub struct PyProjectProcessor {
 impl PyProjectProcessor {
     #[new]
     fn new(namespace: String) -> Self {
-        Self { default_namespace: namespace }
+        Self {
+            default_namespace: namespace,
+        }
     }
 
     /// Fast validation and hashing of a project payload

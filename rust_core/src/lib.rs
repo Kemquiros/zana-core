@@ -1,12 +1,12 @@
 #![allow(non_local_definitions)]
 
+pub mod brain;
 pub mod eml;
 pub mod kalman;
-pub mod brain;
-pub mod wasm;
 pub mod memory;
 #[cfg(feature = "python")]
 pub mod projects;
+pub mod wasm;
 
 // ── Hash-based embedding (no external model, deterministic) ──────────────────
 
@@ -43,21 +43,27 @@ pub fn text_to_embedding(text: &str, dim: usize) -> Vec<f64> {
 // ── Python bindings ───────────────────────────────────────────────────────────
 
 #[cfg(feature = "python")]
-use pyo3::prelude::*;
-#[cfg(feature = "python")]
 use pyo3::buffer::PyBuffer;
+#[cfg(feature = "python")]
+use pyo3::prelude::*;
 
 #[cfg(feature = "python")]
 #[pyfunction]
-fn eml_op(x: f64, y: f64) -> f64 { eml::eml(x, y) }
+fn eml_op(x: f64, y: f64) -> f64 {
+    eml::eml(x, y)
+}
 
 #[cfg(feature = "python")]
 #[pyfunction]
-fn exp_eml(x: f64) -> f64 { eml::exp_eml(x) }
+fn exp_eml(x: f64) -> f64 {
+    eml::exp_eml(x)
+}
 
 #[cfg(feature = "python")]
 #[pyfunction]
-fn log_eml(x: f64) -> f64 { eml::log_eml(x) }
+fn log_eml(x: f64) -> f64 {
+    eml::log_eml(x)
+}
 
 /// Fast text→embedding function exposed to Python.
 #[cfg(feature = "python")]
@@ -77,7 +83,9 @@ pub struct PyKalmanFilter {
 impl PyKalmanFilter {
     #[new]
     fn new(dim: usize, q: f64, r: f64) -> Self {
-        Self { inner: kalman::CognitiveKalmanFilter::new(dim, q, r) }
+        Self {
+            inner: kalman::CognitiveKalmanFilter::new(dim, q, r),
+        }
     }
 
     /// Standard update from a Python list/array (Vec marshalling).
@@ -90,7 +98,9 @@ impl PyKalmanFilter {
     fn update_buffer(&mut self, py: Python, buf: &PyAny) -> PyResult<f64> {
         let buffer: PyBuffer<f64> = PyBuffer::get(buf)?;
         if !buffer.is_c_contiguous() {
-            return Err(pyo3::exceptions::PyValueError::new_err("buffer must be C-contiguous"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "buffer must be C-contiguous",
+            ));
         }
         let len = buffer.item_count();
         let ptr = buffer.buf_ptr() as *const f64;
@@ -139,7 +149,9 @@ struct PyPolicyBrain {
 impl PyPolicyBrain {
     #[new]
     fn new(input_dim: usize, hidden_dim: usize, output_dim: usize) -> Self {
-        Self { inner: brain::PolicyBrain::new(input_dim, hidden_dim, output_dim) }
+        Self {
+            inner: brain::PolicyBrain::new(input_dim, hidden_dim, output_dim),
+        }
     }
 
     fn forward(&mut self, state: Vec<f64>) -> Vec<f64> {
@@ -150,7 +162,9 @@ impl PyPolicyBrain {
     fn forward_buffer(&mut self, py: Python, buf: &PyAny) -> PyResult<Vec<f64>> {
         let buffer: PyBuffer<f64> = PyBuffer::get(buf)?;
         if !buffer.is_c_contiguous() {
-            return Err(pyo3::exceptions::PyValueError::new_err("buffer must be C-contiguous f64"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "buffer must be C-contiguous f64",
+            ));
         }
         let ptr = buffer.buf_ptr() as *const f64;
         let len = buffer.item_count();
@@ -164,14 +178,18 @@ impl PyPolicyBrain {
     fn action_buffer(&mut self, py: Python, buf: &PyAny) -> PyResult<usize> {
         let buffer: PyBuffer<f64> = PyBuffer::get(buf)?;
         if !buffer.is_c_contiguous() {
-            return Err(pyo3::exceptions::PyValueError::new_err("buffer must be C-contiguous f64"));
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "buffer must be C-contiguous f64",
+            ));
         }
         let ptr = buffer.buf_ptr() as *const f64;
         let len = buffer.item_count();
         let _ = py;
         let slice = unsafe { std::slice::from_raw_parts(ptr, len) };
         let probs = self.inner.forward(slice);
-        Ok(probs.iter().enumerate()
+        Ok(probs
+            .iter()
+            .enumerate()
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
             .map(|(i, _)| i)
             .unwrap_or(0))
@@ -197,11 +215,19 @@ struct PyVectorIndex {
 impl PyVectorIndex {
     #[new]
     fn new() -> Self {
-        Self { inner: memory::VectorIndex::new() }
+        Self {
+            inner: memory::VectorIndex::new(),
+        }
     }
 
     #[pyo3(signature = (id, project_id, embedding, metadata))]
-    fn add(&mut self, id: String, project_id: Option<String>, embedding: Vec<f64>, metadata: String) {
+    fn add(
+        &mut self,
+        id: String,
+        project_id: Option<String>,
+        embedding: Vec<f64>,
+        metadata: String,
+    ) {
         self.inner.add(id, project_id, embedding, metadata)
     }
 
@@ -210,12 +236,19 @@ impl PyVectorIndex {
     }
 
     #[pyo3(signature = (query, top_k, project_id=None))]
-    fn search(&self, query: Vec<f64>, top_k: usize, project_id: Option<String>) -> Vec<(String, f64, String)> {
+    fn search(
+        &self,
+        query: Vec<f64>,
+        top_k: usize,
+        project_id: Option<String>,
+    ) -> Vec<(String, f64, String)> {
         self.inner.search(&query, top_k, project_id)
     }
 
     fn save(&self, base_path: &str, user_id: &str) -> PyResult<()> {
-        self.inner.save(base_path, user_id).map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
+        self.inner
+            .save(base_path, user_id)
+            .map_err(|e| pyo3::exceptions::PyIOError::new_err(e.to_string()))
     }
 
     #[staticmethod]
