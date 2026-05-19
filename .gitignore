@@ -76,3 +76,4 @@ aria-ui/src-tauri/sidecar/zana-gateway*
 # Private strategic documents
 docs/ROADMAP_MAESTRO*.md
 master_book/
+.npmrc
