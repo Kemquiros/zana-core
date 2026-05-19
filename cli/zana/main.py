@@ -759,5 +759,93 @@ def wisdom_reject(
     cmd_wisdom_reject(wisdom_id)
 
 
+# ── MCP sub-commands ──────────────────────────────────────────────────────────
+
+mcp_app = typer.Typer(
+    name="mcp",
+    help="Model Context Protocol server — connect Claude Code, Cline, and other MCP clients to ZANA memory.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(mcp_app, name="mcp")
+
+
+@mcp_app.command("start", help="Start the ZANA MCP memory server (stdio or SSE).")
+def mcp_start(
+    port: Annotated[
+        int | None,
+        typer.Option(
+            "--port", "-p", help="Run SSE transport on this port (omit for stdio)."
+        ),
+    ] = None,
+    background: Annotated[
+        bool, typer.Option("--background", "-b", help="Run as background daemon.")
+    ] = False,
+) -> None:
+    import os
+    import subprocess
+    from pathlib import Path
+
+    server = Path(__file__).parent.parent.parent / "mcp" / "zana-memory" / "server.py"
+    if not server.exists():
+        console.print(f"[error]MCP server not found at {server}[/error]")
+        raise typer.Exit(1)
+
+    env = os.environ.copy()
+    if port:
+        env["ZANA_MCP_PORT"] = str(port)
+
+    console.print(
+        f"\n[primary]ZANA MCP[/primary] [muted]{'SSE :' + str(port) if port else 'stdio'}[/muted]\n"
+        f"[muted]Server:[/muted] {server}\n"
+        f"[muted]Backend:[/muted] SQLite FTS5 (SPROUT) → Rust vector index (GROVE+)\n"
+    )
+
+    if background:
+        import sys
+
+        proc = subprocess.Popen(
+            [sys.executable, str(server)],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        console.print(f"[success]✓ MCP server started (PID {proc.pid})[/success]")
+        config_hint = (
+            f'{{"zana": {{"command": "{sys.executable}", "args": ["{server}"]}}}}'
+        )
+        console.print(
+            "[muted]Add to claude_desktop_config.json:[/muted]\n"
+            f"  [accent]{config_hint}[/accent]"
+        )
+    else:
+        subprocess.run(
+            [__import__("sys").executable, str(server)], env=env, check=False
+        )
+
+
+@mcp_app.command(
+    "config",
+    help="Print the MCP config block to paste into claude_desktop_config.json.",
+)
+def mcp_config() -> None:
+    import json
+    import sys
+    from pathlib import Path
+
+    server = Path(__file__).parent.parent.parent / "mcp" / "zana-memory" / "server.py"
+    block = {"zana": {"command": sys.executable, "args": [str(server)]}}
+    console.print(
+        "\n[primary]MCP Config[/primary] [muted]— paste into claude_desktop_config.json[/muted]\n"
+    )
+    console.print(json.dumps(block, indent=2))
+    console.print(
+        "\n[muted]Config file location:[/muted]\n"
+        "  macOS:   ~/Library/Application Support/Claude/claude_desktop_config.json\n"
+        "  Windows: %APPDATA%\\Claude\\claude_desktop_config.json\n"
+        "  Linux:   ~/.config/Claude/claude_desktop_config.json\n"
+    )
+
+
 if __name__ == "__main__":
     app()
