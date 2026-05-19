@@ -8,14 +8,12 @@ Covers:
 - SQLite input sanitization (FTS5 injection)
 """
 
+import contextlib
 import re
 import sqlite3
-from pathlib import Path
 
 import pytest
-
 from zana.core.memory_lite import MemoryLiteDB, get_db
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -148,10 +146,8 @@ def test_sql_injection_in_search_query_does_not_crash(tmp_db, payload):
 def test_sql_injection_does_not_drop_table(tmp_db, payload):
     """After injection attempts, the documents table must still exist."""
     tmp_db.add("sentinel document", source="test", collection="test")
-    try:
+    with contextlib.suppress(Exception):
         tmp_db.search(payload, collection="test", n=5)
-    except Exception:
-        pass  # exception is acceptable, table destruction is not
 
     conn = sqlite3.connect(str(tmp_db.DB_PATH))
     tables = {
