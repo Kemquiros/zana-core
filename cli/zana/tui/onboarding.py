@@ -922,6 +922,84 @@ def _typewriter(text: str, delay: float = 0.025) -> None:
     console.print()
 
 
+def _offer_mcp_registration(aeon_name: str) -> None:
+    """Detect Claude Desktop / Claude Code config and offer to inject the MCP block."""
+    import json as _json
+    import sys
+    from pathlib import Path
+
+    # Known Claude Desktop config locations (macOS, Linux, Windows)
+    candidates = [
+        Path.home()
+        / "Library"
+        / "Application Support"
+        / "Claude"
+        / "claude_desktop_config.json",
+        Path.home() / ".config" / "Claude" / "claude_desktop_config.json",
+        Path(r"C:\Users")
+        / Path.home().name
+        / "AppData"
+        / "Roaming"
+        / "Claude"
+        / "claude_desktop_config.json",
+    ]
+
+    config_path = next((p for p in candidates if p.exists()), None)
+
+    # Find the MCP server script
+    mcp_server = (
+        Path(__file__).parent.parent.parent.parent / "mcp" / "zana-memory" / "server.py"
+    )
+    if not mcp_server.exists():
+        return
+
+    mcp_block = {
+        "command": sys.executable,
+        "args": [str(mcp_server)],
+    }
+
+    if config_path:
+        console.print()
+        console.print(
+            "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+        )
+        console.print("[bold cyan]MCP[/bold cyan]  Claude Desktop detectado")
+        console.print(f"  [dim]{config_path}[/dim]")
+
+        import questionary
+
+        do_mcp = questionary.confirm(
+            f"  ¿Conectar {aeon_name} como servidor MCP en Claude Desktop?",
+            default=True,
+        ).ask()
+
+        if do_mcp:
+            try:
+                config = _json.loads(config_path.read_text(encoding="utf-8"))
+                config.setdefault("mcpServers", {})
+                config["mcpServers"]["zana"] = mcp_block
+                config_path.write_text(
+                    _json.dumps(config, indent=2, ensure_ascii=False)
+                )
+                console.print(
+                    "  [success]✓ MCP 'zana' registrado en Claude Desktop.[/success]\n"
+                    "  [dim]Reinicia Claude Desktop para activarlo.[/dim]"
+                )
+            except Exception as e:
+                console.print(
+                    f"  [warning]No se pudo escribir config MCP: {e}[/warning]"
+                )
+    else:
+        # No Claude Desktop — show the manual snippet
+        console.print()
+        console.print(
+            "[bold cyan]MCP[/bold cyan]  [dim]Añade a tu cliente MCP (Claude Desktop / Cline):[/dim]"
+        )
+        snippet = _json.dumps({"zana": mcp_block}, indent=2, ensure_ascii=False)
+        console.print(f"  [muted]{snippet}[/muted]")
+        console.print("  [dim]O ejecuta:[/dim] [accent]zana mcp config[/accent]")
+
+
 def _render_zsm_capabilities(aeon_name: str, lang: str) -> None:
     """Show a 'capabilities available right now' screen before the awakening reveal."""
     from rich.panel import Panel
@@ -1323,6 +1401,10 @@ def run_init_wizard() -> bool:
         )
 
     _render_zsm_capabilities(aeon_name, selected_lang)
+
+    # ── MCP auto-register (Claude Desktop / Cline / Claude Code) ─────────────
+    _offer_mcp_registration(aeon_name)
+
     _render_awakening(aeon_name, selected_lang)
     return True
 
