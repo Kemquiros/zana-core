@@ -816,7 +816,11 @@ def _exec_language_lesson(query: str, lang: str) -> str:
     except Exception:
         idx = 0
     idx = idx % len(vocab)
-    ptr_file.write_text(str((idx + 1) % len(vocab)))
+    try:
+        ZANA_HOME.mkdir(parents=True, exist_ok=True)
+        ptr_file.write_text(str((idx + 1) % len(vocab)))
+    except Exception:
+        pass
 
     word, translation, pronunciation = vocab[idx]
     return t(
