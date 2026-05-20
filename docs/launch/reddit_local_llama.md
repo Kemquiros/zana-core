@@ -9,7 +9,7 @@
 ## Title options (A/B test)
 
 **Option A (problem-first):**
-> I built a local AI that actually remembers everything, works offline, and has a Rust security layer — after 2 years of development it's finally public [MIT]
+> I built a local AI that actually remembers everything, works offline, and has a Rust security layer — 2 months of building, finally public [MIT]
 
 **Option B (technical-first):**
 > ZANA v3.5.0 — local AI runtime with persistent memory (SQLite FTS5), Rust PII guard at 2.1µs, and zero cloud dependency [MIT, Python+Rust]
@@ -25,7 +25,7 @@
 
 Hey r/LocalLLaMA,
 
-Two years ago I started building what I wanted but couldn't find: an AI that runs locally, **actually remembers** everything across sessions, works offline, and has genuine security at the architecture level — not just a privacy policy.
+I've been iterating this idea since 2025, and 2 months ago I started building it for real. The goal: an AI that runs locally, **actually remembers** everything across sessions, works offline, and has genuine security at the architecture level — not just a privacy policy.
 
 Today I'm open-sourcing [ZANA](https://github.com/Kemquiros/zana-core) (Zero Autonomous Neural Architecture) v3.7.0 under MIT.
 

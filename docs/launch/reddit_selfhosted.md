@@ -15,7 +15,7 @@
 > I self-host my AI the same way I self-host my email — my data, my hardware, my rules. Here's how [MIT, Python+Rust]
 
 **Option C:**
-> After 2 years: my self-hosted AI that actually remembers things across sessions [MIT, no subscription, no accounts]
+> After 2 months of building: my self-hosted AI that actually remembers things across sessions [MIT, no subscription, no accounts]
 
 ---
 

@@ -25,7 +25,7 @@ Show HN: ZANA – local AI with persistent memory, Rust PII guard, SHA-256 audit
 
 ---
 
-ZANA (Zero Autonomous Neural Architecture) is a personal AI runtime I've been building for 2 years, now open-sourced under MIT.
+ZANA (Zero Autonomous Neural Architecture) is a personal AI runtime I've been building for 2 months (the idea has been brewing since 2025), now open-sourced under MIT.
 
 **The core architectural idea:** separate "soul" from "compute." Your Aeon (memory, identity, evolution, reasoning audit) lives on your hardware. The LLM is interchangeable — swap providers with one environment variable without touching the Aeon.
 
