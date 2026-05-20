@@ -8,14 +8,11 @@ All tests use tmp_path isolation for the config file.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from typer.testing import CliRunner
-
 import zana.core.multiuser as multiuser_mod
+from typer.testing import CliRunner
 from zana.commands.satellite import app
 from zana.core.multiuser import load_satellite_config, save_satellite_config
 
@@ -96,7 +93,7 @@ def test_configure_preserves_existing_tokens(isolated_config):
         mock_response = MagicMock()
         mock_response.json.return_value = {"ok": True, "result": {"username": "bot"}}
         mock_get.return_value = mock_response
-        result = runner.invoke(app, ["configure", "telegram", "new-tg-token"])
+        runner.invoke(app, ["configure", "telegram", "new-tg-token"])
     config = load_satellite_config()
     assert config.get("telegram_token") == "new-tg-token"
 

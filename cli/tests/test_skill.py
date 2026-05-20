@@ -8,25 +8,16 @@ All tests use tmp_path isolation — no shared state.
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
 import pytest
 from zana.commands.skill import (
-    REGISTRY_PATH,
-    SKILLS_DIR,
     _load_registry,
     _parse_frontmatter,
-    _register_skill,
     _save_registry,
     cmd_skill_create,
     cmd_skill_info,
     cmd_skill_list,
     cmd_skill_run,
 )
-from zana.commands.skill import SKILLS_DIR as _SKILLS_DIR_ORIG
-from zana.commands.skill import REGISTRY_PATH as _REGISTRY_PATH_ORIG
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -121,7 +112,6 @@ def test_skill_create_invalid_name_does_not_create(isolated_skills):
 def test_skill_create_duplicate_does_not_overwrite(isolated_skills):
     skills_dir, _ = isolated_skills
     cmd_skill_create("dup-skill")
-    first_content = (skills_dir / "dup-skill" / "SKILL.md").read_text()
     # Overwrite manually to simulate user edits
     (skills_dir / "dup-skill" / "SKILL.md").write_text("custom content")
     cmd_skill_create("dup-skill")  # should not overwrite

@@ -10,9 +10,7 @@ Resolves: https://github.com/Kemquiros/zana-core/issues/6
 from __future__ import annotations
 
 import pytest
-
 from zana.core.sentinel_lite import SentinelLiteDB, get_sentinel_db
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -118,7 +116,7 @@ def test_ring_buffer_prunes_oldest_events(tmp_path, monkeypatch):
 
     instance = get_sentinel_db()
     try:
-        for i in range(10):  # MAX_EVENTS (5) + 5 extra
+        for _i in range(10):  # MAX_EVENTS (5) + 5 extra
             instance.record("PreToolUse")
         evs = instance.events(limit=1000)
         assert len(evs) == 5, f"Expected 5 events after pruning, got {len(evs)}"
