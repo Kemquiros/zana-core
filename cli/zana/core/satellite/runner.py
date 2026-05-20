@@ -54,6 +54,24 @@ def run() -> None:
         )
         logger.info("Starting Discord satellite…")
         asyncio.run(bot.run_polling())
+    elif config.get("whatsapp_token"):
+        from zana.core.satellite.whatsapp_bot import WhatsAppBot
+
+        phone_number_id = config.get("whatsapp_phone_number_id", "")
+        verify_token = config.get("whatsapp_verify_token", "zana_wa_verify")
+        bot = WhatsAppBot(  # type: ignore[assignment]
+            phone_number_id=phone_number_id,
+            access_token=config["whatsapp_token"],
+            registry=registry,
+            host_aeon_name=host_aeon,
+            gateway_url=gateway_url,
+            verify_token=verify_token,
+        )
+        logger.info("WhatsApp satellite configured (webhook mode — no polling loop).")
+        logger.info(
+            "Register your webhook URL in the Meta Developer Portal "
+            "then route POST /webhook payloads to bot.handle_webhook()."
+        )
     else:
         logger.error(
             "No platform configured. Run: zana satellite configure telegram <token>"
