@@ -473,8 +473,8 @@ def cmd_memory_stats() -> None:
     if lite_stats and lite_stats["total"] > 0:
         oldest = lite_stats.get("oldest") or "—"
         newest = lite_stats.get("newest") or "—"
-        oldest_id = lite_stats.get("oldest_id", "")
-        newest_id = lite_stats.get("newest_id", "")
+        oldest_id = lite_stats.get("oldest_id")
+        newest_id = lite_stats.get("newest_id")
         console.print(
             f"\n  [muted]SQLite store:[/muted]  {lite_stats['db_path']}\n"
             f"  [muted]Oldest entry:[/muted]  {oldest}"

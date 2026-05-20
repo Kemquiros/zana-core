@@ -537,7 +537,9 @@ class MemoryLiteDB:
 
         age_row = self._conn.execute(
             "SELECT MIN(created_at) AS oldest, MAX(created_at) AS newest,"
-            " MIN(id) AS oldest_id, MAX(id) AS newest_id FROM documents"
+            " (SELECT id FROM documents ORDER BY created_at ASC,  id ASC  LIMIT 1) AS oldest_id,"
+            " (SELECT id FROM documents ORDER BY created_at DESC, id DESC LIMIT 1) AS newest_id"
+            " FROM documents"
         ).fetchone()
 
         oldest = age_row["oldest"][:10] if age_row and age_row["oldest"] else None

@@ -390,3 +390,17 @@ def test_cmd_memory_stats_empty_db_no_footer(tmp_path, monkeypatch, capsys):
     from zana.commands.memory import cmd_memory_stats
 
     cmd_memory_stats()
+
+
+def test_stats_oldest_id_matches_oldest_timestamp_on_collision(db):
+    # Insert two entries, then force both to the same created_at.
+    # With MIN(id) the result would be ambiguous; the correlated subquery
+    # must still return the lower id as oldest and the higher id as newest.
+    id1 = db.add("First entry", collection="zana_vault")
+    id2 = db.add("Second entry", collection="zana_vault")
+    db._conn.execute("UPDATE documents SET created_at = '2025-01-01 00:00:00'")
+    db._conn.commit()
+
+    s = db.stats()
+    assert s["oldest_id"] == id1
+    assert s["newest_id"] == id2
