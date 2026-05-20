@@ -7,6 +7,46 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.7.0] — 2026-05-20 *(Sprint 12 — Herald Channels + Agora + i18n + Z-Sync + PWA)*
+
+### Added
+- **The Agora v1 — open skill marketplace** — Three new `zana skill` sub-commands:
+  - `zana skill publish <name>` — Packages a local skill for Agora submission: generates `~/.zana/skills/<name>/agora_submission.json` with Z-Civic SHA-256 fingerprint, optionally opens GitHub issue URL in browser.
+  - `zana skill search <query>` — Fetches remote registry from `zana-agora` GitHub and filters by name, tags, and description. Graceful offline fallback.
+  - `zana skill adopt <name>` — Downloads `SKILL.md` from The Agora, verifies Z-Civic integrity (`sha256:` fingerprint), installs to `~/.zana/skills/`. Rejects tampered content before writing to disk.
+  - No new runtime dependencies — network calls via stdlib `urllib`.
+- **Discord Herald channel** — Full Discord Gateway WebSocket bot replacing the Sprint 9 stub:
+  - Gateway connection via `websockets` + REST via `httpx` (both already in deps).
+  - Routes: DMs, `/zana <prompt>` prefix in guild channels, `@mention` routing.
+  - Auto-registers new Discord users on first contact (language: `en` default).
+  - ZSM offline fallback when ZANA Gateway is unavailable.
+  - Discord 2000-char message limit enforced.
+  - `zana satellite configure discord <TOKEN>` validates the token against `/users/@me` before saving.
+- **WhatsApp Herald channel** — Full WhatsApp Cloud API bot (Meta Graph API v18.0, webhook model):
+  - Webhook-based message routing — Meta pushes to your endpoint; no polling loop.
+  - Handles `messages`, `statuses`, and `errors` webhook objects.
+  - Auto-registers new WhatsApp users on first contact.
+  - ZSM offline fallback when ZANA Gateway is unavailable.
+  - `zana satellite configure whatsapp <TOKEN> --phone-number-id <ID>` validates the access token via `Authorization: Bearer` header (never URL query param — prevents token leakage in proxy logs).
+- **ZANA ID export/import** — `zaeon://` URI scheme for portable identity snapshots across devices.
+- **6-language `zana init` wizard** — All 26 onboarding prompts translated across `es`, `en`, `pt`, `fr`, `it`, `de`. Language is auto-detected from `ZANA_LANG` env var or prompted during init.
+- **Z-Sync v1.0 — WisdomRule federation over HTTPS** — `zana zsync pull/push/status` commands for syncing WisdomRules across ZANA nodes. Z-Civic SHA-256 tamper detection: modified rules are rejected before local write.
+- **ARIA PWA improvements** — `aria-ui` Next.js app:
+  - `InstallPrompt` component — handles `beforeinstallprompt` lifecycle with custom `BeforeInstallPromptEvent` interface. Closes banner regardless of install/dismiss outcome (prompt can only be used once). Persists dismissal to `localStorage`.
+  - `appinstalled` event listener — hides banner if user installs via browser address-bar prompt, preventing stale state.
+  - `viewportFit: "cover"` in Next.js `Viewport` export — required for `env(safe-area-inset-*)` to resolve to non-zero values on notched devices.
+  - Safe-area CSS — `body` padding + `.bottom-safe-4` utility using `env(safe-area-inset-*)`.
+
+### Tests
+- **562 Python tests passing** — up from 212 in v3.6.0. **18 JS tests** (Jest/jsdom) for ARIA PWA.
+- `cli/tests/test_skill.py` — 19 new Agora tests: `_civic_hash`, `cmd_skill_publish`, `cmd_skill_search` (query, offline), `cmd_skill_adopt` (install, civic mismatch aborts).
+- `cli/tests/test_satellite.py` — 8 new Discord bot tests: DM routing, bot message ignore, guild prefix filter, slash command, auto-register.
+- `cli/tests/test_zsync.py` — 24 new Z-Sync tests: `ZSyncClient.pull/push/status`, tamper detection, offline fallback, CLI wiring.
+- `cli/tests/test_whatsapp.py` — 31 new WhatsApp Herald tests: `WhatsAppBot` instantiation, `validate_token` (valid/invalid/no-id edge case), `_handle_message` (new user does not touch, existing user touched), `send_message` (non-2xx log), webhook handler, foreground runner signal block, satellite CLI configure/start/status for whatsapp.
+- `aria-ui/__tests__/pwa.test.ts` — 18 Jest tests: manifest required fields, icon file existence, `sw.js` event handlers, `navigator.serviceWorker.register` smoke test.
+
+---
+
 ## [3.6.0] — 2026-05-20 *(Sprint 10 + Sprint 11 — First Dollar + Full Power Without Docker)*
 
 ### Added

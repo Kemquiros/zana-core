@@ -1,22 +1,29 @@
 """
-test_skill.py — Z-Skill v1.0 test suite (Sprint 9 · Issue #4)
+test_skill.py — Z-Skill test suite (Sprint 9 + Sprint 12 — The Agora v1)
 
 Covers: cmd_skill_create, cmd_skill_list, cmd_skill_run, cmd_skill_info,
+        cmd_skill_publish, cmd_skill_search, cmd_skill_adopt,
         WisdomQueue helpers, registry read/write, frontmatter parsing.
 All tests use tmp_path isolation — no shared state.
 """
 
 from __future__ import annotations
 
+import json
+
 import pytest
 from zana.commands.skill import (
+    _civic_hash,
     _load_registry,
     _parse_frontmatter,
     _save_registry,
+    cmd_skill_adopt,
     cmd_skill_create,
     cmd_skill_info,
     cmd_skill_list,
+    cmd_skill_publish,
     cmd_skill_run,
+    cmd_skill_search,
 )
 
 # ---------------------------------------------------------------------------
@@ -188,4 +195,261 @@ def test_cli_skill_list_via_typer(isolated_skills):
 
     runner = CliRunner()
     result = runner.invoke(app, ["skill", "list"])
+    assert result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# _civic_hash
+# ---------------------------------------------------------------------------
+
+
+def test_civic_hash_returns_sha256_prefix():
+    h = _civic_hash("hello world")
+    assert h.startswith("sha256:")
+    assert len(h) == len("sha256:") + 16
+
+
+def test_civic_hash_deterministic():
+    assert _civic_hash("same content") == _civic_hash("same content")
+
+
+def test_civic_hash_different_content():
+    assert _civic_hash("aaa") != _civic_hash("bbb")
+
+
+# ---------------------------------------------------------------------------
+# cmd_skill_publish
+# ---------------------------------------------------------------------------
+
+
+def test_skill_publish_missing_skill_does_not_raise(isolated_skills):
+    cmd_skill_publish("nonexistent-skill", open_browser=False)
+
+
+def test_skill_publish_creates_submission_json(isolated_skills):
+    skills_dir, _ = isolated_skills
+    cmd_skill_create("pub-skill", author="john")
+    cmd_skill_publish("pub-skill", open_browser=False)
+    submission = skills_dir / "pub-skill" / "agora_submission.json"
+    assert submission.exists()
+    data = json.loads(submission.read_text())
+    assert data["name"] == "pub-skill"
+    assert data["civic_hash"].startswith("sha256:")
+    assert "skill_content" in data
+
+
+def test_skill_publish_civic_hash_matches_content(isolated_skills):
+    skills_dir, _ = isolated_skills
+    cmd_skill_create("hash-skill")
+    skill_content = (skills_dir / "hash-skill" / "SKILL.md").read_text()
+    cmd_skill_publish("hash-skill", open_browser=False)
+    submission = json.loads(
+        (skills_dir / "hash-skill" / "agora_submission.json").read_text()
+    )
+    assert submission["civic_hash"] == _civic_hash(skill_content)
+
+
+# ---------------------------------------------------------------------------
+# cmd_skill_search (offline — mocked registry)
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def mock_agora_registry(monkeypatch):
+    """Replace _fetch_agora_registry with a local stub."""
+    registry = {
+        "version": "1.0",
+        "skills": [
+            {
+                "name": "summarize",
+                "version": "1.0.0",
+                "description": "Summarize any text or document",
+                "author": "john",
+                "tags": ["productivity", "text"],
+                "skill_url": "https://example.com/skills/summarize/SKILL.md",
+                "civic_hash": _civic_hash("summarize-content"),
+            },
+            {
+                "name": "translate",
+                "version": "1.0.0",
+                "description": "Translate text between languages",
+                "author": "maria",
+                "tags": ["language", "text"],
+                "skill_url": "https://example.com/skills/translate/SKILL.md",
+                "civic_hash": _civic_hash("translate-content"),
+            },
+        ],
+    }
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: registry)
+    return registry
+
+
+def test_skill_search_returns_matching_skills(isolated_skills, mock_agora_registry):
+    cmd_skill_search("summarize")  # must not raise
+
+
+def test_skill_search_no_matches_does_not_raise(isolated_skills, mock_agora_registry):
+    cmd_skill_search("zzznomatch")  # must not raise
+
+
+def test_skill_search_by_tag(isolated_skills, mock_agora_registry):
+    cmd_skill_search("language")  # matches "translate" via tag
+
+
+def test_skill_search_offline_does_not_raise(isolated_skills, monkeypatch):
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: None)
+    cmd_skill_search("anything")  # must not raise
+
+
+# ---------------------------------------------------------------------------
+# cmd_skill_adopt
+# ---------------------------------------------------------------------------
+
+
+_SAMPLE_SKILL_MD = """\
+---
+name: summarize
+version: 1.0.0
+description: Summarize any text
+author: john
+tags: []
+zana_version: ">=3.5.0"
+created_at: 2026-05-20
+---
+
+## Trigger
+- "summarize"
+
+## Steps
+1. Read input
+2. Return summary
+"""
+
+
+@pytest.fixture
+def mock_agora_with_download(monkeypatch):
+    """Stub both registry fetch and SKILL.md download."""
+    civic = _civic_hash(_SAMPLE_SKILL_MD)
+    registry = {
+        "skills": [
+            {
+                "name": "summarize",
+                "version": "1.0.0",
+                "description": "Summarize any text",
+                "author": "john",
+                "tags": [],
+                "skill_url": "https://example.com/skills/summarize/SKILL.md",
+                "civic_hash": civic,
+            }
+        ]
+    }
+
+    class FakeResponse:
+        def read(self):
+            return _SAMPLE_SKILL_MD.encode()
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            pass
+
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: registry)
+    monkeypatch.setattr("zana.commands.skill.urlopen", lambda *a, **kw: FakeResponse())
+    return registry
+
+
+def test_skill_adopt_installs_skill(isolated_skills, mock_agora_with_download):
+    skills_dir, _ = isolated_skills
+    cmd_skill_adopt("summarize")
+    assert (skills_dir / "summarize" / "SKILL.md").exists()
+
+
+def test_skill_adopt_registers_in_registry(isolated_skills, mock_agora_with_download):
+    cmd_skill_adopt("summarize")
+    reg = _load_registry()
+    names = [s["name"] for s in reg["skills"]]
+    assert "summarize" in names
+
+
+def test_skill_adopt_already_installed_does_not_overwrite(
+    isolated_skills, mock_agora_with_download
+):
+    skills_dir, _ = isolated_skills
+    cmd_skill_create("summarize")
+    (skills_dir / "summarize" / "SKILL.md").write_text("custom content")
+    cmd_skill_adopt("summarize")
+    assert (skills_dir / "summarize" / "SKILL.md").read_text() == "custom content"
+
+
+def test_skill_adopt_not_in_agora_does_not_raise(
+    isolated_skills, mock_agora_with_download
+):
+    cmd_skill_adopt("unknown-skill")  # must not raise
+
+
+def test_skill_adopt_offline_does_not_raise(isolated_skills, monkeypatch):
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: None)
+    cmd_skill_adopt("any-skill")  # must not raise
+
+
+def test_skill_adopt_civic_mismatch_aborts(
+    isolated_skills, mock_agora_with_download, monkeypatch
+):
+    """Tampered content (wrong hash) must be rejected."""
+    skills_dir, _ = isolated_skills
+
+    class TamperedResponse:
+        def read(self):
+            return b"tampered skill content that doesn't match hash"
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            pass
+
+    monkeypatch.setattr(
+        "zana.commands.skill.urlopen", lambda *a, **kw: TamperedResponse()
+    )
+    cmd_skill_adopt("summarize")
+    assert not (skills_dir / "summarize" / "SKILL.md").exists()
+
+
+# ---------------------------------------------------------------------------
+# CLI wiring — Agora commands
+# ---------------------------------------------------------------------------
+
+
+def test_cli_skill_publish_via_typer(isolated_skills):
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    skills_dir, _ = isolated_skills
+    cmd_skill_create("typer-pub-skill")
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "publish", "typer-pub-skill", "--no-browser"])
+    assert result.exit_code == 0
+
+
+def test_cli_skill_search_via_typer(isolated_skills, monkeypatch):
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: None)
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "test"])
+    assert result.exit_code == 0
+
+
+def test_cli_skill_adopt_via_typer(isolated_skills, monkeypatch):
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    monkeypatch.setattr("zana.commands.skill._fetch_agora_registry", lambda: None)
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "adopt", "any-skill"])
     assert result.exit_code == 0

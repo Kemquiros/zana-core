@@ -19,6 +19,16 @@
 body {
   background-color: black;
   color: #e2e8f0;
+  /* Respect notch / home-indicator areas on installed PWA */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Utility: bottom offset that respects the home-indicator safe area */
+.bottom-safe-4 {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .glass-card {

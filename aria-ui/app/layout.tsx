@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import InstallPrompt from "../components/InstallPrompt";
 import SwRegister from "../components/SwRegister";
 import TitleBar from "../components/TitleBar";
 import { ReactNode } from "react";
@@ -11,6 +12,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#000000",
+  // required for env(safe-area-inset-*) to resolve on notched devices
+  viewportFit: "cover",
 };
 
 const spaceGrotesk = Space_Grotesk({
@@ -42,6 +45,7 @@ export default function RootLayout({
       >
         <TitleBar />
         <SwRegister />
+        <InstallPrompt />
         {children}
       </body>
     </html>
