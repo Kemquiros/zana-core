@@ -235,19 +235,46 @@ def embed(
     cmd_embed(vault_path=vault, reset=reset)
 
 
-@app.command(help="Check for and install CLI updates.")
+@app.command(
+    help="Check for and install CLI updates. Use --grove to unlock semantic memory."
+)
 def upgrade(
+    grove: Annotated[
+        bool,
+        typer.Option(
+            "--grove", help="Install sqlite-vec for semantic memory (no Docker)."
+        ),
+    ] = False,
     check: Annotated[
-        bool, typer.Option("--check", help="Only check, do not install.")
+        bool, typer.Option("--check", help="Only check for updates, do not install.")
     ] = False,
     no_interactive: Annotated[
         bool,
         typer.Option("--no-interactive", help="Install without confirmation."),
     ] = False,
 ) -> None:
-    from zana.commands.upgrade import cmd_upgrade
+    if grove:
+        from zana.commands.upgrade import cmd_grove_upgrade
 
-    cmd_upgrade(check_only=check, no_interactive=no_interactive)
+        cmd_grove_upgrade(no_interactive=no_interactive)
+    else:
+        from zana.commands.upgrade import cmd_upgrade
+
+        cmd_upgrade(check_only=check, no_interactive=no_interactive)
+
+
+@app.command(help="Show current tier and subscription status.")
+def cloud() -> None:
+    from zana.commands.cloud import cmd_cloud_status
+
+    cmd_cloud_status()
+
+
+@app.command(help="Show ZANA pricing tiers and join the Sovereign waitlist.")
+def subscribe() -> None:
+    from zana.commands.cloud import cmd_subscribe
+
+    cmd_subscribe()
 
 
 @app.command(help="Run first-time setup wizard.")
@@ -635,6 +662,16 @@ def memory_import(
     from zana.commands.memory import cmd_memory_import
 
     cmd_memory_import(path)
+
+
+@memory_app.command(
+    "reindex",
+    help="Rebuild semantic vector index from existing memories (requires: zana upgrade --grove).",
+)
+def memory_reindex() -> None:
+    from zana.commands.memory import cmd_memory_reindex
+
+    cmd_memory_reindex()
 
 
 # ── Skill sub-commands ───────────────────────────────────────────────────────

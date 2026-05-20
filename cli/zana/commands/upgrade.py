@@ -8,6 +8,12 @@ import typer
 
 from zana.tui.theme import console
 
+_GROVE_FEATURES = [
+    "Semantic memory — search by meaning, not keywords",
+    "Embedding index (sqlite-vec, ~2 MB, no Docker required)",
+    "Auto-indexes new memories as you add them",
+]
+
 REPO = "Kemquiros/zana-core"
 RELEASES_API = f"https://api.github.com/repos/{REPO}/releases/latest"
 COMMITS_API = f"https://api.github.com/repos/{REPO}/commits/main"
@@ -108,6 +114,97 @@ def _pull_local_repo() -> bool:
         return True
     except Exception:
         return False
+
+
+def _install_sqlite_vec() -> bool:
+    """Install sqlite-vec via pip. Returns True on success."""
+    cmd = [sys.executable, "-m", "pip", "install", "sqlite-vec", "--quiet"]
+    result = subprocess.run(cmd, capture_output=True)
+    return result.returncode == 0
+
+
+def _test_sqlite_vec() -> bool:
+    """Verify sqlite-vec loads correctly after installation."""
+    try:
+        import importlib
+
+        import sqlite_vec
+
+        importlib.reload(sqlite_vec)
+        import sqlite3
+
+        conn = sqlite3.connect(":memory:")
+        conn.enable_load_extension(True)
+        sqlite_vec.load(conn)
+        conn.enable_load_extension(False)
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+def cmd_grove_upgrade(no_interactive: bool = False) -> None:
+    """Upgrade SPROUT → GROVE: install sqlite-vec for semantic memory (no Docker)."""
+    from zana.core.memory_lite import is_sqlite_vec_available
+    from zana.core.tier import detect_tier
+
+    tier = detect_tier()
+    console.print(
+        f"\n[primary]Your Aeon:[/primary] [accent]{tier.value.upper()}[/accent]\n"
+    )
+
+    if is_sqlite_vec_available():
+        console.print(
+            "[success]✓ sqlite-vec already installed — semantic memory is active.[/success]"
+        )
+        console.print(
+            '[muted]Try: zana memory search "your query" (searches by meaning)[/muted]\n'
+        )
+        return
+
+    console.print("[bold]GROVE unlocks:[/bold]")
+    for feat in _GROVE_FEATURES:
+        console.print(f"  [accent]✦[/accent] {feat}")
+
+    console.print("\n[bold]Installation path:[/bold]")
+    console.print(
+        "  [1] [success]sqlite-vec[/success] — no Docker, 2 MB pip install  [muted](recommended)[/muted]"
+    )
+    console.print(
+        "  [2] [muted]Docker stack[/muted]   — ChromaDB + PostgreSQL (full GROVE)"
+    )
+
+    if not no_interactive:
+        choice = typer.prompt("\n  Choice", default="1")
+        if choice.strip() == "2":
+            console.print(
+                "\n[muted]For Docker GROVE: run `zana start` after installing Docker Desktop.[/muted]"
+            )
+            return
+        if not typer.confirm("\n  Install sqlite-vec now?", default=True):
+            console.print("[muted]Upgrade cancelled.[/muted]")
+            return
+
+    console.print("\n[primary]Installing sqlite-vec...[/primary]")
+    if not _install_sqlite_vec():
+        console.print("[error]Installation failed. Try: pip install sqlite-vec[/error]")
+        raise typer.Exit(1)
+
+    if not _test_sqlite_vec():
+        console.print(
+            "[error]sqlite-vec installed but failed to load. Check Python environment.[/error]"
+        )
+        raise typer.Exit(1)
+
+    console.print("[success]✓ sqlite-vec installed and verified.[/success]")
+    console.print("\n[bold]Semantic memory is now active.[/bold]")
+    console.print(
+        "[muted]Existing memories can be indexed with: zana memory reindex[/muted]"
+    )
+    console.print("[muted]New memories will be auto-indexed as you add them.[/muted]\n")
+    console.print(
+        "[primary]GROVE tier unlocked. Juntos hacemos temblar los cielos.[/primary]\n"
+    )
 
 
 def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
