@@ -14,7 +14,6 @@ from pathlib import Path
 
 import pytest
 from zana.commands.identity import (
-    AEON_HOME,
     _MAGIC,
     _build_bundle,
     _compute_zaeon_uri,
@@ -26,7 +25,6 @@ from zana.commands.identity import (
     cmd_id_import,
     cmd_id_zaeon,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -382,7 +380,6 @@ def test_cmd_id_zaeon_with_profile_does_not_raise(sample_profile, isolated_aeon_
 
 def test_cli_id_zaeon_via_typer(sample_profile, isolated_aeon_home):
     from typer.testing import CliRunner
-
     from zana.main import app
 
     runner = CliRunner()
@@ -392,7 +389,6 @@ def test_cli_id_zaeon_via_typer(sample_profile, isolated_aeon_home):
 
 def test_cli_id_export_via_typer(sample_profile, tmp_path, isolated_aeon_home):
     from typer.testing import CliRunner
-
     from zana.main import app
 
     out = tmp_path / "cli_test.zaeon.enc"
@@ -406,7 +402,6 @@ def test_cli_id_export_via_typer(sample_profile, tmp_path, isolated_aeon_home):
 
 def test_cli_id_import_missing_file_via_typer(isolated_aeon_home, tmp_path):
     from typer.testing import CliRunner
-
     from zana.main import app
 
     missing = tmp_path / "does_not_exist.zaeon.enc"
