@@ -17,7 +17,8 @@ Commands:
   zana skill run <name> <prompt>   — execute skill via ZSM dispatcher
   zana skill info <name>           — show full SKILL.md content
   zana skill publish <name>        — prepare skill for Agora submission
-  zana skill search <query>        — search The Agora skill marketplace
+  zana skill search <query>        — search The Agora skill marketplace (default)
+  zana skill search <query> --local — search installed local registry only (no network)
   zana skill adopt <name>          — install a skill from The Agora
 """
 
@@ -362,7 +363,12 @@ def _cmd_skill_search_local(query: str) -> None:
     matches = [
         s
         for s in skills
-        if q in s.get("name", "").lower() or q in s.get("description", "").lower()
+        if q in s.get("name", "").lower()
+        or q in s.get("description", "").lower()
+        or q
+        in " ".join(
+            s.get("tags", []) if isinstance(s.get("tags"), list) else []
+        ).lower()
     ]
 
     console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
@@ -374,7 +380,7 @@ def _cmd_skill_search_local(query: str) -> None:
     if not matches:
         console.print("[muted]  No local skills match that keyword.[/muted]")
         console.print(
-            "  Try the marketplace: [accent]zana skill search " + query + "[/accent]\n"
+            f'  Try the marketplace: [accent]zana skill search "{query}"[/accent]\n'
         )
         return
 

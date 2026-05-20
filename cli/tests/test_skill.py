@@ -484,17 +484,60 @@ def _populate_registry(registry_path, skills_dir):
 def test_local_search_matches_by_name(isolated_skills):
     skills_dir, registry = isolated_skills
     _populate_registry(registry, skills_dir)
-    from zana.commands.skill import cmd_skill_search
 
-    cmd_skill_search("weather", local=True)
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "weather"])
+    assert result.exit_code == 0
+    assert "weather-check" in result.output
+    assert "math-solver" not in result.output
 
 
 def test_local_search_matches_by_description(isolated_skills):
     skills_dir, registry = isolated_skills
     _populate_registry(registry, skills_dir)
-    from zana.commands.skill import _cmd_skill_search_local
 
-    _cmd_skill_search_local("algebra")
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "algebra"])
+    assert result.exit_code == 0
+    assert "math-solver" in result.output
+    assert "weather-check" not in result.output
+
+
+def test_local_search_matches_by_tag(isolated_skills):
+    skills_dir, registry = isolated_skills
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    entries = [
+        {
+            "name": "geo-tool",
+            "version": "1.0.0",
+            "description": "Location data",
+            "author": "carl",
+            "tags": ["geo", "maps"],
+        },
+        {
+            "name": "chat-tool",
+            "version": "1.0.0",
+            "description": "Conversation helper",
+            "author": "dana",
+            "tags": ["nlp"],
+        },
+    ]
+    registry.write_text(json.dumps({"skills": entries}))
+
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "geo"])
+    assert result.exit_code == 0
+    assert "geo-tool" in result.output
+    assert "chat-tool" not in result.output
 
 
 def test_local_search_no_matches_does_not_raise(isolated_skills):
