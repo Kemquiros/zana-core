@@ -786,14 +786,20 @@ def skill_publish(
 
 @skill_app.command(
     "search",
-    help="Search The Agora open skill marketplace by name, tag, or description.",
+    help="Search skills by keyword. Default: The Agora marketplace. Use --local for installed skills only.",
 )
 def skill_search(
-    query: str = typer.Argument(..., help="Search term (name, tag, or keyword)."),
+    query: str = typer.Argument(..., help="Search term (name or description keyword)."),
+    local: bool = typer.Option(
+        False,
+        "--local",
+        "-l",
+        help="Search local installed registry only (no network).",
+    ),
 ) -> None:
     from zana.commands.skill import cmd_skill_search
 
-    cmd_skill_search(query)
+    cmd_skill_search(query, local=local)
 
 
 @skill_app.command(
