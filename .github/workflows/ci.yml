@@ -164,6 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [test, rust]
+    environment: production
     permissions:
       contents: write
 
