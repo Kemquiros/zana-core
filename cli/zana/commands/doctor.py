@@ -407,7 +407,57 @@ def _collect_fixable_issues() -> list[dict]:
             }
         )
 
-    # --- python_old ----------------------------------------------------------
+    # --- wisdom_queue_missing ------------------------------------------------
+    wisdom_queue = Path.home() / ".zana" / "wisdom_queue.json"
+    if not wisdom_queue.exists():
+        issues.append(
+            {
+                "id": "wisdom_queue_missing",
+                "label": "wisdom_queue.json missing — offline wisdom inbox unavailable",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- skills_dir_missing --------------------------------------------------
+    skills_dir = Path.home() / ".zana" / "skills"
+    if not skills_dir.exists() or not (skills_dir / "registry.json").exists():
+        issues.append(
+            {
+                "id": "skills_dir_missing",
+                "label": "~/.zana/skills/ directory or registry.json missing",
+                "fixable": True,
+                "fix_hint": "",
+            }
+        )
+
+    # --- memory_lite_corrupted -----------------------------------------------
+    memory_db = Path.home() / ".zana" / "memory_lite.db"
+    if memory_db.exists():
+        import sqlite3 as _sqlite3
+
+        try:
+            conn = _sqlite3.connect(str(memory_db))
+            result = conn.execute("PRAGMA integrity_check").fetchone()
+            conn.close()
+            if result and result[0] != "ok":
+                issues.append(
+                    {
+                        "id": "memory_lite_corrupted",
+                        "label": "memory_lite.db failed integrity check — FTS5 index may be corrupt",
+                        "fixable": True,
+                        "fix_hint": "",
+                    }
+                )
+        except Exception:
+            issues.append(
+                {
+                    "id": "memory_lite_corrupted",
+                    "label": "memory_lite.db could not be opened — may be corrupted",
+                    "fixable": True,
+                    "fix_hint": "",
+                }
+            )
 
     return issues
 
@@ -486,3 +536,30 @@ def _apply_fix(issue_id: str, questionary) -> None:  # noqa: ANN001
             rc_path = Path(rc).expanduser()
             if rc_path.exists() and local_bin not in rc_path.read_text():
                 rc_path.write_text(rc_path.read_text() + path_line)
+
+    elif issue_id == "wisdom_queue_missing":
+        import json as _json
+
+        wisdom_queue = Path.home() / ".zana" / "wisdom_queue.json"
+        wisdom_queue.parent.mkdir(parents=True, exist_ok=True)
+        wisdom_queue.write_text(
+            _json.dumps({"pending": [], "approved": [], "rejected": []}, indent=2)
+        )
+
+    elif issue_id == "skills_dir_missing":
+        import json as _json
+
+        skills_dir = Path.home() / ".zana" / "skills"
+        skills_dir.mkdir(parents=True, exist_ok=True)
+        registry = skills_dir / "registry.json"
+        if not registry.exists():
+            registry.write_text(_json.dumps({"skills": []}, indent=2))
+
+    elif issue_id == "memory_lite_corrupted":
+        import sqlite3 as _sqlite3
+
+        memory_db = Path.home() / ".zana" / "memory_lite.db"
+        conn = _sqlite3.connect(str(memory_db))
+        conn.execute("INSERT INTO documents_fts(documents_fts) VALUES ('rebuild')")
+        conn.commit()
+        conn.close()
