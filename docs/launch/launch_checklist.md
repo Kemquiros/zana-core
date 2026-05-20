@@ -1,7 +1,7 @@
 # ZANA Public Launch Checklist
 
 **Target launch date:** 2026-05-20+
-**Version to launch:** v3.5.0
+**Version to launch:** v3.7.0
 
 Run this checklist top-to-bottom before posting anywhere.
 
@@ -9,17 +9,17 @@ Run this checklist top-to-bottom before posting anywhere.
 
 ## Pre-launch: Code
 
-- [ ] `pip install vecanova-zana==3.5.0` succeeds on a clean machine
+- [ ] `pip install vecanova-zana==3.7.0` succeeds on a clean machine
 - [ ] `zana init` completes without errors (≤4 questions)
 - [ ] `zana chat` responds without Docker running
 - [ ] `zana hardware --recommend` returns output
 - [ ] `curl -LsSf .../install.sh | sh` works on Ubuntu 22.04 (test in VM or Docker)
-- [ ] GitHub Release `v3.5.0` exists with CHANGELOG notes attached
-- [ ] PyPI page shows v3.5.0 as latest: https://pypi.org/project/vecanova-zana/
+- [ ] GitHub Release `v3.7.0` exists with CHANGELOG notes attached
+- [ ] PyPI page shows v3.7.0 as latest: https://pypi.org/project/vecanova-zana/
 
 ## Pre-launch: Repository
 
-- [ ] README version badge shows v3.5.0
+- [ ] README version badge shows v3.7.0
 - [ ] README has no Spanish text
 - [ ] README Quick Start: SPROUT path (no Docker) is shown FIRST
 - [ ] CONTRIBUTING.md: dev setup works with `pip install -e "cli/[dev]"` + `pytest`

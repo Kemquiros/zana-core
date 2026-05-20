@@ -9,7 +9,7 @@
 ## Title options (A/B test)
 
 **Option A (problem-first):**
-> I built a local AI that actually remembers everything, works offline, and has a Rust security layer — after 2 years of development it's finally public [MIT]
+> I built a local AI that actually remembers everything, works offline, and has a Rust security layer — 2 months of building, finally public [MIT]
 
 **Option B (technical-first):**
 > ZANA v3.5.0 — local AI runtime with persistent memory (SQLite FTS5), Rust PII guard at 2.1µs, and zero cloud dependency [MIT, Python+Rust]
@@ -25,9 +25,9 @@
 
 Hey r/LocalLLaMA,
 
-Two years ago I started building what I wanted but couldn't find: an AI that runs locally, **actually remembers** everything across sessions, works offline, and has genuine security at the architecture level — not just a privacy policy.
+I've been iterating this idea since 2025, and 2 months ago I started building it for real. The goal: an AI that runs locally, **actually remembers** everything across sessions, works offline, and has genuine security at the architecture level — not just a privacy policy.
 
-Today I'm open-sourcing [ZANA](https://github.com/Kemquiros/zana-core) (Zero Autonomous Neural Architecture) v3.5.0 under MIT.
+Today I'm open-sourcing [ZANA](https://github.com/Kemquiros/zana-core) (Zero Autonomous Neural Architecture) v3.7.0 under MIT.
 
 ### What it actually does
 
@@ -61,11 +61,15 @@ PROCESSING (interchangeable — no lock-in)
 
 Your Aeon is your data, your memory, your evolution history. The model is the compute engine — swap it, the Aeon stays.
 
-### What's in v3.5.0
+### What's in v3.7.0
 
-- **Z-Skill v1.0** — `zana skill create my-skill`, then `zana skill run my-skill "prompt"`. SKILL.md format, agentskills.io compatible.
+- **Z-Skill v1.0** — `zana skill create my-skill`, then `zana skill run my-skill "prompt"`. SKILL.md format, agentskills.io compatible. `zana skill search --local` filters installed skills; `zana skill search` hits the open Agora marketplace.
+- **The Agora** — open skill marketplace: `zana skill publish`, `zana skill adopt`. Z-Civic SHA-256 tamper detection rejects modified skills before install.
+- **Z-Sync v1.0** — `zana zsync pull/push/status` federates WisdomRules over HTTPS between ZANA nodes. Civic hash tamper detection included.
+- **Herald channels** — Telegram, Discord, and WhatsApp Cloud API bots. One command per platform: `zana satellite configure telegram|discord|whatsapp <TOKEN>`.
+- **ZANA ID** — portable identity snapshot via `zaeon://` URI scheme for moving your Aeon between machines.
 - **Full offline command coverage** — `zana wisdom`, `zana sentinel`, `zana memory`, all work without the gateway.
-- **176 tests** — every offline path is CI-tested.
+- **580 tests** — every offline path is CI-tested.
 
 ### Hardware requirements
 
@@ -85,9 +89,9 @@ zana hardware --recommend   # auto-detects your hardware and suggests best model
 ### What's still not done (honest)
 
 - Mobile app — not yet
-- WhatsApp/Discord Herald — Telegram works, Discord in progress
-- Z-Sync (Aeon federation) — the P2P WisdomRule sharing is the next major milestone
 - Windows without WSL — the install.ps1 exists but hasn't been battle-tested on many machines
+- Full stack (Docker tier) needs more real-world hardening — SPROUT is the battle-tested path
+- Z-Sync is pull/push over HTTPS today — true P2P federation is a future milestone
 
 ### Links
 
