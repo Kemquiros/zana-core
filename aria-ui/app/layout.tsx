@@ -12,6 +12,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   themeColor: "#000000",
+  // required for env(safe-area-inset-*) to resolve on notched devices
+  viewportFit: "cover",
 };
 
 const spaceGrotesk = Space_Grotesk({

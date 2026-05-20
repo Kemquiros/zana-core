@@ -1,5 +1,5 @@
 /**
- * pwa.test.ts — Sprint 12 · Issue #35
+ * pwa.test.ts — Sprint 12 · Issue #39
  *
  * Tests for PWA manifest required fields and service worker registration.
  * Runs in jsdom (no browser needed).

@@ -13,39 +13,46 @@ export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (localStorage.getItem("pwa-install-dismissed") === "true") return;
 
-    const handler = (e: Event) => {
+    const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setVisible(true);
     };
 
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    // Hide the banner and prevent it from appearing again if the app is
+    // installed through the browser's own address-bar prompt.
+    const onAppInstalled = () => {
+      localStorage.setItem("pwa-install-dismissed", "true");
+      setVisible(false);
+    };
+
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onAppInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onAppInstalled);
+    };
   }, []);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setVisible(false);
-    }
+    // Close the banner regardless of outcome — the prompt can only be used
+    // once, so keeping it open after dismissal would leave a broken button.
+    await deferredPrompt.userChoice;
+    setVisible(false);
     setDeferredPrompt(null);
   };
 
   const handleDismiss = () => {
     setVisible(false);
-    setDismissed(true);
     localStorage.setItem("pwa-install-dismissed", "true");
   };
-
-  if (dismissed) return null;
 
   return (
     <AnimatePresence>
