@@ -1,15 +1,18 @@
 {
   "name": "@vecanova/zana",
   "version": "3.7.0",
-  "description": "ZANA — Zero Autonomous Neural Architecture. Every person deserves their own Aeon.",
+  "description": "Sovereign personal AI runtime — persistent memory, Rust PII guard, offline-first, MIT. pip install vecanova-zana",
   "keywords": [
     "ai",
-    "agent",
-    "cognitive",
-    "sovereign",
-    "aeon",
+    "local-ai",
+    "offline-first",
+    "personal-ai",
+    "privacy",
+    "rust",
+    "sqlite",
     "llm",
-    "local-ai"
+    "sovereign",
+    "cli"
   ],
   "author": "John Tapias <absurdoeco@gmail.com> (https://vecanova.com)",
   "license": "MIT",
