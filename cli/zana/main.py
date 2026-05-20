@@ -57,6 +57,14 @@ from zana.commands.coliseum import app as coliseum_typer  # noqa: E402
 coliseum_app.add_typer(coliseum_typer, name="")
 app.add_typer(coliseum_app, name="coliseum")
 
+skill_app = typer.Typer(
+    name="skill",
+    help="Z-Skill v1.0 — create, list, run and inspect local skills.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(skill_app, name="skill")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -627,6 +635,49 @@ def memory_import(
     from zana.commands.memory import cmd_memory_import
 
     cmd_memory_import(path)
+
+
+# ── Skill sub-commands ───────────────────────────────────────────────────────
+
+
+@skill_app.command("create", help="Scaffold a new skill at ~/.zana/skills/<name>/.")
+def skill_create(
+    name: str = typer.Argument(..., help="Skill name (lowercase, hyphens allowed)."),
+    author: str = typer.Option("", "--author", "-a", help="Author name."),
+) -> None:
+    from zana.commands.skill import cmd_skill_create
+
+    cmd_skill_create(name, author=author)
+
+
+@skill_app.command("list", help="List all skills in the local registry.")
+def skill_list() -> None:
+    from zana.commands.skill import cmd_skill_list
+
+    cmd_skill_list()
+
+
+@skill_app.command("run", help="Run a skill against a prompt via the ZSM dispatcher.")
+def skill_run(
+    name: str = typer.Argument(..., help="Skill name (see: zana skill list)."),
+    prompt: str = typer.Argument(
+        ..., help="The user prompt to process with this skill."
+    ),
+) -> None:
+    from zana.commands.skill import cmd_skill_run
+
+    cmd_skill_run(name, prompt)
+
+
+@skill_app.command(
+    "info", help="Show the full SKILL.md definition for an installed skill."
+)
+def skill_info(
+    name: str = typer.Argument(..., help="Skill name (see: zana skill list)."),
+) -> None:
+    from zana.commands.skill import cmd_skill_info
+
+    cmd_skill_info(name)
 
 
 # ── Shadow sub-commands ───────────────────────────────────────────────────────
