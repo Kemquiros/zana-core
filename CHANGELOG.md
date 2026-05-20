@@ -7,6 +7,29 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.5.0] — 2026-05-20 *(Sprint 9 — Offline Sovereignty)*
+
+### Added
+- **Z-Skill v1.0** — Local skill registry at `~/.zana/skills/`. Commands: `zana skill create <name>`, `zana skill list`, `zana skill run <name> <prompt>`, `zana skill info <name>`. SKILL.md format is agentskills.io compatible. Skills auto-register in `~/.zana/skills/registry.json`. (`cli/zana/commands/skill.py`, `cli/zana/main.py`)
+- **WisdomQueue offline fallback** — All four wisdom commands now work without the Gateway. `zana wisdom inbox` reads from `~/.zana/wisdom_queue.json`. `zana wisdom approve/reject <id>` move proposals between pending/approved/rejected with atomic write (write-tmp-then-rename). `zana wisdom mine` prints an informative offline message. (`cli/zana/core/wisdom_queue.py`, `cli/zana/commands/wisdom.py`)
+- **SentinelLiteDB** — SQLite ring buffer at `~/.zana/sentinel_lite.db` (max 1,000 events). `zana sentinel events` and `zana sentinel ledger` fall back to local DB when Gateway is unreachable. Ring buffer prunes oldest events automatically to keep DB bounded. (`cli/zana/core/sentinel_lite.py`, `cli/zana/commands/sentinel.py`)
+- **`zana doctor --fix` — 3 new auto-fix cases**: `wisdom_queue_missing` (creates empty queue JSON), `skills_dir_missing` (creates `~/.zana/skills/` + `registry.json`), `memory_lite_corrupted` (runs `PRAGMA integrity_check` + FTS5 rebuild). (`cli/zana/commands/doctor.py`)
+- **SPROUT-tier offline contract** — Every command that previously required the Gateway now has a documented offline fallback path. SEED and SPROUT tiers operate fully without Docker. (`cli/zana/commands/wisdom.py`, `cli/zana/commands/sentinel.py`)
+- **`sync-release.sh` — full release flow** — Upgraded to handle `develop → release/vX.Y.Z → main → tag` automatically. Updates `README.md` version badge, auto-injects CHANGELOG template if entry missing. Flags: `--dry-run`, `--no-push`, `--hotfix`. (`scripts/sync-release.sh`)
+
+### Tests
+- **176 tests passing** across all test suites — up from 130 in v3.4.0.
+- `cli/tests/test_memory_crud.py` — 26 tests: `MemoryLiteDB.delete()`, `clear()`, `export_docs()`, `import_docs()`, round-trip, CLI integration.
+- `cli/tests/test_skill.py` — 19 tests: frontmatter parsing, registry CRUD, `cmd_skill_create` (valid/invalid name, duplicate guard, author field), `cmd_skill_list`, `cmd_skill_info`, `cmd_skill_run`, Typer CLI wiring.
+- `cli/tests/test_sentinel_offline.py` — 12 tests: `SentinelLiteDB.record()`, `events()`, `ledger()`, `stats()`, ring buffer pruning, offline command fallbacks with mocked `httpx.ConnectError`.
+- `cli/tests/test_wisdom_offline.py` — 19 tests: `WisdomQueue` load/save/roundtrip/corrupt-JSON, atomic write (no `.tmp` left), `inbox()`, `stats()`, `add()`, `approve()`, `reject()`, 4 offline command fallbacks.
+- `cli/tests/test_satellite.py` — 11 tests: `load_satellite_config` / `save_satellite_config`, corrupt JSON, configure Discord, configure Telegram (valid/invalid/network error), token preservation.
+
+### Fixed
+- **Ruff lint errors in test files** — `io`, `sys`, `Path` unused imports removed from `test_memory_crud.py`; unsorted import blocks fixed in `test_wisdom_offline.py`. CI now runs `ruff check .` over all files including `cli/tests/`. (`cli/tests/test_memory_crud.py`, `cli/tests/test_wisdom_offline.py`)
+
+---
+
 ## [3.4.0] — 2026-05-19 *(Sprint 8)*
 
 ### Added
