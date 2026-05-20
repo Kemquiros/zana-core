@@ -1194,7 +1194,7 @@ def run_init_wizard() -> bool:
         f"[bold cyan]1 / 4[/bold cyan]  {_t('onboarding.q1_name', lang=selected_lang)}"
     )
     name_choice = questionary.select(
-        "  Elige un nombre:",
+        f"  {_t('onboarding.q1_select', lang=selected_lang)}",
         choices=_AEON_NAMES,
         style=_q_style(),
     ).ask()
@@ -1202,7 +1202,7 @@ def run_init_wizard() -> bool:
     if name_choice == "Custom...":
         aeon_name = (
             questionary.text(
-                "  Escribe el nombre de tu Aeon:",
+                f"  {_t('onboarding.q1_custom_prompt', lang=selected_lang)}",
                 style=_q_style(),
             ).ask()
             or "Aeon"
@@ -1211,20 +1211,22 @@ def run_init_wizard() -> bool:
         aeon_name = name_choice or "Aeon"
 
     console.print(
-        f"\n  [success]✓[/success]  Aeon [bold]{aeon_name}[/bold] registrado.\n"
+        f"\n  [success]✓[/success]  {_t('onboarding.q1_confirmed', lang=selected_lang, name=aeon_name)}\n"
     )
 
     # ── Q2: Provider ───────────────────────────────────────────────────────────
-    console.print("[bold cyan]2 / 4[/bold cyan]  ¿Qué motor de inferencia usarás?")
+    console.print(
+        f"[bold cyan]2 / 4[/bold cyan]  {_t('onboarding.q2_provider', lang=selected_lang)}"
+    )
     provider_labels = {
-        "anthropic": "Anthropic Claude    [API key requerida]",
-        "openai": "OpenAI GPT          [API key requerida]",
-        "gemini": "Google Gemini       [API key requerida]",
-        "groq": "Groq                [API key requerida, free tier disponible]",
-        "ollama": "Ollama local        [gratis, soberano, sin API key] ← recomendado",
+        "anthropic": _t("onboarding.q2_provider_anthropic", lang=selected_lang),
+        "openai": _t("onboarding.q2_provider_openai", lang=selected_lang),
+        "gemini": _t("onboarding.q2_provider_gemini", lang=selected_lang),
+        "groq": _t("onboarding.q2_provider_groq", lang=selected_lang),
+        "ollama": _t("onboarding.q2_provider_ollama", lang=selected_lang),
     }
     provider_key = questionary.select(
-        "  Motor:",
+        f"  {_t('onboarding.q2_select', lang=selected_lang)}",
         choices=list(provider_labels.values()),
         style=_q_style(),
     ).ask()
@@ -1241,7 +1243,7 @@ def run_init_wizard() -> bool:
     if selected_provider == "ollama":
         # Ollama path — reuse existing 3-step wizard (connection + model + inference test)
         console.print(
-            "\n[bold cyan]3 / 4[/bold cyan]  Configurando Ollama (motor soberano local)..."
+            f"\n[bold cyan]3 / 4[/bold cyan]  {_t('onboarding.q3_ollama_setup', lang=selected_lang)}"
         )
         ollama_env = _setup_ollama(
             {}, skip_confirm=True
@@ -1250,10 +1252,10 @@ def run_init_wizard() -> bool:
     else:
         env_var_name, provider_label = _PROVIDERS[selected_provider]
         console.print(
-            f"\n[bold cyan]3 / 4[/bold cyan]  API key para {provider_label.split(' (')[0]}:"
+            f"\n[bold cyan]3 / 4[/bold cyan]  {_t('onboarding.q3_key', lang=selected_lang, provider=provider_label.split(' (')[0])}"
         )
         api_key = questionary.password(
-            f"  Pega tu {provider_var_name(selected_provider)}:",
+            f"  {_t('onboarding.q3_key_prompt', lang=selected_lang, var=provider_var_name(selected_provider))}",
             style=_q_style(),
         ).ask()
         if api_key and api_key.strip():
@@ -1267,23 +1269,23 @@ def run_init_wizard() -> bool:
             }
             env_keys["ZANA_PRIMARY_MODEL"] = model_defaults[selected_provider]
             console.print(
-                f"\n  [success]✓[/success]  API key guardada. Modelo: [accent]{env_keys['ZANA_PRIMARY_MODEL']}[/accent]\n"
+                f"\n  [success]✓[/success]  {_t('onboarding.q3_key_saved', lang=selected_lang, model=env_keys['ZANA_PRIMARY_MODEL'])}\n"
             )
         else:
             console.print(
-                "\n  [warning]Sin API key. Puedes añadirla después con[/warning] [accent]zana setup[/accent].\n"
+                f"\n  [warning]{_t('onboarding.q3_no_key', lang=selected_lang)}[/warning] [accent]zana setup[/accent].\n"
             )
 
     # ── Q4: vault path (silent default) ───────────────────────────────────────
     console.print(
-        "[bold cyan]4 / 4[/bold cyan]  Bóveda de memoria (ruta donde ZANA almacena tus documentos)"
+        f"[bold cyan]4 / 4[/bold cyan]  {_t('onboarding.q4_vault', lang=selected_lang)}"
     )
     default_vault = _default_vault_path()
     env_vault = os.environ.get("ZANA_VAULT_PATH", "").strip()
     vault_path = env_vault or default_vault
 
     use_default = questionary.confirm(
-        f"  Usar ruta por defecto: {vault_path}",
+        f"  {_t('onboarding.q4_use_default', lang=selected_lang, path=vault_path)}",
         default=True,
         style=_q_style(),
     ).ask()
@@ -1291,7 +1293,7 @@ def run_init_wizard() -> bool:
     if not use_default:
         vault_path = (
             questionary.path(
-                "  Ruta a tu bóveda:",
+                f"  {_t('onboarding.q4_custom_path', lang=selected_lang)}",
                 default=default_vault,
                 style=_q_style(),
             ).ask()
@@ -1325,14 +1327,14 @@ def run_init_wizard() -> bool:
         "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
     )
     console.print(
-        "[bold cyan]5 / 5[/bold cyan]  (Opcional) ¿Dónde vive tu conocimiento?"
+        f"[bold cyan]5 / 5[/bold cyan]  {_t('onboarding.step5_title', lang=selected_lang)}"
     )
     console.print(
-        f"  [dim]ZANA puede indexar tus notas para que {aeon_name} las cite en tus conversaciones.[/dim]"
+        f"  [dim]{_t('onboarding.step5_desc', lang=selected_lang, name=aeon_name)}[/dim]"
     )
 
     do_vault = questionary.confirm(
-        f"  ¿Quieres que {aeon_name} conozca tus archivos ahora?",
+        f"  {_t('onboarding.step5_confirm', lang=selected_lang, name=aeon_name)}",
         default=True,
         style=_q_style(),
     ).ask()
@@ -1354,13 +1356,15 @@ def run_init_wizard() -> bool:
                     aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
             else:
                 console.print(
-                    f"  [dim]{aeon_name} empezará con vault vacío — crece con cada conversación.[/dim]"
+                    f"  [dim]{_t('onboarding.step5_empty', lang=selected_lang, name=aeon_name)}[/dim]"
                 )
         except Exception as e:
-            console.print(f"  [warning]Vault omitido: {e}[/warning]")
+            console.print(
+                f"  [warning]{_t('onboarding.step5_error', lang=selected_lang, error=e)}[/warning]"
+            )
     else:
         console.print(
-            f"  [dim]Ok — {aeon_name} empezará vacío. Añade tu vault después con[/dim] [accent]zana vault add[/accent]"
+            f"  [dim]{_t('onboarding.step5_skip', lang=selected_lang, name=aeon_name)}[/dim] [accent]zana vault add[/accent]"
         )
 
     # ── Step 6: Resonance Test (optional) ─────────────────────────────────────
@@ -1369,14 +1373,14 @@ def run_init_wizard() -> bool:
         "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
     )
     console.print(
-        "[bold cyan]Bonus[/bold cyan]  Test de Resonancia (3 minutos · recomendado)"
+        f"[bold cyan]Bonus[/bold cyan]  {_t('onboarding.step6_title', lang=selected_lang)}"
     )
     console.print(
-        f"  [dim]Sin él, {aeon_name} funciona. Con él, {aeon_name} te conoce.[/dim]"
+        f"  [dim]{_t('onboarding.step6_desc', lang=selected_lang, name=aeon_name)}[/dim]"
     )
 
     do_resonance = questionary.confirm(
-        f"  ¿Calibrar a {aeon_name} con tu forma de pensar?",
+        f"  {_t('onboarding.step6_confirm', lang=selected_lang, name=aeon_name)}",
         default=True,
         style=_q_style(),
     ).ask()
@@ -1391,13 +1395,15 @@ def run_init_wizard() -> bool:
             profile_data["archetype"] = archetype.value
             aeon_profile_path.write_text(_json.dumps(profile_data, indent=2))
         except Exception as e:
-            console.print(f"  [warning]Test omitido: {e}[/warning]")
             console.print(
-                "  [dim]Ejecuta después con[/dim] [accent]zana aeon resonance[/accent]"
+                f"  [warning]{_t('onboarding.step6_error', lang=selected_lang, error=e)}[/warning]"
+            )
+            console.print(
+                f"  [dim]{_t('onboarding.step6_skip', lang=selected_lang)}[/dim] [accent]zana aeon resonance[/accent]"
             )
     else:
         console.print(
-            "  [dim]Puedes hacerlo después con[/dim] [accent]zana aeon resonance[/accent]"
+            f"  [dim]{_t('onboarding.step6_skip', lang=selected_lang)}[/dim] [accent]zana aeon resonance[/accent]"
         )
 
     _render_zsm_capabilities(aeon_name, selected_lang)
