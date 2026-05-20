@@ -442,7 +442,9 @@ def id_export(
     passphrase: Annotated[
         str,
         typer.Option(
-            "--passphrase", help="Encryption passphrase (prompted if omitted)."
+            "--passphrase",
+            help="Encryption passphrase (prompted if omitted). "
+            "Avoid --passphrase in production: value appears in shell history.",
         ),
     ] = "",
 ) -> None:

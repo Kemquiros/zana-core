@@ -48,19 +48,20 @@ def cmd_id_generate(force: bool = False) -> None:
     ZANA_ID_DIR.mkdir(parents=True, exist_ok=True)
     pub, priv = _generate_keys()
 
-    import datetime
-
-    now_iso = datetime.datetime.now(datetime.UTC).isoformat()
+    now_iso = datetime.now(UTC).isoformat()
 
     identity = {
         "version": "1.0",
         "public_id": f"did:zana:{pub[:16]}",
         "public_key": pub,
-        "private_key": priv,
+        "private_key_mock": priv,
+        "_note": "private_key_mock is a placeholder — not a real Ed25519 key",
         "created_at": now_iso,
     }
 
     IDENTITY_FILE.write_text(json.dumps(identity, indent=2))
+    with contextlib.suppress(OSError):
+        IDENTITY_FILE.chmod(0o600)
 
     console.print("[success]Sovereign ZANA ID forged successfully![/success]")
     console.print(f"Your Public ID: [accent]{identity['public_id']}[/accent]")
@@ -147,7 +148,7 @@ def _build_bundle() -> dict:
         fpath = AEON_HOME / fname
         if fpath.exists():
             key = fname.replace(".json", "").replace("-", "_")
-            with contextlib.suppress(Exception):
+            with contextlib.suppress(OSError, json.JSONDecodeError):
                 bundle[key] = json.loads(fpath.read_text(encoding="utf-8"))
 
     # Skills: registry + all SKILL.md contents
@@ -162,7 +163,7 @@ def _build_bundle() -> dict:
     if skills_dir.exists():
         for skill_md in skills_dir.rglob("SKILL.md"):
             skill_name = skill_md.parent.name
-            with contextlib.suppress(Exception):
+            with contextlib.suppress(OSError):
                 skill_mds[skill_name] = skill_md.read_text(encoding="utf-8")
     bundle["skill_files"] = skill_mds
 
@@ -229,8 +230,8 @@ def _restore_bundle(bundle: dict, force: bool = False) -> list[str]:
             conn.executescript(memory_sql)
             conn.close()
             restored.append("memory_lite.db")
-        except Exception:
-            pass
+        except Exception as exc:
+            console.print(f"  [warning]⚠ Could not restore memory DB: {exc}[/warning]")
 
     return restored
 
@@ -382,8 +383,6 @@ def cmd_id_import(file: Path, passphrase: str = "", force: bool = False) -> None
 
 def cmd_id_zaeon() -> None:
     """Display your zaeon:// URI — your portable Aeon identity."""
-    uri = _compute_zaeon_uri()
-
     profile_path = AEON_HOME / "aeon_profile.json"
     if not profile_path.exists():
         console.print(
@@ -392,6 +391,7 @@ def cmd_id_zaeon() -> None:
         return
 
     profile = json.loads(profile_path.read_text())
+    uri = _compute_zaeon_uri()
     name = profile.get("name", "unknown")
     archetype = profile.get("archetype", "—")
 

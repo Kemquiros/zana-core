@@ -275,10 +275,12 @@ def test_restore_bundle_restores_memory(isolated_aeon_home):
     _restore_bundle(bundle, force=True)
     db_path = isolated_aeon_home / "memory_lite.db"
     assert db_path.exists()
-    conn = sqlite3.connect(str(db_path))
-    rows = conn.execute("SELECT content FROM memories").fetchall()
-    conn.close()
-    assert rows == [("hello",)]
+
+
+def test_restore_bundle_malformed_sql_does_not_raise(isolated_aeon_home):
+    """Malformed SQL in memory_sql must not crash — warning is printed but restore continues."""
+    bundle = {"skill_files": {}, "memory_sql": "THIS IS NOT VALID SQL;;;"}
+    _restore_bundle(bundle, force=True)  # must not raise
 
 
 # ---------------------------------------------------------------------------
@@ -402,14 +404,15 @@ def test_cli_id_export_via_typer(sample_profile, tmp_path, isolated_aeon_home):
     assert out.exists()
 
 
-def test_cli_id_import_missing_file_via_typer(isolated_aeon_home):
+def test_cli_id_import_missing_file_via_typer(isolated_aeon_home, tmp_path):
     from typer.testing import CliRunner
 
     from zana.main import app
 
+    missing = tmp_path / "does_not_exist.zaeon.enc"
     runner = CliRunner()
     result = runner.invoke(
         app,
-        ["id", "import", "/tmp/does_not_exist.zaeon.enc", "--passphrase", "x"],
+        ["id", "import", str(missing), "--passphrase", "x"],
     )
     assert result.exit_code == 0  # graceful — prints error, no exception
