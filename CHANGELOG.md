@@ -7,6 +7,34 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.6.0] — 2026-05-20 *(Sprint 10 + Sprint 11 — First Dollar + Full Power Without Docker)*
+
+### Added
+- **`zana upgrade --grove`** — Interactive wizard that installs `sqlite-vec` (pip, ~2 MB, no Docker) or guides to Docker stack. Verifies the extension loads correctly after install. (`cli/zana/commands/upgrade.py:cmd_grove_upgrade()`)
+- **Semantic memory without Docker (GROVE tier)** — `MemoryLiteDB` now optionally loads `sqlite-vec` for ANN vector search. `search_semantic()` auto-falls back to FTS5 if `sqlite-vec` or Ollama are unavailable. `add()` auto-indexes `zana_vault` entries when both are present. (`cli/zana/core/memory_lite.py`)
+- **`zana memory reindex`** — Rebuilds the sqlite-vec vector index from all existing memories via Ollama. (`cli/zana/commands/memory.py:cmd_memory_reindex()`, `cli/zana/main.py`)
+- **`is_sqlite_vec_available()` / `is_ollama_available()`** — Public helpers for feature detection without side effects. (`cli/zana/core/memory_lite.py`)
+- **`zana cloud`** — Shows current tier, sqlite-vec status, and subscription tier. (`cli/zana/commands/cloud.py:cmd_cloud_status()`)
+- **`zana subscribe`** — Displays $0/$8/$20 pricing table and opens browser to waitlist. No backend required for Sprint 11. (`cli/zana/commands/cloud.py:cmd_subscribe()`)
+- **SPROUT tier semantic memory** — `tier.py` now reports `semantic_vault=True` for SPROUT when `sqlite-vec` is installed (previously GROVE-only). (`cli/zana/core/tier.py`)
+- **`pyproject.toml [grove]` optional dep** — `pip install vecanova-zana[grove]` installs `sqlite-vec>=0.1.0`. (`cli/pyproject.toml`)
+- **CONTRIBUTING.md** — No-Docker developer path, branch strategy, PR conventions, ruff + pre-commit setup. (`CONTRIBUTING.md`)
+- **`docs/USER_STORIES.md`** — 16 formal user stories across 10 epics, 4 personas (Connextra + BDD), coverage matrix, DoR and DoD checklists. (`docs/USER_STORIES.md`)
+- **Launch content** — Reddit and HN post drafts, competitive positioning. (`docs/launch/`)
+- **CI npm version bump guard** — Prevents double-bump when `package.json` is already at target version. (`.github/workflows/ci.yml`)
+- **`environment: production` on `publish-npm` job** — `NPM_TOKEN` is an environment secret; job lacked the declaration. (`.github/workflows/ci.yml`)
+
+### Tests
+- **212 tests passing** — up from 176 in v3.5.0.
+- `cli/tests/test_grove_semantic.py` — 27 tests: `is_sqlite_vec_available`, `_serialize_vec`, `_get_ollama_embedding`, `has_vector_index`, `index_memory`, `search_semantic` fallback chain (no-vec, no-Ollama, full semantic), `rebuild_vector_index`, `add` auto-index.
+- `cli/tests/test_upgrade_grove.py` — 6 tests: grove upgrade already-installed guard, interactive wizard flow, no-interactive flag, install failure path.
+- `cli/tests/test_cloud.py` — 8 tests: `cmd_cloud_status` tier display, `cmd_subscribe` pricing table + browser open.
+
+### Fixed
+- `.npmrc` files added to `.gitignore` — prevents accidental token commits. (`.gitignore`)
+
+---
+
 ## [3.5.0] — 2026-05-20 *(Sprint 9 — Offline Sovereignty)*
 
 ### Added
