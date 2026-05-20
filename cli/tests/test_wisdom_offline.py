@@ -8,14 +8,11 @@ All tests use tmp_path isolation.
 
 from __future__ import annotations
 
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-
 import zana.core.wisdom_queue as wisdom_queue_mod
 from zana.core.wisdom_queue import WisdomQueue
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

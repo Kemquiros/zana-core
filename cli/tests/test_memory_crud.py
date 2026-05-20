@@ -10,14 +10,10 @@ Resolves: https://github.com/Kemquiros/zana-core/issues/3
 """
 
 import csv
-import io
 import json
-import sys
-from pathlib import Path
 
 import pytest
 from zana.core.memory_lite import MemoryLiteDB, get_db
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
