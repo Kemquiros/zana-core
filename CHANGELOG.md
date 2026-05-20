@@ -7,6 +7,17 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.7.1] — 2026-05-20
+
+### Added
+- ...
+
+### Fixed
+- ...
+
+---
+
+
 ## [3.7.0] — 2026-05-20 *(Sprint 12 — Herald Channels + Agora + i18n + Z-Sync + PWA)*
 
 ### Added
