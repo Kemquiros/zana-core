@@ -517,6 +517,10 @@ class MemoryLiteDB:
             - ``total``: total document count across all collections.
             - ``db_path``: absolute path to the SQLite file (str).
             - ``db_size_mb``: file size in megabytes (float).
+            - ``oldest``: ISO date string of the earliest entry, or None if empty.
+            - ``newest``: ISO date string of the most recent entry, or None if empty.
+            - ``oldest_id``: row id of the earliest entry, or None if empty.
+            - ``newest_id``: row id of the most recent entry, or None if empty.
         """
         rows = self._conn.execute(
             "SELECT collection, COUNT(*) AS cnt FROM documents GROUP BY collection"
@@ -531,11 +535,25 @@ class MemoryLiteDB:
         except FileNotFoundError:
             db_size_mb = 0.0
 
+        age_row = self._conn.execute(
+            "SELECT MIN(created_at) AS oldest, MAX(created_at) AS newest,"
+            " MIN(id) AS oldest_id, MAX(id) AS newest_id FROM documents"
+        ).fetchone()
+
+        oldest = age_row["oldest"][:10] if age_row and age_row["oldest"] else None
+        newest = age_row["newest"][:10] if age_row and age_row["newest"] else None
+        oldest_id = age_row["oldest_id"] if age_row else None
+        newest_id = age_row["newest_id"] if age_row else None
+
         return {
             "collections": collections,
             "total": total,
             "db_path": db_path,
             "db_size_mb": db_size_mb,
+            "oldest": oldest,
+            "newest": newest,
+            "oldest_id": oldest_id,
+            "newest_id": newest_id,
         }
 
     # ------------------------------------------------------------------

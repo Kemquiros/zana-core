@@ -317,3 +317,76 @@ def test_cmd_import_from_json_file(tmp_path, monkeypatch):
     docs = db.export_docs(collection="zana_vault")
     db.close()
     assert len(docs) == 2
+
+
+# ---------------------------------------------------------------------------
+# stats() — oldest / newest / ids  (Issue #24)
+# ---------------------------------------------------------------------------
+
+
+def test_stats_empty_db_has_none_dates(db):
+    s = db.stats()
+    assert s["oldest"] is None
+    assert s["newest"] is None
+    assert s["oldest_id"] is None
+    assert s["newest_id"] is None
+    assert s["total"] == 0
+
+
+def test_stats_single_entry_oldest_equals_newest(db):
+    db.add("Only entry", collection="zana_vault")
+    s = db.stats()
+    assert s["oldest"] == s["newest"]
+    assert s["oldest_id"] == s["newest_id"]
+    assert s["total"] == 1
+
+
+def test_stats_date_format_is_iso_date(db):
+    db.add("Entry", collection="zana_vault")
+    s = db.stats()
+    date_str = s["oldest"]
+    assert date_str is not None
+    parts = date_str.split("-")
+    assert len(parts) == 3
+    assert len(parts[0]) == 4  # YYYY
+
+
+def test_stats_oldest_id_less_than_newest_id(populated_db):
+    s = populated_db.stats()
+    assert s["oldest_id"] is not None
+    assert s["newest_id"] is not None
+    assert s["oldest_id"] < s["newest_id"]
+
+
+def test_stats_total_matches_sum_of_collections(populated_db):
+    s = populated_db.stats()
+    assert s["total"] == sum(s["collections"].values())
+
+
+def test_stats_db_path_and_size_present(db):
+    db.add("size test", collection="zana_vault")
+    s = db.stats()
+    assert s["db_path"].endswith(".db")
+    assert isinstance(s["db_size_mb"], float)
+    assert s["db_size_mb"] >= 0.0
+
+
+def test_cmd_memory_stats_runs_without_error(tmp_path, monkeypatch):
+    monkeypatch.setattr(MemoryLiteDB, "DB_PATH", tmp_path / "memory_lite.db")
+    db_inst = get_db()
+    db_inst.add("Stats test entry", collection="zana_vault")
+    db_inst.close()
+
+    from zana.commands.memory import cmd_memory_stats
+
+    cmd_memory_stats()
+
+
+def test_cmd_memory_stats_empty_db_no_footer(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(MemoryLiteDB, "DB_PATH", tmp_path / "memory_lite.db")
+    db_inst = get_db()
+    db_inst.close()
+
+    from zana.commands.memory import cmd_memory_stats
+
+    cmd_memory_stats()
