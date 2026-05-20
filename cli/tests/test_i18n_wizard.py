@@ -91,6 +91,10 @@ NEW_WIZARD_KEYS = [
     "onboarding.step6_confirm",
     "onboarding.step6_skip",
     "onboarding.step6_error",
+    # Pre-existing keys wired into the wizard — guard against accidental removal
+    "onboarding.q2_provider",
+    "onboarding.q3_key",
+    "onboarding.q4_vault",
 ]
 
 
@@ -103,34 +107,42 @@ def test_new_wizard_key_resolves_to_non_key(key, lang):
     assert result.strip(), f"Empty translation for key '{key}' in lang '{lang}'"
 
 
-def test_q1_confirmed_interpolation():
-    result = t("onboarding.q1_confirmed", lang="en", name="Kronos")
-    assert "Kronos" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_q1_confirmed_interpolation(lang):
+    result = t("onboarding.q1_confirmed", lang=lang, name="Kronos")
+    assert "Kronos" in result, f"Name interpolation broken for lang '{lang}'"
 
 
-def test_q3_key_saved_interpolation():
-    result = t("onboarding.q3_key_saved", lang="fr", model="claude-haiku-4-5-20251001")
-    assert "claude-haiku-4-5-20251001" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_q3_key_saved_interpolation(lang):
+    result = t("onboarding.q3_key_saved", lang=lang, model="claude-haiku-4-5-20251001")
+    assert "claude-haiku-4-5-20251001" in result, (
+        f"Model interpolation broken for lang '{lang}'"
+    )
 
 
-def test_q4_use_default_interpolation():
-    result = t("onboarding.q4_use_default", lang="de", path="/home/user/docs")
-    assert "/home/user/docs" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_q4_use_default_interpolation(lang):
+    result = t("onboarding.q4_use_default", lang=lang, path="/home/user/docs")
+    assert "/home/user/docs" in result, f"Path interpolation broken for lang '{lang}'"
 
 
-def test_step5_desc_interpolation():
-    result = t("onboarding.step5_desc", lang="pt", name="Aether")
-    assert "Aether" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_step5_desc_interpolation(lang):
+    result = t("onboarding.step5_desc", lang=lang, name="Aether")
+    assert "Aether" in result, f"Name interpolation broken for lang '{lang}'"
 
 
-def test_step6_confirm_interpolation():
-    result = t("onboarding.step6_confirm", lang="it", name="Nova")
-    assert "Nova" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_step6_confirm_interpolation(lang):
+    result = t("onboarding.step6_confirm", lang=lang, name="Nova")
+    assert "Nova" in result, f"Name interpolation broken for lang '{lang}'"
 
 
-def test_step5_error_interpolation():
-    result = t("onboarding.step5_error", lang="es", error="disk full")
-    assert "disk full" in result
+@pytest.mark.parametrize("lang", SUPPORTED_LANGS)
+def test_step5_error_interpolation(lang):
+    result = t("onboarding.step5_error", lang=lang, error="disk full")
+    assert "disk full" in result, f"Error interpolation broken for lang '{lang}'"
 
 
 # ---------------------------------------------------------------------------
