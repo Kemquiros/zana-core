@@ -194,15 +194,15 @@ def test_discord_bot_handle_message_dm(discord_bot, mock_registry):
         "content": "hello",
         "guild_id": None,
     }
-    with patch.object(
-        discord_bot, "_zsm_respond", return_value="Hi from ZANA"
-    ) as mock_zsm:
-        with patch.object(
-            discord_bot, "_send_message", new_callable=AsyncMock
-        ) as mock_send:
-            asyncio.run(discord_bot._handle_message(message_data))
-            mock_zsm.assert_called_once()
-            mock_send.assert_called_once_with("chan-999", "Hi from ZANA")
+    with (
+        patch.object(
+            discord_bot, "_zsm_respond", return_value="Hi from ZANA"
+        ) as mock_zsm,
+        patch.object(discord_bot, "_send_message", new_callable=AsyncMock) as mock_send,
+    ):
+        asyncio.run(discord_bot._handle_message(message_data))
+        mock_zsm.assert_called_once()
+        mock_send.assert_called_once_with("chan-999", "Hi from ZANA")
 
 
 def test_discord_bot_ignores_bot_messages(discord_bot):
@@ -250,13 +250,13 @@ def test_discord_bot_guild_slash_command(discord_bot):
         "content": "/zana what is 2+2?",
         "guild_id": "guild-1",
     }
-    with patch.object(discord_bot, "_zsm_respond", return_value="4") as mock_zsm:
-        with patch.object(
-            discord_bot, "_send_message", new_callable=AsyncMock
-        ) as mock_send:
-            asyncio.run(discord_bot._handle_message(message_data))
-            mock_zsm.assert_called_once()
-            mock_send.assert_called_once()
+    with (
+        patch.object(discord_bot, "_zsm_respond", return_value="4") as mock_zsm,
+        patch.object(discord_bot, "_send_message", new_callable=AsyncMock) as mock_send,
+    ):
+        asyncio.run(discord_bot._handle_message(message_data))
+        mock_zsm.assert_called_once()
+        mock_send.assert_called_once()
 
 
 def test_discord_bot_auto_registers_new_user(discord_bot, mock_registry):
@@ -270,9 +270,11 @@ def test_discord_bot_auto_registers_new_user(discord_bot, mock_registry):
         "content": "/zana hello",
         "guild_id": "guild-1",
     }
-    with patch.object(discord_bot, "_zsm_respond", return_value="Welcome!"):
-        with patch.object(discord_bot, "_send_message", new_callable=AsyncMock):
-            asyncio.run(discord_bot._handle_message(message_data))
+    with (
+        patch.object(discord_bot, "_zsm_respond", return_value="Welcome!"),
+        patch.object(discord_bot, "_send_message", new_callable=AsyncMock),
+    ):
+        asyncio.run(discord_bot._handle_message(message_data))
     mock_registry.register.assert_called_once_with(
         "discord", "new-user-333", "NewUser", lang="en"
     )

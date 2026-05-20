@@ -427,6 +427,58 @@ def id_show() -> None:
     cmd_id_show()
 
 
+@id_app.command(
+    "export", help="Export your full Aeon to an encrypted .zaeon.enc backup."
+)
+def id_export(
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            "-o",
+            help="Output file path (default: <name>.zaeon.enc in CWD).",
+        ),
+    ] = None,
+    passphrase: Annotated[
+        str,
+        typer.Option(
+            "--passphrase",
+            help="Encryption passphrase (prompted if omitted). "
+            "Avoid --passphrase in production: value appears in shell history.",
+        ),
+    ] = "",
+) -> None:
+    from zana.commands.identity import cmd_id_export
+
+    cmd_id_export(output=output, passphrase=passphrase)
+
+
+@id_app.command("import", help="Restore an Aeon from a .zaeon.enc file.")
+def id_import(
+    file: Annotated[Path, typer.Argument(help="Path to the .zaeon.enc file.")],
+    passphrase: Annotated[
+        str,
+        typer.Option(
+            "--passphrase", help="Decryption passphrase (prompted if omitted)."
+        ),
+    ] = "",
+    force: Annotated[
+        bool,
+        typer.Option("--force", help="Overwrite existing Aeon files."),
+    ] = False,
+) -> None:
+    from zana.commands.identity import cmd_id_import
+
+    cmd_id_import(file=file, passphrase=passphrase, force=force)
+
+
+@id_app.command("zaeon", help="Display your zaeon:// portable Aeon identity URI.")
+def id_zaeon() -> None:
+    from zana.commands.identity import cmd_id_zaeon
+
+    cmd_id_zaeon()
+
+
 # ── Aeon sub-commands ─────────────────────────────────────────────────────────
 
 
