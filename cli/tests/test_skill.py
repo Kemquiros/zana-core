@@ -453,3 +453,147 @@ def test_cli_skill_adopt_via_typer(isolated_skills, monkeypatch):
     runner = CliRunner()
     result = runner.invoke(app, ["skill", "adopt", "any-skill"])
     assert result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# cmd_skill_search --local  (Issue #25)
+# ---------------------------------------------------------------------------
+
+
+def _populate_registry(registry_path, skills_dir):
+    """Write two skills to the local registry for search tests."""
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    entries = [
+        {
+            "name": "weather-check",
+            "version": "1.0.0",
+            "description": "Fetch current weather for a city",
+            "author": "alice",
+        },
+        {
+            "name": "math-solver",
+            "version": "1.1.0",
+            "description": "Solve arithmetic and algebra",
+            "author": "bob",
+        },
+    ]
+    registry_path.write_text(json.dumps({"skills": entries}))
+    return entries
+
+
+def test_local_search_matches_by_name(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "weather"])
+    assert result.exit_code == 0
+    assert "weather-check" in result.output
+    assert "math-solver" not in result.output
+
+
+def test_local_search_matches_by_description(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "algebra"])
+    assert result.exit_code == 0
+    assert "math-solver" in result.output
+    assert "weather-check" not in result.output
+
+
+def test_local_search_matches_by_tag(isolated_skills):
+    skills_dir, registry = isolated_skills
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    entries = [
+        {
+            "name": "geo-tool",
+            "version": "1.0.0",
+            "description": "Location data",
+            "author": "carl",
+            "tags": ["geo", "maps"],
+        },
+        {
+            "name": "chat-tool",
+            "version": "1.0.0",
+            "description": "Conversation helper",
+            "author": "dana",
+            "tags": ["nlp"],
+        },
+    ]
+    registry.write_text(json.dumps({"skills": entries}))
+
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "geo"])
+    assert result.exit_code == 0
+    assert "geo-tool" in result.output
+    assert "chat-tool" not in result.output
+
+
+def test_local_search_no_matches_does_not_raise(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+    from zana.commands.skill import cmd_skill_search
+
+    cmd_skill_search("zzznomatch", local=True)
+
+
+def test_local_search_empty_registry_does_not_raise(isolated_skills):
+    skills_dir, registry = isolated_skills
+    skills_dir.mkdir(parents=True, exist_ok=True)
+    registry.write_text(json.dumps({"skills": []}))
+    from zana.commands.skill import cmd_skill_search
+
+    cmd_skill_search("anything", local=True)
+
+
+def test_local_search_case_insensitive_name(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+    from zana.commands.skill import _cmd_skill_search_local
+
+    _cmd_skill_search_local("WEATHER")
+
+
+def test_local_search_case_insensitive_description(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+    from zana.commands.skill import _cmd_skill_search_local
+
+    _cmd_skill_search_local("ARITHMETIC")
+
+
+def test_local_flag_does_not_call_agora(isolated_skills, monkeypatch):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+
+    called = []
+    monkeypatch.setattr(
+        "zana.commands.skill._fetch_agora_registry", lambda: called.append(True) or {}
+    )
+    from zana.commands.skill import cmd_skill_search
+
+    cmd_skill_search("weather", local=True)
+    assert called == [], "--local must not hit the network"
+
+
+def test_cli_skill_search_local_flag_via_typer(isolated_skills):
+    skills_dir, registry = isolated_skills
+    _populate_registry(registry, skills_dir)
+
+    from typer.testing import CliRunner
+    from zana.main import app
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["skill", "search", "--local", "weather"])
+    assert result.exit_code == 0

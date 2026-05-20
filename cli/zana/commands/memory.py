@@ -443,6 +443,7 @@ def cmd_memory_stats() -> None:
     # SQLite FTS5 — always available (SPROUT tier, no external deps)
     from zana.core.memory_lite import get_db
 
+    lite_stats: dict | None = None
     try:
         db = get_db()
         lite_stats = db.stats()
@@ -468,6 +469,20 @@ def cmd_memory_stats() -> None:
             padding=(0, 1),
         )
     )
+
+    if lite_stats and lite_stats["total"] > 0:
+        oldest = lite_stats.get("oldest") or "—"
+        newest = lite_stats.get("newest") or "—"
+        oldest_id = lite_stats.get("oldest_id")
+        newest_id = lite_stats.get("newest_id")
+        console.print(
+            f"\n  [muted]SQLite store:[/muted]  {lite_stats['db_path']}\n"
+            f"  [muted]Oldest entry:[/muted]  {oldest}"
+            + (f"  [muted](id: {oldest_id})[/muted]" if oldest_id else "")
+            + f"\n  [muted]Newest entry:[/muted]  {newest}"
+            + (f"  [muted](id: {newest_id})[/muted]" if newest_id else "")
+            + "\n"
+        )
 
 
 def cmd_memory_reindex() -> None:
