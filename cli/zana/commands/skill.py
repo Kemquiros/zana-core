@@ -354,8 +354,58 @@ def cmd_skill_publish(name: str, open_browser: bool = True) -> None:
             pass
 
 
-def cmd_skill_search(query: str) -> None:
-    """Search The Agora open skill marketplace."""
+def _cmd_skill_search_local(query: str) -> None:
+    """Filter the local skill registry by keyword (no network required)."""
+    registry = _load_registry()
+    skills: list[dict] = registry.get("skills", [])
+    q = query.lower()
+    matches = [
+        s
+        for s in skills
+        if q in s.get("name", "").lower() or q in s.get("description", "").lower()
+    ]
+
+    console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
+    console.print(
+        f"[bold white]  Local Skills — {len(matches)} result(s) for '{query}'[/bold white]"
+    )
+    console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]\n")
+
+    if not matches:
+        console.print("[muted]  No local skills match that keyword.[/muted]")
+        console.print(
+            "  Try the marketplace: [accent]zana skill search " + query + "[/accent]\n"
+        )
+        return
+
+    table = Table(
+        show_header=True, header_style="bold magenta", box=None, padding=(0, 2)
+    )
+    table.add_column("Name", style="accent", min_width=18)
+    table.add_column("Version", style="muted", min_width=8)
+    table.add_column("Description", min_width=30)
+    table.add_column("Author", style="muted")
+
+    for s in sorted(matches, key=lambda x: x["name"]):
+        table.add_row(
+            s.get("name", ""),
+            s.get("version", "—"),
+            s.get("description", "—"),
+            s.get("author", "—"),
+        )
+
+    console.print(table)
+    console.print(
+        '\n  Run a skill: [accent]zana skill run <name> "your prompt"[/accent]\n'
+    )
+
+
+def cmd_skill_search(query: str, local: bool = False) -> None:
+    """Search installed skills (--local) or The Agora marketplace (default)."""
+    if local:
+        _cmd_skill_search_local(query)
+        return
+
     console.print(f"\n[muted]Searching The Agora for '{query}'…[/muted]")
     data = _fetch_agora_registry()
 
