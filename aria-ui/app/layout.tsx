@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import InstallPrompt from "../components/InstallPrompt";
 import SwRegister from "../components/SwRegister";
 import TitleBar from "../components/TitleBar";
 import { ReactNode } from "react";
@@ -42,6 +43,7 @@ export default function RootLayout({
       >
         <TitleBar />
         <SwRegister />
+        <InstallPrompt />
         {children}
       </body>
     </html>
