@@ -1,4 +1,4 @@
-"""Satellite multi-user layer — Telegram / Discord."""
+"""Satellite multi-user layer — Telegram / Discord / WhatsApp."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from zana.tui.theme import console
 
 app = typer.Typer(
     name="satellite",
-    help="Satellite connectivity layer — Telegram, Discord.",
+    help="Satellite connectivity layer — Telegram, Discord, WhatsApp.",
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
@@ -55,13 +55,23 @@ def _is_alive(pid: int) -> bool:
 
 @app.command("configure")
 def configure(
-    platform: Annotated[str, typer.Argument(help="Platform: telegram | discord")],
-    token: Annotated[str, typer.Argument(help="Bot token")],
+    platform: Annotated[
+        str, typer.Argument(help="Platform: telegram | discord | whatsapp")
+    ],
+    token: Annotated[str, typer.Argument(help="Bot token / WhatsApp access token")],
+    phone_number_id: Annotated[
+        str | None,
+        typer.Option(
+            "--phone-number-id", help="WhatsApp phone number ID (required for whatsapp)"
+        ),
+    ] = None,
 ) -> None:
     """Configure a satellite platform bot token."""
     platform = platform.lower().strip()
-    if platform not in ("telegram", "discord"):
-        console.print("[error]Platform must be 'telegram' or 'discord'.[/error]")
+    if platform not in ("telegram", "discord", "whatsapp"):
+        console.print(
+            "[error]Platform must be 'telegram', 'discord', or 'whatsapp'.[/error]"
+        )
         raise typer.Exit(1)
 
     from zana.core.multiuser import load_satellite_config, save_satellite_config
@@ -96,9 +106,28 @@ def configure(
                 "and that MESSAGE CONTENT intent is enabled in the Developer Portal.[/muted]"
             )
             raise typer.Exit(1)
+    elif platform == "whatsapp":
+        if not phone_number_id:
+            console.print(
+                "[error]--phone-number-id is required for whatsapp.[/error]\n"
+                "[muted]Example: zana satellite configure whatsapp <token> --phone-number-id <id>[/muted]"
+            )
+            raise typer.Exit(1)
+        from zana.core.satellite.whatsapp_bot import validate_whatsapp_token_sync
+
+        console.print("[muted]Validating WhatsApp access token…[/muted]")
+        if not validate_whatsapp_token_sync(token):
+            console.print(_t("satellite.configure.invalid_token", platform="WhatsApp"))
+            console.print(
+                "[muted]Ensure the token is a valid Meta system-user access token "
+                "with whatsapp_business_messaging permission.[/muted]"
+            )
+            raise typer.Exit(1)
 
     config = load_satellite_config()
     config[f"{platform}_token"] = token
+    if platform == "whatsapp":
+        config["whatsapp_phone_number_id"] = phone_number_id
     save_satellite_config(config)
     console.print(_t("satellite.configure.success", platform=platform.capitalize()))
 
@@ -113,9 +142,13 @@ def start(
     from zana.core.multiuser import load_satellite_config
 
     config = load_satellite_config()
-    if not config.get("telegram_token") and not config.get("discord_token"):
+    if (
+        not config.get("telegram_token")
+        and not config.get("discord_token")
+        and not config.get("whatsapp_token")
+    ):
         console.print(
-            "[error]No platform configured. Run: zana satellite configure telegram <token>[/error]"
+            "[error]No platform configured. Run: zana satellite configure telegram|discord|whatsapp <token>[/error]"
         )
         raise typer.Exit(1)
 
@@ -168,11 +201,14 @@ def cmd_status() -> None:
     config = load_satellite_config()
     pid = _read_pid()
     running = pid is not None and _is_alive(pid)
-    platform = (
-        "telegram"
-        if config.get("telegram_token")
-        else ("discord" if config.get("discord_token") else "—")
-    )
+    if config.get("telegram_token"):
+        platform = "telegram"
+    elif config.get("discord_token"):
+        platform = "discord"
+    elif config.get("whatsapp_token"):
+        platform = "whatsapp"
+    else:
+        platform = "—"
     user_count = len(UserRegistry().list_all())
 
     if running:
