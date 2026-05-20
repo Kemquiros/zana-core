@@ -7,6 +7,29 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [Unreleased] — Sprint 12 — The Agora v1 + Discord Herald
+
+### Added
+- **The Agora v1 — open skill marketplace** — Three new `zana skill` sub-commands:
+  - `zana skill publish <name>` — Packages a local skill for Agora submission: generates `~/.zana/skills/<name>/agora_submission.json` with Z-Civic SHA-256 fingerprint, optionally opens GitHub issue URL in browser.
+  - `zana skill search <query>` — Fetches remote registry from `zana-agora` GitHub and filters by name, tags, and description. Graceful offline fallback.
+  - `zana skill adopt <name>` — Downloads `SKILL.md` from The Agora, verifies Z-Civic integrity (`sha256:` fingerprint), installs to `~/.zana/skills/`. Rejects tampered content before writing to disk.
+  - No new runtime dependencies — network calls via stdlib `urllib`.
+- **Discord Herald channel** — Full Discord Gateway WebSocket bot replacing the Sprint 9 stub:
+  - Gateway connection via `websockets` + REST via `httpx` (both already in deps).
+  - Routes: DMs, `/zana <prompt>` prefix in guild channels, `@mention` routing.
+  - Auto-registers new Discord users on first contact (language: `en` default).
+  - ZSM offline fallback when ZANA Gateway is unavailable.
+  - Discord 2000-char message limit enforced.
+  - `zana satellite configure discord <TOKEN>` validates the token against `/users/@me` before saving.
+
+### Tests
+- **240 tests passing** — up from 212 in v3.6.0.
+- `cli/tests/test_skill.py` — 19 new Agora tests: `_civic_hash`, `cmd_skill_publish` (submission JSON, civic hash match), `cmd_skill_search` (query, no matches, offline), `cmd_skill_adopt` (install, register, already-installed guard, not-in-agora, offline, civic mismatch aborts), CLI wiring (publish/search/adopt).
+- `cli/tests/test_satellite.py` — 8 new Discord bot tests: instantiation, stop, DM routing, bot message ignore, guild prefix filter, slash command, auto-register, constant checks.
+
+---
+
 ## [3.6.0] — 2026-05-20 *(Sprint 10 + Sprint 11 — First Dollar + Full Power Without Docker)*
 
 ### Added

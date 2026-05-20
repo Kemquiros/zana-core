@@ -717,6 +717,47 @@ def skill_info(
     cmd_skill_info(name)
 
 
+@skill_app.command(
+    "publish",
+    help="Prepare a local skill for submission to The Agora open skill marketplace.",
+)
+def skill_publish(
+    name: str = typer.Argument(..., help="Skill name (see: zana skill list)."),
+    no_browser: bool = typer.Option(
+        False, "--no-browser", help="Skip opening the submission URL in a browser."
+    ),
+) -> None:
+    from zana.commands.skill import cmd_skill_publish
+
+    cmd_skill_publish(name, open_browser=not no_browser)
+
+
+@skill_app.command(
+    "search",
+    help="Search The Agora open skill marketplace by name, tag, or description.",
+)
+def skill_search(
+    query: str = typer.Argument(..., help="Search term (name, tag, or keyword)."),
+) -> None:
+    from zana.commands.skill import cmd_skill_search
+
+    cmd_skill_search(query)
+
+
+@skill_app.command(
+    "adopt",
+    help="Download and install a skill from The Agora into ~/.zana/skills/.",
+)
+def skill_adopt(
+    name: str = typer.Argument(
+        ..., help="Skill name from The Agora (see: zana skill search)."
+    ),
+) -> None:
+    from zana.commands.skill import cmd_skill_adopt
+
+    cmd_skill_adopt(name)
+
+
 # ── Shadow sub-commands ───────────────────────────────────────────────────────
 
 

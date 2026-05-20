@@ -1,23 +1,36 @@
 """
-skill.py — Z-Skill v1.0 command implementations.
+skill.py — Z-Skill command implementations (local + Agora).
 
 Local skill registry at ~/.zana/skills/:
   ~/.zana/skills/<name>/SKILL.md   — skill definition
   ~/.zana/skills/registry.json     — index of installed skills
 
+The Agora — open skill marketplace (v1):
+  Registry: AGORA_REGISTRY_URL (read-only, GitHub-hosted JSON)
+  Publish:  generates submission payload; PR-based contribution flow
+  Search:   fetches registry, filters by name/tags/description
+  Adopt:    downloads SKILL.md from agora + installs locally
+
 Commands:
-  zana skill create <name>   — scaffold a new SKILL.md
-  zana skill list            — show installed skills
-  zana skill run <name> <prompt> — execute skill via ZSM dispatcher
-  zana skill info <name>     — show full SKILL.md content
+  zana skill create <name>         — scaffold a new SKILL.md
+  zana skill list                  — show installed skills
+  zana skill run <name> <prompt>   — execute skill via ZSM dispatcher
+  zana skill info <name>           — show full SKILL.md content
+  zana skill publish <name>        — prepare skill for Agora submission
+  zana skill search <query>        — search The Agora skill marketplace
+  zana skill adopt <name>          — install a skill from The Agora
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import webbrowser
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from rich.table import Table
 
@@ -25,6 +38,12 @@ from zana.tui.theme import console
 
 SKILLS_DIR = Path.home() / ".zana" / "skills"
 REGISTRY_PATH = SKILLS_DIR / "registry.json"
+
+AGORA_REGISTRY_URL = (
+    "https://raw.githubusercontent.com/Kemquiros/zana-agora/main/registry.json"
+)
+AGORA_SUBMIT_URL = "https://github.com/Kemquiros/zana-agora/issues/new"
+_AGORA_TIMEOUT = 8
 
 _SKILL_MD_TEMPLATE = """\
 ---
@@ -243,3 +262,222 @@ def cmd_skill_info(name: str) -> None:
         f"[muted]Author: {meta.get('author', '—')} · Path: {skill_dir}[/muted]\n"
     )
     console.print(skill_md_path.read_text(encoding="utf-8"))
+
+
+# ---------------------------------------------------------------------------
+# Agora helpers
+# ---------------------------------------------------------------------------
+
+
+def _fetch_agora_registry() -> dict | None:
+    """Fetch the remote Agora registry JSON. Returns None on network error."""
+    try:
+        with urlopen(AGORA_REGISTRY_URL, timeout=_AGORA_TIMEOUT) as resp:  # noqa: S310
+            return json.loads(resp.read().decode())
+    except (URLError, json.JSONDecodeError, OSError):
+        return None
+
+
+def _civic_hash(content: str) -> str:
+    """SHA-256 fingerprint of skill content (Z-Civic integrity marker)."""
+    return "sha256:" + hashlib.sha256(content.encode()).hexdigest()[:16]
+
+
+# ---------------------------------------------------------------------------
+# Agora commands
+# ---------------------------------------------------------------------------
+
+
+def cmd_skill_publish(name: str, open_browser: bool = True) -> None:
+    """Prepare a skill for submission to The Agora (open skill marketplace)."""
+    skill_dir = SKILLS_DIR / name
+    skill_md_path = skill_dir / "SKILL.md"
+
+    if not skill_md_path.exists():
+        console.print(f"[error]✗ Skill '{name}' not found locally.[/error]")
+        console.print("  Create it first: [accent]zana skill create {name}[/accent]")
+        return
+
+    content = skill_md_path.read_text(encoding="utf-8")
+    meta = _parse_frontmatter(content)
+    civic = _civic_hash(content)
+
+    payload = {
+        "name": meta.get("name", name),
+        "version": meta.get("version", "1.0.0"),
+        "description": meta.get("description", ""),
+        "author": meta.get("author", "anonymous"),
+        "tags": meta.get("tags", "[]"),
+        "zana_version": meta.get("zana_version", ">=3.5.0"),
+        "civic_hash": civic,
+        "submitted_at": datetime.now(UTC).strftime("%Y-%m-%d"),
+        "skill_content": content,
+    }
+
+    console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
+    console.print("[bold white]  The Agora — Skill Submission[/bold white]")
+    console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]\n")
+    console.print(
+        f"  Skill:     [accent]{payload['name']}[/accent] v{payload['version']}"
+    )
+    console.print(f"  Author:    [muted]{payload['author']}[/muted]")
+    console.print(f"  Civic ID:  [muted]{civic}[/muted]")
+    console.print(f"  Tags:      [muted]{payload['tags']}[/muted]\n")
+
+    # Write submission JSON to ~/.zana/skills/<name>/agora_submission.json
+    submission_path = skill_dir / "agora_submission.json"
+    submission_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    console.print(f"  Submission saved: [accent]{submission_path}[/accent]\n")
+
+    console.print("  [bold]Next steps to publish to The Agora:[/bold]")
+    console.print("  1. Open a GitHub issue at the link below")
+    console.print(
+        "  2. Attach your [accent]SKILL.md[/accent] and paste the submission JSON"
+    )
+    console.print(
+        "  3. A maintainer will review and merge — open-source skills are always free\n"
+    )
+    console.print(
+        f"  [accent]{AGORA_SUBMIT_URL}?title=Skill+Submission:+{name}&labels=skill-submission[/accent]\n"
+    )
+
+    if open_browser:
+        issue_url = (
+            f"{AGORA_SUBMIT_URL}?title=Skill+Submission:+{name}&labels=skill-submission"
+        )
+        try:
+            webbrowser.open(issue_url)
+            console.print("  [muted]→ Opened submission URL in your browser.[/muted]\n")
+        except Exception:
+            pass
+
+
+def cmd_skill_search(query: str) -> None:
+    """Search The Agora open skill marketplace."""
+    console.print(f"\n[muted]Searching The Agora for '{query}'…[/muted]")
+    data = _fetch_agora_registry()
+
+    if data is None:
+        console.print(
+            "[warning]⚠ Could not reach The Agora registry (offline or unavailable).[/warning]"
+        )
+        console.print("  Check your connection or try again later.\n")
+        return
+
+    skills: list[dict] = data.get("skills", [])
+    q = query.lower()
+    matches = [
+        s
+        for s in skills
+        if q in s.get("name", "").lower()
+        or q in s.get("description", "").lower()
+        or q in " ".join(s.get("tags", [])).lower()
+    ]
+
+    console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
+    console.print(
+        f"[bold white]  The Agora — {len(matches)} result(s) for '{query}'[/bold white]"
+    )
+    console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]\n")
+
+    if not matches:
+        console.print("[muted]  No skills found. Try a different keyword.[/muted]\n")
+        return
+
+    table = Table(
+        show_header=True, header_style="bold magenta", box=None, padding=(0, 2)
+    )
+    table.add_column("Name", style="accent", min_width=20)
+    table.add_column("Ver", style="muted", min_width=6)
+    table.add_column("Description", min_width=36)
+    table.add_column("Author", style="muted", min_width=12)
+    table.add_column("Tags", style="muted")
+
+    for s in matches:
+        tags = (
+            ", ".join(s.get("tags", []))
+            if isinstance(s.get("tags"), list)
+            else s.get("tags", "")
+        )
+        table.add_row(
+            s.get("name", ""),
+            s.get("version", ""),
+            s.get("description", ""),
+            s.get("author", ""),
+            tags,
+        )
+
+    console.print(table)
+    console.print("\n  Adopt a skill: [accent]zana skill adopt <name>[/accent]\n")
+
+
+def cmd_skill_adopt(name: str) -> None:
+    """Download and install a skill from The Agora into ~/.zana/skills/."""
+    # Check if already installed
+    skill_dir = SKILLS_DIR / name
+    skill_md_path = skill_dir / "SKILL.md"
+    if skill_md_path.exists():
+        console.print(f"[warning]⚠ Skill '{name}' is already installed.[/warning]")
+        console.print(f"  Path: [accent]{skill_md_path}[/accent]")
+        console.print(
+            f"  To update: delete the folder and run [accent]zana skill adopt {name}[/accent] again.\n"
+        )
+        return
+
+    console.print(f"\n[muted]Fetching '{name}' from The Agora…[/muted]")
+    data = _fetch_agora_registry()
+
+    if data is None:
+        console.print(
+            "[warning]⚠ Could not reach The Agora registry (offline or unavailable).[/warning]"
+        )
+        console.print("  Check your connection or try again later.\n")
+        return
+
+    skills: list[dict] = data.get("skills", [])
+    entry = next((s for s in skills if s.get("name") == name), None)
+
+    if entry is None:
+        console.print(f"[error]✗ Skill '{name}' not found in The Agora.[/error]")
+        console.print(f"  Search first: [accent]zana skill search {name}[/accent]\n")
+        return
+
+    skill_url: str = entry.get("skill_url", "")
+    if not skill_url:
+        console.print(
+            f"[error]✗ Skill '{name}' has no download URL in the registry.[/error]\n"
+        )
+        return
+
+    try:
+        with urlopen(skill_url, timeout=_AGORA_TIMEOUT) as resp:  # noqa: S310
+            skill_content = resp.read().decode()
+    except (URLError, OSError) as exc:
+        console.print(f"[error]✗ Failed to download skill: {exc}[/error]\n")
+        return
+
+    # Z-Civic integrity check
+    expected_hash = entry.get("civic_hash", "")
+    actual_hash = _civic_hash(skill_content)
+    if expected_hash and expected_hash != actual_hash:
+        console.print(
+            "[error]✗ Civic integrity check failed — skill content may have been tampered with.[/error]"
+        )
+        console.print(f"  Expected: [muted]{expected_hash}[/muted]")
+        console.print(f"  Got:      [muted]{actual_hash}[/muted]\n")
+        return
+
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    skill_md_path.write_text(skill_content, encoding="utf-8")
+    _register_skill(name, skill_dir)
+
+    console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
+    console.print(f"[success]✓ Skill '{name}' adopted from The Agora.[/success]")
+    console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]\n")
+    console.print(f"  Version:   [accent]{entry.get('version', '?')}[/accent]")
+    console.print(f"  Author:    [muted]{entry.get('author', '—')}[/muted]")
+    console.print(f"  Civic ID:  [muted]{actual_hash}[/muted]")
+    console.print(f"  Path:      [muted]{skill_md_path}[/muted]\n")
+    console.print(f'  Run it: [accent]zana skill run {name} "your prompt"[/accent]\n')
