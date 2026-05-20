@@ -161,6 +161,24 @@ def test_sync_pull_imports_valid_rule(signed_rule, wisdom_queue_mock):
     assert "Imported 1" in result.output
 
 
+def test_sync_pull_rejects_rule_with_no_civic_hash(sample_rule, wisdom_queue_mock):
+    """A rule with no civic_hash must be rejected (not silently imported)."""
+    assert "civic_hash" not in sample_rule
+    feed_json = _make_feed([sample_rule])
+    mock_resp = MagicMock()
+    mock_resp.read.return_value = feed_json.encode()
+    mock_resp.__enter__ = lambda s: s
+    mock_resp.__exit__ = MagicMock(return_value=False)
+
+    with patch("urllib.request.urlopen", return_value=mock_resp):
+        result = runner.invoke(app, ["pull", "https://example.com/feed.json"])
+
+    assert result.exit_code == 0
+    assert "missing civic_hash" in result.output
+    assert "Imported 0" in result.output
+    assert wisdom_queue_mock.stats()["pending"] == 0
+
+
 def test_sync_pull_rejects_tampered_rule(sample_rule, wisdom_queue_mock):
     tampered = {**sample_rule, "civic_hash": "sha256:aaaaaaaaaaaaaaaa"}
     feed_json = _make_feed([tampered])

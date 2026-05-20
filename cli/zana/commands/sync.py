@@ -99,16 +99,22 @@ def _import_rules(rules: list[dict]) -> tuple[int, int]:
             skipped += 1
             continue
 
-        expected = rule.get("civic_hash", "")
-        actual = _rule_fingerprint(rule)
-        if expected and expected != actual:
+        expected = rule.get("civic_hash")
+        if not expected:
+            console.print(
+                f"  [warning]⚠ Rule '{rule_id}' missing civic_hash — rejected.[/warning]"
+            )
+            skipped += 1
+            continue
+
+        if expected != _rule_fingerprint(rule):
             console.print(
                 f"  [warning]⚠ Rule '{rule_id}' tampered — civic hash mismatch. Skipped.[/warning]"
             )
             skipped += 1
             continue
 
-        queue.add({**rule, "source": "zsync", "civic_hash": actual})
+        queue.add({**rule, "source": "zsync"})
         imported += 1
 
     return imported, skipped
@@ -201,7 +207,9 @@ def sync_push(
     out = output or _FEED_FILE
     feed = _build_feed()
     _AEON_HOME.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(feed, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp = out.with_suffix(".tmp")
+    tmp.write_text(json.dumps(feed, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, out)
 
     console.print(f"\n  [success]✓ Feed written:[/success] [accent]{out}[/accent]")
     console.print(f"  Rules: [muted]{feed['count']}[/muted]")
