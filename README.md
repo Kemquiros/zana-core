@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-v3.3.0-10b981?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-v3.5.0-10b981?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![License](https://img.shields.io/badge/License-MIT-a855f7?style=for-the-badge)](LICENSE)
 [![Engine](https://img.shields.io/badge/Engine-Python_+_Rust-e879f9?style=for-the-badge)](https://github.com/Kemquiros/zana-core)
 [![ZFI](https://img.shields.io/badge/ZFI_Score-100%2F100-22c55e?style=for-the-badge)](#zfi--zana-fitness-index)
@@ -49,7 +49,10 @@ No one should own your soul.**
 
 ## Quick Start
 
-### Linux / macOS — un solo comando
+> **No Docker required to start.** ZANA runs offline on any machine with Python 3.12+.
+> Docker unlocks the full stack (ChromaDB, PostgreSQL, voice). Start without it.
+
+### Linux / macOS
 ```bash
 curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.sh | sh
 ```
@@ -59,22 +62,30 @@ curl -LsSf https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/in
 irm https://raw.githubusercontent.com/Kemquiros/zana-core/main/scripts/install.ps1 | iex
 ```
 
-### Manual (pip)
+### Manual (pip / pipx)
 ```bash
 pip install pipx
 pipx install vecanova-zana
-zana init
+zana init        # 4 questions, then you're done
+zana chat        # start talking — no Docker, no accounts, no API key required
 ```
 
-### Binarios standalone (sin Python)
-Descarga el ejecutable para tu plataforma desde [GitHub Releases](https://github.com/Kemquiros/zana-core/releases/latest):
-- `zana-linux-x86_64` — Linux
-- `zana-windows-x86_64.exe` — Windows
-- `zana-macos-arm64` — macOS Apple Silicon
+### Standalone binary (no Python needed)
+Download the binary for your platform from [GitHub Releases](https://github.com/Kemquiros/zana-core/releases/latest):
+- `zana-linux-x86_64`
+- `zana-windows-x86_64.exe`
+- `zana-macos-arm64`
 
-Then run `zana init` to create your Aeon (≤ 4 questions), then `zana start`.
+Then run `zana init` → `zana chat`.
 
-> **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows](docs/INSTALL_WINDOWS.md) · [User Manual](docs/USER_MANUAL.md)
+### Full stack (optional — power users)
+```bash
+zana start       # launches Docker services: ChromaDB, PostgreSQL, Neo4j, ARIA UI
+zana status      # check all services
+zana stop        # shut everything down
+```
+
+> **Guides:** [Linux](docs/INSTALL_LINUX.md) · [macOS](docs/INSTALL_MACOS.md) · [Windows](docs/INSTALL_WSL.md) · [User Manual](docs/USER_MANUAL.md)
 
 ---
 
@@ -223,16 +234,16 @@ ZANA scores itself across 7 cognitive pillars on every boot:
 
 ---
 
-## What's New — v3.0
+## What's New — v3.5.0 "Offline Sovereignty"
 
-- **Zero Friction Install** — `pip install vecanova-zana` / `npm install -g @vecanova/zana`. No Docker required.
-- **Sentinel Event Bus** — 8 lifecycle events with SHA-256 Civic Ledger: `PreToolUse · PostToolUse · SkillActivation · MemoryWrite · CivicLedgerEntry · AeonEvolution`.
-- **Aeon DNA v2** — 35 genes, 9 evolution stages (Huevo → Sovereign). Nanosecond-seeded entropy. No two Aeons are identical.
-- **Coliseo AEON** — 6-world battle engine driven by your Obsidian Vault. Your notes shape the arena.
-- **Z-Skill v1.0** — open skill format, agentskills.io compatible. Drop a `SKILL.md` in `~/.zana/skills/` to activate.
-- **Background Scheduler** — auto-mines sessions into WisdomRules every 24h while you sleep.
-- **SQLite episodic backend** — zero-config, stores at `~/.zana/episodic.db`. PostgreSQL optional for power users.
-- **Herald Telegram Gateway** — circuit breaker, retry, rate limiting, webhook mode.
+- **Z-Skill v1.0** — `zana skill create/list/run/info`. Drop a `SKILL.md` in `~/.zana/skills/` to activate any skill. agentskills.io compatible.
+- **Full offline command coverage** — `zana wisdom`, `zana sentinel`, `zana memory`, `zana satellite` all work without Docker or Gateway. SPROUT tier is genuinely self-contained.
+- **WisdomQueue** — inbox, approve, reject wisdom proposals locally at `~/.zana/wisdom_queue.json`. Atomic writes (no data loss on crash).
+- **SentinelLiteDB** — local SQLite ring buffer for all Sentinel events (max 1,000). Prunes oldest automatically.
+- **`zana doctor --fix`** — 3 new auto-fix cases: missing wisdom queue, missing skills registry, corrupted memory DB.
+- **176 tests** — up from 130 in v3.4.0. Every offline path tested in CI.
+
+See the full [CHANGELOG](CHANGELOG.md) for all previous releases.
 
 ---
 
@@ -240,17 +251,16 @@ ZANA scores itself across 7 cognitive pillars on every boot:
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
 
-**v3.0 "Zero Friction" — Live ✅**
+**v3.5.0 "Offline Sovereignty" — Live ✅**
 
-`pip install vecanova-zana` · `npm install -g @vecanova/zana`
+Every command works without Docker. SEED + SPROUT tier users get a complete, self-contained Aeon.
 
-**Next — v3.5 "Federation"**
+**Next — v3.6 "Community"**
 
 - Z-Sync — privacy-preserving WisdomRule federation between Aeons
-- Z-DNA — portable Aeon serialization (`.zaeon.enc`)
+- The Agora — open skill marketplace
 - `zaeon://` — universal Aeon identity URI
 - WhatsApp + Discord Herald channels
-- 12 languages
 
 ---
 
@@ -264,17 +274,22 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
 
 ZANA is MIT licensed. The Z-Protocol is open.
 
-- **Skills** — create and publish to The Agora
-- **Adapters** — new Herald channels (messaging platforms, devices)
-- **Languages** — translate and culturally adapt for your community
-- **Providers** — new model adapters for the LiteLLM router
-- **Armor** — security audits and Rust contributions
-
 ```bash
 git clone https://github.com/Kemquiros/zana-core
-cd zana-core
-zana init
+cd zana-core/cli
+pip install -e ".[dev]"   # no Docker required for development
+pytest cli/tests/ -q      # 176 tests
 ```
+
+Ways to contribute:
+- **Skills** — create a `SKILL.md` and open a PR to The Agora
+- **Adapters** — new Herald channels (Telegram already done, WhatsApp, Discord, Signal welcome)
+- **Languages** — translate `zana init` onboarding wizard
+- **Providers** — new model adapters (LiteLLM-compatible)
+- **Armor** — Rust security audits and contributions
+- **Docs** — user guides, tutorials, video walkthroughs
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide. Issues labeled [`good first issue`](https://github.com/Kemquiros/zana-core/issues?q=label%3A%22good+first+issue%22) are the best place to start.
 
 ---
 
