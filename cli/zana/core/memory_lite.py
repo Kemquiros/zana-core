@@ -1,13 +1,26 @@
 """
-memory_lite.py — SQLite FTS5 memory backend for SPROUT tier.
+memory_lite.py — SQLite FTS5 + optional sqlite-vec memory backend for SPROUT/GROVE tier.
 
-Provides semantic-like text search without Docker, ChromaDB or any external service.
-All data lives in ~/.zana/memory_lite.db — portable, sovereign, offline.
+SPROUT: keyword search via FTS5 (always available, no dependencies).
+GROVE:  semantic search via sqlite-vec + Ollama embeddings (optional, no Docker).
+
+Install semantic layer: pip install vecanova-zana[grove]
 """
+
+from __future__ import annotations
 
 import json
 import sqlite3
+import struct
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass
+
+_EMBED_MODEL = "nomic-embed-text"
+_EMBED_DIM = 768  # nomic-embed-text output dimension
+_OLLAMA_URL = "http://localhost:11434/api/embeddings"
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS documents (
@@ -36,30 +49,158 @@ CREATE TRIGGER IF NOT EXISTS docs_ad AFTER DELETE ON documents BEGIN
     INSERT INTO documents_fts(documents_fts, rowid, content, source, collection)
     VALUES ('delete', old.id, old.content, old.source, old.collection);
 END;
+
+CREATE TABLE IF NOT EXISTS _vec_meta (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
+
+_VEC_TABLE_SQL = (
+    "CREATE VIRTUAL TABLE IF NOT EXISTS memory_vec USING vec0(embedding float[{dim}]);"
+)
+
+
+def _load_sqlite_vec(conn: sqlite3.Connection) -> bool:
+    """Load sqlite-vec extension into an open connection. Returns True on success."""
+    try:
+        import sqlite_vec
+
+        conn.enable_load_extension(True)
+        sqlite_vec.load(conn)
+        conn.enable_load_extension(False)
+        return True
+    except Exception:
+        return False
+
+
+def _get_ollama_embedding(text: str) -> list[float] | None:
+    """Request embedding from local Ollama. Returns None if unavailable."""
+    try:
+        import httpx
+
+        r = httpx.post(
+            _OLLAMA_URL,
+            json={"model": _EMBED_MODEL, "prompt": text},
+            timeout=10.0,
+        )
+        if r.status_code == 200:
+            emb = r.json().get("embedding")
+            if isinstance(emb, list) and len(emb) > 0:
+                return emb
+    except Exception:
+        pass
+    return None
+
+
+def _serialize_vec(embedding: list[float]) -> bytes:
+    """Serialize a float list to little-endian bytes for sqlite-vec."""
+    return struct.pack(f"{len(embedding)}f", *embedding)
+
+
+def is_sqlite_vec_available() -> bool:
+    """Return True if sqlite-vec can be loaded in a fresh connection."""
+    try:
+        conn = sqlite3.connect(":memory:")
+        result = _load_sqlite_vec(conn)
+        conn.close()
+        return result
+    except Exception:
+        return False
+
+
+def is_ollama_available() -> bool:
+    """Return True if Ollama embedding endpoint responds."""
+    return _get_ollama_embedding("test") is not None
 
 
 class MemoryLiteDB:
-    """SQLite FTS5-backed memory store for ZANA SPROUT tier.
+    """SQLite FTS5 + optional sqlite-vec memory store.
 
-    All data is stored in ~/.zana/memory_lite.db.
-    No external services required — fully offline and sovereign.
+    SPROUT: keyword search (always available).
+    GROVE:  semantic search via sqlite-vec + Ollama (when both are installed).
+
+    All data lives in ~/.zana/memory_lite.db — portable, sovereign, offline.
     """
 
     DB_PATH = Path.home() / ".zana" / "memory_lite.db"
 
-    def __init__(self) -> None:
-        self.DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(str(self.DB_PATH))
+    def __init__(self, db_path: Path | None = None) -> None:
+        path = db_path or self.DB_PATH
+        path.parent.mkdir(parents=True, exist_ok=True)
+        self._conn = sqlite3.connect(str(path))
         self._conn.row_factory = sqlite3.Row
-        # Enable WAL for better concurrent read performance
         self._conn.execute("PRAGMA journal_mode=WAL")
+        self._vec_loaded = _load_sqlite_vec(self._conn)
         self._bootstrap()
 
     def _bootstrap(self) -> None:
         """Create tables and triggers if they do not exist."""
         self._conn.executescript(_SCHEMA_SQL)
         self._conn.commit()
+        if self._vec_loaded:
+            self._init_vec_table()
+
+    def _init_vec_table(self) -> None:
+        """Create the vector table at the stored dimension (default: 768)."""
+        row = self._conn.execute(
+            "SELECT value FROM _vec_meta WHERE key='dim'"
+        ).fetchone()
+        dim = int(row["value"]) if row else _EMBED_DIM
+        if not row:
+            self._conn.execute(
+                "INSERT OR IGNORE INTO _vec_meta(key,value) VALUES('dim',?)",
+                (str(dim),),
+            )
+            self._conn.commit()
+        try:
+            self._conn.execute(_VEC_TABLE_SQL.format(dim=dim))
+            self._conn.commit()
+        except Exception:
+            self._vec_loaded = False
+
+    # ------------------------------------------------------------------
+    # Vector index helpers
+    # ------------------------------------------------------------------
+
+    def has_vector_index(self) -> bool:
+        """Return True if sqlite-vec is loaded and the vector table exists."""
+        if not self._vec_loaded:
+            return False
+        try:
+            self._conn.execute("SELECT count(*) FROM memory_vec").fetchone()
+            return True
+        except Exception:
+            return False
+
+    def index_memory(self, doc_id: int, embedding: list[float]) -> bool:
+        """Store an embedding for an existing document. Returns True on success."""
+        if not self.has_vector_index():
+            return False
+        try:
+            blob = _serialize_vec(embedding)
+            self._conn.execute(
+                "INSERT OR REPLACE INTO memory_vec(rowid, embedding) VALUES(?, ?)",
+                (doc_id, blob),
+            )
+            self._conn.commit()
+            return True
+        except Exception:
+            return False
+
+    def rebuild_vector_index(self) -> int:
+        """Regenerate embeddings for all documents via Ollama. Returns count indexed."""
+        if not self.has_vector_index():
+            return 0
+        rows = self._conn.execute(
+            "SELECT id, content FROM documents WHERE collection='zana_vault'"
+        ).fetchall()
+        indexed = 0
+        for row in rows:
+            emb = _get_ollama_embedding(row["content"])
+            if emb and self.index_memory(row["id"], emb):
+                indexed += 1
+        return indexed
 
     # ------------------------------------------------------------------
     # Write operations
@@ -72,12 +213,10 @@ class MemoryLiteDB:
         collection: str = "zana_vault",
         metadata: dict | None = None,
     ) -> int:
-        """Insert a document into the store.
+        """Insert a document. FTS5 trigger keeps keyword index in sync.
+        If sqlite-vec + Ollama are available, also indexes the embedding.
 
-        Triggers automatically keep FTS5 index in sync.
-
-        Returns:
-            The rowid of the newly inserted document.
+        Returns the rowid of the inserted document.
         """
         meta_json = json.dumps(metadata or {}, ensure_ascii=False)
         cur = self._conn.execute(
@@ -85,7 +224,14 @@ class MemoryLiteDB:
             (collection, source, content, meta_json),
         )
         self._conn.commit()
-        return cur.lastrowid  # type: ignore[return-value]
+        doc_id: int = cur.lastrowid  # type: ignore[assignment]
+
+        if self.has_vector_index() and collection == "zana_vault":
+            emb = _get_ollama_embedding(content)
+            if emb:
+                self.index_memory(doc_id, emb)
+
+        return doc_id
 
     def add_episodic(self, role: str, content: str) -> int:
         """Shortcut: add a message to the 'episodic' collection.
@@ -184,6 +330,76 @@ class MemoryLiteDB:
             )
 
         return results
+
+    def search_semantic(
+        self,
+        query: str,
+        collection: str = "zana_vault",
+        n: int = 5,
+    ) -> list[dict]:
+        """Semantic search using sqlite-vec cosine similarity + Ollama embeddings.
+
+        Falls back to FTS5 keyword search if sqlite-vec is not loaded or
+        Ollama is not reachable. Always returns results — never crashes.
+
+        Args:
+            query:      Natural-language search query.
+            collection: Restrict to this collection.
+            n:          Maximum results.
+
+        Returns:
+            List of dicts with keys: id, source, content, metadata, created_at, score.
+            ``score`` is distance (lower = more similar) when semantic, or BM25 when fallback.
+        """
+        if not self.has_vector_index():
+            return self.search(query, collection=collection, n=n)
+
+        emb = _get_ollama_embedding(query)
+        if emb is None:
+            return self.search(query, collection=collection, n=n)
+
+        blob = _serialize_vec(emb)
+        try:
+            vec_rows = self._conn.execute(
+                "SELECT rowid, distance FROM memory_vec WHERE embedding MATCH ? ORDER BY distance LIMIT ?",
+                (blob, n * 2),
+            ).fetchall()
+        except Exception:
+            return self.search(query, collection=collection, n=n)
+
+        if not vec_rows:
+            return self.search(query, collection=collection, n=n)
+
+        ids = [r["rowid"] for r in vec_rows]
+        dist_by_id = {r["rowid"]: r["distance"] for r in vec_rows}
+
+        placeholders = ",".join("?" * len(ids))
+        doc_rows = self._conn.execute(
+            f"SELECT id, source, content, metadata, created_at FROM documents"
+            f" WHERE id IN ({placeholders}) AND collection = ?",
+            (*ids, collection),
+        ).fetchall()
+
+        results = []
+        for row in doc_rows:
+            try:
+                meta = json.loads(row["metadata"] or "{}")
+            except (json.JSONDecodeError, TypeError):
+                meta = {}
+            results.append(
+                {
+                    "id": row["id"],
+                    "source": row["source"] or "—",
+                    "content": row["content"],
+                    "metadata": meta,
+                    "created_at": row["created_at"],
+                    "score": round(dist_by_id.get(row["id"], 0.0), 4),
+                    "mode": "semantic",
+                }
+            )
+
+        results.sort(key=lambda x: x["score"])
+        return results[:n]
 
     def recall(self, n: int = 10) -> list[dict]:
         """Return the last *n* records from the 'episodic' collection.
