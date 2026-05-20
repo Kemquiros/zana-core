@@ -152,9 +152,10 @@ else
     ok "packages/zana-npm/package.json: ${CURRENT_NPM} → ${VERSION}"
 fi
 
-# ── 3. README.md badge ────────────────────────────────────────────────────────
+# ── 3. README.md badge (root + cli/) ─────────────────────────────────────────
 step "Updating README.md version badge → ${VERSION}"
 README="$REPO_ROOT/README.md"
+CLI_README="$REPO_ROOT/cli/README.md"
 CURRENT_BADGE=$(grep -oP 'ZANA-v[0-9]+\.[0-9]+\.[0-9]+[^-]*' "$README" | head -1 || true)
 
 if [[ -z "$CURRENT_BADGE" ]]; then
@@ -166,6 +167,19 @@ else
         sed -i "s|ZANA-v[0-9]\+\.[0-9]\+\.[0-9]\+[^-]*-10b981|ZANA-v${VERSION}-10b981|g" "$README"
     fi
     ok "README.md badge: ${CURRENT_BADGE} → ZANA-v${VERSION}"
+fi
+
+# cli/README.md feeds the PyPI long description — must stay in sync
+CLI_BADGE=$(grep -oP 'ZANA-v[0-9]+\.[0-9]+\.[0-9]+[^-]*' "$CLI_README" | head -1 || true)
+if [[ -z "$CLI_BADGE" ]]; then
+    warn "Version badge pattern not found in cli/README.md — skipping"
+elif [[ "$CLI_BADGE" == "ZANA-v${VERSION}" ]]; then
+    warn "cli/README.md badge already at v${VERSION} — skipping"
+else
+    if [[ "$DRY_RUN" == "false" ]]; then
+        sed -i "s|ZANA-v[0-9]\+\.[0-9]\+\.[0-9]\+[^-]*-10b981|ZANA-v${VERSION}-10b981|g" "$CLI_README"
+    fi
+    ok "cli/README.md badge: ${CLI_BADGE} → ZANA-v${VERSION}"
 fi
 
 # ── 4. CHANGELOG.md ───────────────────────────────────────────────────────────
@@ -203,7 +217,7 @@ fi
 # ── 5. Commit ─────────────────────────────────────────────────────────────────
 step "Committing version bump"
 if [[ "$DRY_RUN" == "false" ]]; then
-    git add cli/pyproject.toml packages/zana-npm/package.json README.md CHANGELOG.md
+    git add cli/pyproject.toml packages/zana-npm/package.json README.md cli/README.md CHANGELOG.md
     if git diff --cached --quiet; then
         warn "Nothing new to commit (all files already at ${VERSION})"
     else
