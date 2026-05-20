@@ -126,7 +126,7 @@ def configure(
 
     config = load_satellite_config()
     config[f"{platform}_token"] = token
-    if platform == "whatsapp" and phone_number_id:
+    if platform == "whatsapp":
         config["whatsapp_phone_number_id"] = phone_number_id
     save_satellite_config(config)
     console.print(_t("satellite.configure.success", platform=platform.capitalize()))
@@ -148,7 +148,7 @@ def start(
         and not config.get("whatsapp_token")
     ):
         console.print(
-            "[error]No platform configured. Run: zana satellite configure telegram <token>[/error]"
+            "[error]No platform configured. Run: zana satellite configure telegram|discord|whatsapp <token>[/error]"
         )
         raise typer.Exit(1)
 

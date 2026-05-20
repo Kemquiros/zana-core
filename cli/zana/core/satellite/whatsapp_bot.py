@@ -7,7 +7,7 @@ Setup:
   1. Create a Meta App → WhatsApp Business → add a test phone number
   2. Generate a permanent system-user access token
   3. Register your webhook URL in the Meta Developer Portal
-  4. zana satellite configure whatsapp <phone_number_id> <access_token>
+  4. zana satellite configure whatsapp <access_token> --phone-number-id <phone_number_id>
 
 Webhook verification:
   Meta sends a GET ?hub.mode=subscribe&hub.challenge=...&hub.verify_token=...
@@ -77,8 +77,8 @@ class WhatsAppBot:
         if not user:
             self._registry.register("whatsapp", wa_id, wa_id, lang="en")
             user = self._registry.get("whatsapp", wa_id)
-
-        self._registry.touch("whatsapp", wa_id)
+        else:
+            self._registry.touch("whatsapp", wa_id)
         lang = user.language if user else "en"
 
         response = await self._query_gateway(text, user) if self._gateway_url else None
@@ -106,11 +106,18 @@ class WhatsAppBot:
         }
         try:
             async with httpx.AsyncClient(timeout=10) as client:
-                await client.post(
+                resp = await client.post(
                     f"{_API_BASE}/{self._phone_number_id}/messages",
                     headers={"Authorization": f"Bearer {self._token}"},
                     json=payload,
                 )
+                if resp.status_code not in (200, 201):
+                    logger.warning(
+                        "WhatsApp API returned %d for %s: %s",
+                        resp.status_code,
+                        to,
+                        resp.text[:200],
+                    )
         except Exception as exc:
             logger.warning("WhatsApp send error: %s", exc)
 
@@ -176,7 +183,7 @@ class WhatsAppBot:
             async with httpx.AsyncClient(timeout=8) as client:
                 r = await client.get(
                     f"{_API_BASE}/me",
-                    params={"access_token": access_token},
+                    headers={"Authorization": f"Bearer {access_token}"},
                 )
                 return r.status_code == 200 and "id" in r.json()
         except Exception:

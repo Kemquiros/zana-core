@@ -143,9 +143,23 @@ def test_handle_webhook_registers_new_user():
         patch.object(bot, "_zsm_respond", return_value="hi"),
     ):
         asyncio.run(bot.handle_webhook(payload))
+    # lang defaults to "en" — Meta webhook payload carries no locale
     bot._registry.register.assert_called_once_with(
         "whatsapp", "new_user_001", "new_user_001", lang="en"
     )
+
+
+def test_handle_webhook_new_user_does_not_touch():
+    """touch should only be called for returning users, not on first registration."""
+    bot = _make_bot()
+    bot._registry.get.return_value = None
+    payload = _webhook_payload(_text_msg(wa_id="brand_new"))
+    with (
+        patch.object(bot, "send_message", new_callable=AsyncMock),
+        patch.object(bot, "_zsm_respond", return_value="hi"),
+    ):
+        asyncio.run(bot.handle_webhook(payload))
+    bot._registry.touch.assert_not_called()
 
 
 def test_handle_webhook_touches_existing_user():
@@ -193,6 +207,25 @@ def test_send_message_truncates_long_content():
     sent_body = mock_client.post.call_args.kwargs["json"]["text"]["body"]
     assert len(sent_body) <= 4096
     assert sent_body.endswith("...")
+
+
+def test_send_message_logs_non_2xx_response():
+    bot = _make_bot()
+    mock_resp = MagicMock(status_code=429)
+    mock_resp.text = "Rate limit exceeded"
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.post = AsyncMock(return_value=mock_resp)
+
+    with (
+        patch("httpx.AsyncClient", return_value=mock_client),
+        patch("zana.core.satellite.whatsapp_bot.logger") as mock_logger,
+    ):
+        asyncio.run(bot.send_message("5491100000001", "hi"))
+
+    mock_logger.warning.assert_called_once()
+    assert 429 in mock_logger.warning.call_args.args
 
 
 def test_send_message_swallows_network_error():
@@ -304,6 +337,20 @@ def test_validate_token_returns_false_on_401():
 
     with patch("httpx.AsyncClient", return_value=mock_client):
         result = asyncio.run(WhatsAppBot.validate_token("bad_token"))
+
+    assert result is False
+
+
+def test_validate_token_returns_false_on_200_without_id():
+    mock_resp = MagicMock(status_code=200)
+    mock_resp.json.return_value = {"name": "App Name"}  # 200 but no "id" field
+    mock_client = AsyncMock()
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=False)
+    mock_client.get = AsyncMock(return_value=mock_resp)
+
+    with patch("httpx.AsyncClient", return_value=mock_client):
+        result = asyncio.run(WhatsAppBot.validate_token("partial_token"))
 
     assert result is False
 

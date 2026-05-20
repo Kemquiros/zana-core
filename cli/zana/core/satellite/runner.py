@@ -55,6 +55,8 @@ def run() -> None:
         logger.info("Starting Discord satellite…")
         asyncio.run(bot.run_polling())
     elif config.get("whatsapp_token"):
+        import signal
+
         from zana.core.satellite.whatsapp_bot import WhatsAppBot
 
         phone_number_id = config.get("whatsapp_phone_number_id", "")
@@ -72,6 +74,15 @@ def run() -> None:
             "Register your webhook URL in the Meta Developer Portal "
             "then route POST /webhook payloads to bot.handle_webhook()."
         )
+
+        async def _wait_for_signal() -> None:
+            loop = asyncio.get_running_loop()
+            stop: asyncio.Future[None] = loop.create_future()
+            loop.add_signal_handler(signal.SIGTERM, stop.set_result, None)
+            loop.add_signal_handler(signal.SIGINT, stop.set_result, None)
+            await stop
+
+        asyncio.run(_wait_for_signal())
     else:
         logger.error(
             "No platform configured. Run: zana satellite configure telegram <token>"
