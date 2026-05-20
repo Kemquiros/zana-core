@@ -17,7 +17,54 @@ GATEWAY_URL = "http://localhost:54446"
 _TIMEOUT = httpx.Timeout(120.0, connect=5.0)
 
 
+def _is_gateway_online() -> bool:
+    """Return True if the Gateway responds within 2 seconds."""
+    try:
+        httpx.get(f"{GATEWAY_URL}/health", timeout=2.0).raise_for_status()
+        return True
+    except Exception:
+        return False
+
+
 def cmd_wisdom_inbox() -> None:
+    if not _is_gateway_online():
+        from zana.core.wisdom_queue import WisdomQueue
+
+        q = WisdomQueue()
+        pending = q.inbox()
+        stats = q.stats()
+        console.print("[muted]⚡ SPROUT mode — reading from local wisdom queue[/muted]")
+        console.print(
+            "\n[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]"
+        )
+        console.print(
+            f"[bold white]  Wisdom Inbox — {len(pending)} pending[/bold white]  "
+            f"[muted]✅ {stats['approved']} approved  ·  🗑️ {stats['rejected']} rejected[/muted]"
+        )
+        console.print(
+            "[bold magenta]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold magenta]\n"
+        )
+        if not pending:
+            console.print("[muted]No pending proposals in local queue.[/muted]")
+            console.print(
+                "  Use [accent]zana wisdom mine[/accent] (requires Gateway) to generate proposals.\n"
+            )
+            return
+        for p in pending:
+            conf = p.get("confidence", 0)
+            bar = "█" * int(conf * 10) + "░" * (10 - int(conf * 10))
+            console.print(
+                f"  [bold]{p.get('name', '?')}[/bold]  [muted][{p.get('id', '?')}][/muted]"
+            )
+            console.print(
+                f"  Domain: [accent]{p.get('domain', '?')}[/accent]  ·  Confidence: [primary]{bar}[/primary] {conf:.0%}"
+            )
+            console.print(
+                f"  [success]zana wisdom approve {p.get('id', '?')}[/success]  "
+                f"[warning]zana wisdom reject {p.get('id', '?')}[/warning]\n"
+            )
+        return
+
     try:
         r = httpx.get(f"{GATEWAY_URL}/wisdom/inbox", timeout=_TIMEOUT)
         r.raise_for_status()
@@ -69,6 +116,18 @@ def cmd_wisdom_inbox() -> None:
 
 
 def cmd_wisdom_mine() -> None:
+    if not _is_gateway_online():
+        console.print(
+            "[muted]⚡ SPROUT mode — Gateway required for trajectory mining.[/muted]"
+        )
+        console.print(
+            "\n  Offline mining is not yet available. Start the Gateway with [accent]zana start[/accent]"
+            "\n  to analyze session trajectories and generate WisdomRule proposals."
+            "\n\n  In the meantime, explore your local memory:"
+            "\n  [accent]zana memory search <query>[/accent]  ·  [accent]zana memory recall[/accent]\n"
+        )
+        return
+
     console.print("\n[muted]Analizando trayectorias de sesión...[/muted]")
     try:
         r = httpx.post(f"{GATEWAY_URL}/wisdom/mine", timeout=_TIMEOUT)
@@ -93,6 +152,22 @@ def cmd_wisdom_mine() -> None:
 
 
 def cmd_wisdom_approve(wisdom_id: str) -> None:
+    if not _is_gateway_online():
+        from zana.core.wisdom_queue import WisdomQueue
+
+        q = WisdomQueue()
+        item = q.approve(wisdom_id)
+        if item:
+            console.print(
+                f"\n  [success]✅ Approved:[/success] [bold]{item.get('name', wisdom_id)}[/bold]"
+            )
+            console.print("  [muted]⚡ SPROUT mode — stored in local queue[/muted]\n")
+        else:
+            console.print(
+                f"\n  [error]✗ No pending proposal with id={wisdom_id}[/error]\n"
+            )
+        return
+
     try:
         r = httpx.post(
             f"{GATEWAY_URL}/wisdom/approve/{wisdom_id}", json={}, timeout=_TIMEOUT
@@ -110,6 +185,21 @@ def cmd_wisdom_approve(wisdom_id: str) -> None:
 
 
 def cmd_wisdom_reject(wisdom_id: str) -> None:
+    if not _is_gateway_online():
+        from zana.core.wisdom_queue import WisdomQueue
+
+        q = WisdomQueue()
+        found = q.reject(wisdom_id)
+        if found:
+            console.print(
+                f"\n  [muted]🗑️ Proposal {wisdom_id} rejected (local queue).[/muted]\n"
+            )
+        else:
+            console.print(
+                f"\n  [error]✗ No pending proposal with id={wisdom_id}[/error]\n"
+            )
+        return
+
     try:
         r = httpx.post(f"{GATEWAY_URL}/wisdom/reject/{wisdom_id}", timeout=_TIMEOUT)
         r.raise_for_status()
