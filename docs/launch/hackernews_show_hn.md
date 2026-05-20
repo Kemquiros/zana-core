@@ -55,11 +55,11 @@ zana chat    # running, no Docker, no cloud
 - Memory: SQLite FTS5 (offline) → ChromaDB + PostgreSQL (full stack)
 - Orchestration: LangGraph
 - Inference: LiteLLM router (Ollama, Anthropic, OpenAI, Groq, Gemini, anything)
-- CI: GitHub Actions, ruff, mypy, pytest (176 tests), cargo clippy
+- CI: GitHub Actions, ruff, mypy, pytest (580 tests), cargo clippy
 
 **What's missing / honest caveats:**
 - Mobile app: not yet
-- Z-Sync (P2P WisdomRule federation between Aeons): designed, not implemented
+- True P2P federation (Z-Sync v1.0 is pull/push over HTTPS — the gossip-protocol design exists but is not yet implemented)
 - Windows without WSL: install.ps1 exists, less battle-tested than Linux/macOS
 - The "full stack" Docker setup is complex — the SPROUT tier is the battle-tested path
 

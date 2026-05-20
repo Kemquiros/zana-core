@@ -96,11 +96,19 @@ Services run on non-conflicting ports (54446, 54448, 55433, etc.) — designed t
 - 4GB RAM minimum for Ollama
 - Linux or macOS (Windows via WSL, native PowerShell installer exists but less tested)
 
+### What's in v3.7.0 (latest)
+
+- Herald channels: Telegram, Discord, and WhatsApp Cloud API — `zana satellite configure <platform> <token>`
+- Z-Sync v1.0 — `zana zsync pull/push/status` keeps WisdomRules in sync between your machines
+- The Agora — open skill marketplace with Z-Civic tamper detection
+- ZANA ID — portable identity via `zaeon://` URI scheme
+- 580 tests, all offline paths CI-covered
+
 ### What I'm working on next
 
-- WhatsApp + Discord Herald channels (Telegram already works)
-- Z-Sync — P2P WisdomRule federation between Aeons (think: your Aeons on different machines stay in sync, privately)
 - Android app
+- True P2P WisdomRule federation (Z-Sync is currently pull/push over HTTPS)
+- Windows without WSL (install.ps1 exists, needs battle-testing)
 
 **GitHub (MIT):** https://github.com/Kemquiros/zana-core
 
