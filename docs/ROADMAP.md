@@ -1,6 +1,6 @@
 # ZANA Roadmap
 **"Every person in the world can have their own Aeon"**
-Last updated: 2026-05-19 | Version: 3.2
+Last updated: 2026-05-20 | Version: 3.5
 
 ---
 
@@ -142,40 +142,54 @@ curl -fsSL zana.io/install | bash
 | CI/CD restructure (quality→test→rust→release→npm) | ✅ Done | Parallel stages, Cargo cache, coverage artifact, per-tag CHANGELOG |
 | `scripts/sync-release.sh` | ✅ Done | Multi-channel release sync: pyproject + npm + landing + git tag |
 
-**Sprint 9 — next up (v3.4.0 → v3.5.0):**
+**Sprint 9 — shipped in v3.5.0 ✅ (2026-05-20):**
 
-> **Theme: "Offline Sovereignty"** — Every command that currently requires Docker/Gateway must have a working SPROUT fallback. Z-Skill v1.0 ships.
+> **Theme: "Offline Sovereignty"** — Every command that required Docker/Gateway now has a working SPROUT fallback. Z-Skill v1.0 shipped.
 
-| Item | Priority | Description |
+| Item | Status | Description |
 |---|---|---|
-| Test suite: memory CRUD | 🔴 P0 | No tests for `delete/clear/export/import` — Sprint 8 APIs shipped without coverage. Add `tests/test_memory_crud.py` (≥20 checks) |
-| `develop → main` PR + tag `v3.4.0` | 🔴 P0 | Sprint 8 work is on `develop`, unreleased. Merge + tag triggers full CI/CD pipeline |
-| Z-Skill v1.0 — `zana skill create/list/run` | 🟠 P1 | SKILL.md format (agentskills.io compatible). Local registry at `~/.zana/skills/`. `zana skill run <name> "<prompt>"` executes offline. No Gateway required |
-| Wisdom offline fallback | 🟠 P1 | `zana wisdom inbox` / `mine` / `approve` depend 100% on Gateway. Add SQLite-backed local queue at `~/.zana/wisdom_queue.json` — works without Docker |
-| Sentinel offline event log | 🟠 P1 | `zana sentinel events` / `ledger` require Gateway. Add ring buffer to SQLite (`memory_lite` extension or separate `sentinel_lite.db`). Offline read of Civic Ledger |
-| Satellite smoke tests | 🟡 P2 | `commands/satellite.py` has 0 tests. Add `tests/test_satellite.py` — mock Telegram/Discord, verify config write/read, no real tokens needed |
-| `zana doctor --fix` extended | 🟡 P2 | Add 3 new auto-fix cases: `wisdom_queue.json` missing, `skills/` dir missing, `memory_lite.db` corrupted (auto-rebuild FTS5 index) |
+| Test suite: memory CRUD (26 tests) | ✅ Done | `tests/test_memory_crud.py` — delete/clear/export/import + CLI integration |
+| Z-Skill v1.0 — create/list/run/info | ✅ Done | SKILL.md format (agentskills.io compatible). Registry at `~/.zana/skills/registry.json`. 19 tests. |
+| Wisdom offline fallback (WisdomQueue) | ✅ Done | `~/.zana/wisdom_queue.json` — inbox/approve/reject work without Gateway. Atomic writes. 19 tests. |
+| Sentinel offline event log (SentinelLiteDB) | ✅ Done | SQLite ring buffer (max 1,000 events) at `~/.zana/sentinel_lite.db`. 12 tests. |
+| Satellite smoke tests | ✅ Done | `tests/test_satellite.py` — mock Telegram/Discord, no real tokens. 11 tests. |
+| `zana doctor --fix` extended (3 cases) | ✅ Done | Auto-fix: wisdom_queue_missing, skills_dir_missing, memory_lite_corrupted |
+| **Total: 176 tests passing** | ✅ Done | Up from 130 in v3.4.0 |
 
-**v3.0 feature queue (post Sprint 9):**
+**Sprint 10 — in progress (v3.5.0 → v3.6.0) — "Public Sovereignty":**
 
-> Items below enter sprint planning once Sprint 9 ships.
+> **Theme:** Public launch. GitHub community. First contributors.
 
-| Feature | Description |
-|---|---|
-| `zana init` wizard | ≤5 questions, zero configuration required |
-| Auto-hardware detection | Optimal model chosen automatically via llmfit |
-| Z-Skill v1.0 | agentskills.io SKILL.md compatible + ZANA extensions |
-| Auto-WisdomRules | Aeon mines past sessions → proposes skills automatically |
-| `/wisdom inbox` | Review and approve auto-generated skills |
-| Herald Gateway v1 | Telegram + WhatsApp + Discord channels |
-| Voice | Wake word + local TTS (Kokoro) + push-to-talk |
-| 12 languages | ES, EN, PT, FR, DE, ZH, AR, HI, JA, KO, RU, SW |
-| Sentinel Event Bus | 8 lifecycle events for policy control |
-| ARIA UI PWA | Installable mobile web app |
+| Item | Priority | Status | Description |
+|---|---|---|---|
+| CHANGELOG v3.5.0 | 🔴 P0 | ✅ Done | `## [3.5.0]` entry with all Sprint 9 items |
+| v3.5.0 release to PyPI + npm | 🔴 P0 | 🔵 Next | `bash scripts/sync-release.sh 3.5.0` — PM triggers |
+| README: full English + v3.5.0 badge + SPROUT-first Quick Start | 🔴 P0 | ✅ Done | Badge updated, Spanish removed, no-Docker path is primary |
+| CONTRIBUTING.md: no-Docker dev path | 🟠 P1 | ✅ Done | `pip install -e "cli/[dev]"` + pytest — beginner-friendly |
+| Launch post: r/LocalLLaMA | 🟠 P1 | ✅ Ready | `docs/launch/reddit_local_llama.md` — 3 title options, full post body |
+| Launch post: r/selfhosted | 🟠 P1 | ✅ Ready | `docs/launch/reddit_selfhosted.md` — privacy angle |
+| Show HN post | 🟠 P1 | ✅ Ready | `docs/launch/hackernews_show_hn.md` — technical first comment |
+| GitHub repo metadata: topics + description | 🟠 P1 | 🔵 Next | Set via `gh repo edit` |
+| ROADMAP.md update | 🟡 P2 | ✅ Done | This file |
+
+**v3.6.0 feature queue (post Sprint 10 / post public launch):**
+
+> Items below enter sprint planning after v3.5.0 ships publicly and community feedback is gathered.
+
+| Feature | Description | Phase |
+|---|---|---|
+| The Agora v1 — open skill marketplace | Publish, discover, adopt Z-Skills | v3.6 |
+| Z-Sync v1.0 | P2P WisdomRule federation — Aeons share improvements without sharing data | v3.6 |
+| WhatsApp Herald channel | Extend `telegram_bot/` pattern to WhatsApp Business API | v3.6 |
+| Discord Herald channel | Bot integration — `/zana` slash command | v3.6 |
+| `zaeon://` URI scheme | Universal portable Aeon identity | v3.6 |
+| ZANA ID export/import | `.zaeon.enc` — full Aeon backup + restore | v3.6 |
+| 6 languages (ES, PT, FR, DE, ZH, AR) | Translate `zana init` onboarding wizard | v3.6 |
+| ARIA UI PWA improvements | Installable mobile web app enhancements | v3.6 |
 
 ---
 
-### Phase 2 — v3.5 "Planetary Network"  `Q4 2026`
+### Phase 2 — v3.6 "Community & Federation"  `Q3–Q4 2026`
 
 **Goal:** Aeons learn collectively without anyone owning the data.
 
