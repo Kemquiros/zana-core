@@ -468,3 +468,33 @@ def cmd_memory_stats() -> None:
             padding=(0, 1),
         )
     )
+
+
+def cmd_memory_reindex() -> None:
+    """Rebuild the sqlite-vec semantic index from all existing memories."""
+    from zana.core.memory_lite import MemoryLiteDB, is_sqlite_vec_available
+
+    if not is_sqlite_vec_available():
+        console.print(
+            "[warning]sqlite-vec not installed. Run: zana upgrade --grove[/warning]"
+        )
+        return
+
+    console.print("[primary]Rebuilding semantic index...[/primary]")
+    db = MemoryLiteDB()
+    if not db.has_vector_index():
+        console.print(
+            "[warning]Vector table not initialised. Run: zana upgrade --grove[/warning]"
+        )
+        return
+
+    count = db.rebuild_vector_index()
+    db.close()
+    if count == 0:
+        console.print(
+            "[muted]No memories to index (add memories with: zana memory add)[/muted]"
+        )
+    else:
+        console.print(
+            f"[success]✓ Indexed {count} memories for semantic search.[/success]"
+        )

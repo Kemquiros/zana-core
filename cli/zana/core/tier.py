@@ -146,8 +146,19 @@ def tier_locked_text(tier: Tier, lang: str = "es") -> str:
     return t(f"tier.{tier.value}.locked", lang=lang)
 
 
+def _has_sqlite_vec() -> bool:
+    """Return True if the sqlite-vec extension is importable."""
+    try:
+        import sqlite_vec  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
+
+
 def tier_capabilities(tier: Tier) -> dict[str, bool]:
     """Return capability map for the given tier."""
+    vec_available = _has_sqlite_vec()
     base = {
         "zsm": True,
         "reminders": True,
@@ -164,8 +175,10 @@ def tier_capabilities(tier: Tier) -> dict[str, bool]:
     if tier in (Tier.SPROUT, Tier.GROVE, Tier.FOREST):
         base["llm_chat"] = True
         base["natural_reasoning"] = True
-    if tier in (Tier.GROVE, Tier.FOREST):
         base["persistent_memory"] = True
+        # semantic_vault requires sqlite-vec (GROVE path without Docker)
+        base["semantic_vault"] = vec_available
+    if tier in (Tier.GROVE, Tier.FOREST):
         base["semantic_vault"] = True
     if tier == Tier.FOREST:
         base["satellite"] = True
