@@ -85,6 +85,17 @@ def configure(
                 _t("satellite.configure.invalid_token", platform=platform.capitalize())
             )
             raise typer.Exit(1) from None
+    elif platform == "discord":
+        from zana.core.satellite.discord_bot import validate_discord_token_sync
+
+        console.print("[muted]Validating Discord bot token…[/muted]")
+        if not validate_discord_token_sync(token):
+            console.print(_t("satellite.configure.invalid_token", platform="Discord"))
+            console.print(
+                "[muted]Ensure the token is a Bot token (not OAuth2 client secret) "
+                "and that MESSAGE CONTENT intent is enabled in the Developer Portal.[/muted]"
+            )
+            raise typer.Exit(1)
 
     config = load_satellite_config()
     config[f"{platform}_token"] = token
