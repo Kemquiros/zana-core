@@ -3,6 +3,81 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { getGatewayStatus } from "./tauri-bridge";
 
+// ─── SPROUT mode helpers ───────────────────────────────────────────────────────
+
+async function checkSproutAvailable(): Promise<boolean> {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: [] }),
+    });
+    return res.status !== 503;
+  } catch {
+    return false;
+  }
+}
+
+interface SproutChunkPayload {
+  delta?: string;
+  error?: string;
+}
+
+async function fetchSproutStream(
+  messages: Array<{ role: string; content: string }>,
+  onChunk: (delta: string) => void,
+  onDone: () => void,
+  onError: (msg: string) => void,
+): Promise<void> {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages }),
+    });
+
+    if (!res.ok || !res.body) {
+      onError(`HTTP ${res.status}`);
+      onDone();
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const payload = line.slice(6).trim();
+        if (payload === "[DONE]") {
+          onDone();
+          return;
+        }
+        try {
+          const parsed = JSON.parse(payload) as SproutChunkPayload;
+          if (parsed.error) {
+            onError(parsed.error);
+          } else if (parsed.delta) {
+            onChunk(parsed.delta);
+          }
+        } catch {
+          /* skip malformed lines */
+        }
+      }
+    }
+    onDone();
+  } catch (err) {
+    onError(err instanceof Error ? err.message : "sprout_stream_error");
+    onDone();
+  }
+}
+
 export type AeonState = "idle" | "listening" | "thinking" | "speaking";
 export type Modality = "text" | "audio" | "vision";
 export type Emotion = "joy" | "surprise" | "fear" | "anger" | "sadness" | "neutral" | "curiosity" | "trust";
@@ -44,11 +119,15 @@ const wsUrl = (httpUrl?: string) => {
 
 export function useZanaStream(sessionId: string) {
   const [connected, setConnected] = useState(false);
+  const [sproutMode, setSproutMode] = useState(false);
   const [aeonState, setAeonState] = useState<AeonState>("idle");
   const [messages, setMessages] = useState<Message[]>([]);
   const [audioLevel, setAudioLevel] = useState(0);
 
-  const ws = useRef<WebSocket | null>(null);  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+  const ws = useRef<WebSocket | null>(null);
+  const reconnectTimer = useRef<NodeJS.Timeout | null>(null);
+  // Conversation history for SPROUT mode (role/content pairs for LLM context)
+  const sproutHistory = useRef<Array<{ role: string; content: string }>>([]);
 
   const addMessage = useCallback((msg: Omit<Message, "id" | "timestamp">) => {
     setMessages((prev) => [
@@ -77,6 +156,16 @@ export function useZanaStream(sessionId: string) {
     socket.onclose = () => {
       setConnected(false);
       setAeonState("idle");
+      // Check if SPROUT mode is available before scheduling reconnect
+      checkSproutAvailable().then((available) => {
+        setSproutMode(available);
+        if (available) {
+          addMessage({
+            role: "system",
+            text: "◈ MODO SPROUT activo — Gateway offline. LLM directo disponible.",
+          });
+        }
+      });
       reconnectTimer.current = setTimeout(() => {
         if (connectRef.current) connectRef.current();
       }, 3000);
@@ -145,6 +234,52 @@ export function useZanaStream(sessionId: string) {
     [addMessage, sessionId],
   );
 
+  const sendTextSprout = useCallback(
+    (text: string) => {
+      if (!text.trim()) return;
+
+      // Add user message to UI and history
+      addMessage({ role: "user", text, modality: "text" });
+      sproutHistory.current.push({ role: "user", content: text });
+      setAeonState("thinking");
+
+      // Placeholder message id for streaming into
+      const aeonMsgId = crypto.randomUUID();
+      const timestamp = Date.now();
+      setMessages((prev) => [
+        ...prev,
+        { id: aeonMsgId, role: "aeon", text: "", timestamp },
+      ]);
+
+      let accumulated = "";
+
+      fetchSproutStream(
+        [...sproutHistory.current],
+        (delta) => {
+          accumulated += delta;
+          setMessages((prev) =>
+            prev.map((m) => (m.id === aeonMsgId ? { ...m, text: accumulated } : m)),
+          );
+        },
+        () => {
+          setAeonState("idle");
+          if (accumulated) {
+            sproutHistory.current.push({ role: "assistant", content: accumulated });
+          }
+        },
+        (errMsg) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === aeonMsgId ? { ...m, text: `[Error SPROUT: ${errMsg}]` } : m,
+            ),
+          );
+          setAeonState("idle");
+        },
+      );
+    },
+    [addMessage],
+  );
+
   useEffect(() => {
     if (aeonState === "speaking" || aeonState === "listening") {
       const interval = setInterval(() => setAudioLevel(Math.random()), 100);
@@ -154,5 +289,17 @@ export function useZanaStream(sessionId: string) {
     }
   }, [aeonState]);
 
-  return { connected, aeonState, setAeonState, messages, sendText, sendAudio, sendImage, audioLevel, connect };
+  return {
+    connected,
+    sproutMode,
+    aeonState,
+    setAeonState,
+    messages,
+    sendText,
+    sendTextSprout,
+    sendAudio,
+    sendImage,
+    audioLevel,
+    connect,
+  };
 }
