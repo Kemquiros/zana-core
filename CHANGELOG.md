@@ -7,6 +7,26 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.7.3] — 2026-05-21
+
+### Fixed
+- **SPROUT tier in `zana chat`** (#43): When the Docker gateway is offline but an API key
+  is configured (`GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, etc.), ZANA now connects directly
+  via LiteLLM instead of silently falling back to ZSM. Green panel "◈ ZANA MODO SPROUT ◈"
+  confirms the direct connection.
+- **Multi-key detection** (#43): `ZANA_PRIMARY_MODEL` is now validated against its provider
+  key before use. If the key is a placeholder, ZANA auto-detects the first valid provider
+  key in priority order (Anthropic → Gemini → OpenAI → Groq → Ollama).
+- **Differentiated error messages** (#43): HTTP 429 (quota exhausted) and 401 (invalid key)
+  now show actionable guidance (`zana setup`, billing links) instead of a generic error.
+- **Session memory in SPROUT mode** (#43): User and assistant turns are saved to
+  `memory_lite` for cross-session persistence, identical to gateway mode.
+
+### Dependencies
+- Added `litellm>=1.40.0` to CLI core dependencies.
+
+---
+
 ## [3.7.2] — 2026-05-20
 
 ### Added

@@ -1,6 +1,6 @@
 [project]
 name = "vecanova-zana"
-version = "3.7.2"
+version = "3.7.3"
 description = "Sovereign AI agent with 4-store local memory, Aeon DNA identity, and SHA-256 Civic Ledger — LLM-agnostic, zero Docker, runs on your hardware"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -38,6 +38,7 @@ dependencies = [
     "boto3>=1.42.97",
     "cryptography>=43.0.0",
     "numpy>=1.26.0",
+    "litellm>=1.40.0",
 ]
 
 [project.optional-dependencies]

@@ -73,8 +73,10 @@ docs/paper/*.log
 aria-ui/src-tauri/sidecar/zana-gateway*
 .worktrees
 
-# Private strategic documents
+# Private strategic documents — never commit
+docs/private/
 docs/ROADMAP_MAESTRO*.md
+docs/QA_USECASES*.md
 master_book/
 .npmrc
 packages/zana-npm/.npmrc

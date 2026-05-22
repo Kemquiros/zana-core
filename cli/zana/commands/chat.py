@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import shlex
 from pathlib import Path
 
@@ -99,6 +100,174 @@ def _handle_slash_command(command: str) -> bool:
     return False
 
 
+_PLACEHOLDER_KEYS = {"your_key_here", "sk-...", "AIza...", "gsk_...", "sk-ant-...", ""}
+
+_PROVIDER_MAP = [
+    ("ANTHROPIC_API_KEY", "claude-3-5-haiku-20241022"),
+    ("GEMINI_API_KEY", "gemini/gemini-2.0-flash"),
+    ("OPENAI_API_KEY", "gpt-4o-mini"),
+    ("GROQ_API_KEY", "groq/llama-3.3-70b-versatile"),
+    ("OLLAMA_BASE_URL", "ollama/llama3"),
+]
+
+_MODEL_TO_KEY = {
+    "anthropic": "ANTHROPIC_API_KEY",
+    "claude": "ANTHROPIC_API_KEY",
+    "gemini": "GEMINI_API_KEY",
+    "gpt": "OPENAI_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "ollama": "OLLAMA_BASE_URL",
+}
+
+
+def _key_valid(env_var: str) -> bool:
+    val = os.environ.get(env_var, "").strip()
+    return bool(val) and val not in _PLACEHOLDER_KEYS
+
+
+def _detect_model() -> str:
+    """Pick model: validate ZANA_PRIMARY_MODEL against its provider key, fallback to first valid key."""
+    primary = os.environ.get("ZANA_PRIMARY_MODEL", "").strip()
+    if primary:
+        # Derive which env var this model needs
+        prefix = primary.split("/")[0].lower()
+        required_key = _MODEL_TO_KEY.get(prefix)
+        if required_key is None:
+            # Unknown prefix — try model name prefix
+            for pfx, key in _MODEL_TO_KEY.items():
+                if primary.lower().startswith(pfx):
+                    required_key = key
+                    break
+        if required_key and _key_valid(required_key):
+            return primary
+        # Primary model's key is missing/placeholder — fall through to auto-detect
+
+    for env_var, model in _PROVIDER_MAP:
+        if _key_valid(env_var):
+            return model
+
+    return "gpt-4o-mini"
+
+
+async def _direct_llm_loop(session) -> None:
+    """SPROUT tier: direct LiteLLM chat when gateway is offline but API key is configured."""
+    from rich.panel import Panel
+
+    try:
+        import litellm
+
+        litellm.suppress_debug_info = True
+    except ImportError:
+        console.print(
+            "[error]litellm no instalado. Ejecuta: pip install 'vecanova-zana' --upgrade[/error]"
+        )
+        return
+
+    model = _detect_model()
+
+    console.print(
+        Panel(
+            f"[dim]Gateway no disponible en [white]ws://localhost:54446[/white].\n\n"
+            f"Modo [bold green]SPROUT[/bold green] activo — conectando con [cyan]{model}[/cyan] directamente.\n"
+            f"Memoria local · Ledger · Vault — disponibles.\n\n"
+            f"[dim]Ejecuta [cyan]zana start[/cyan] para el Engine completo (Docker).[/dim]",
+            title="[bold green] ◈ ZANA MODO SPROUT ◈ [/bold green]",
+            border_style="green",
+            padding=(1, 2),
+        )
+    )
+    console.print(
+        "[primary]ZANA SPROUT activo. [accent]Ctrl+C[/accent] para salir.[/primary]\n"
+    )
+
+    messages: list[dict] = [
+        {
+            "role": "system",
+            "content": (
+                "You are ZANA, a sovereign personal AI assistant. "
+                "You run locally on the user's hardware. Be helpful, direct, and intelligent. "
+                "Keep responses concise unless detail is explicitly requested."
+            ),
+        }
+    ]
+
+    while True:
+        try:
+            if session:
+                user_input = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: session.prompt("You> ")
+                )
+            else:
+                user_input = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: input("You> ")
+                )
+        except (EOFError, KeyboardInterrupt):
+            console.print(
+                "\n[muted]Saliendo del Córtex. Hasta la próxima, John.[/muted]"
+            )
+            break
+
+        if not user_input.strip():
+            continue
+        if _handle_slash_command(user_input.strip()):
+            continue
+
+        messages.append({"role": "user", "content": user_input.strip()})
+
+        try:
+            from zana.core.memory_lite import get_db
+
+            db = get_db()
+            db.add_episodic("user", user_input.strip())
+            db.close()
+        except Exception:
+            pass
+
+        console.print("[secondary]ZANA>[/secondary] ", end="")
+
+        try:
+            response_text = ""
+            stream = await litellm.acompletion(
+                model=model,
+                messages=messages,
+                stream=True,
+            )
+            async for chunk in stream:
+                delta = chunk.choices[0].delta.content or ""
+                if delta:
+                    console.print(delta, end="")
+                    response_text += delta
+            console.print()
+
+            messages.append({"role": "assistant", "content": response_text})
+
+            try:
+                from zana.core.memory_lite import get_db
+
+                db = get_db()
+                db.add_episodic("assistant", response_text)
+                db.close()
+            except Exception:
+                pass
+
+        except Exception as exc:
+            exc_str = str(exc).lower()
+            if "429" in exc_str or "quota" in exc_str or "rate" in exc_str:
+                console.print(
+                    f"\n[warning]Cuota agotada ({model}). Activa billing en tu proveedor "
+                    f"o cambia de modelo con: [accent]zana setup[/accent][/warning]\n"
+                )
+            elif "401" in exc_str or "auth" in exc_str or "invalid" in exc_str:
+                console.print(
+                    f"\n[error]API key inválida para {model}. "
+                    f"Verifica con: [accent]zana doctor[/accent][/error]\n"
+                )
+            else:
+                console.print(f"\n[error]Error LLM ({model}): {exc}[/error]\n")
+            messages.pop()
+
+
 async def _chat_loop() -> None:
     try:
         import websockets
@@ -173,7 +342,16 @@ async def _chat_loop() -> None:
     except OSError:
         from rich.panel import Panel
 
+        from zana.core.zsm import load_env_file
         from zana.core.zsm import respond as zsm_respond
+
+        load_env_file()
+
+        from zana.core.tier import _has_llm_key
+
+        if _has_llm_key():
+            await _direct_llm_loop(session)
+            return
 
         console.print(
             Panel(
