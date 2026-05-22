@@ -452,6 +452,33 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
         "cerca in internet",
         "cerca online",
     ],
+    "shell": [
+        "ejecuta",
+        "ejecutar",
+        "lista mis archivos",
+        "lista archivos",
+        "lista el contenido",
+        "muestra los archivos",
+        "crea la carpeta",
+        "crea el directorio",
+        "muestra el archivo",
+        "busca archivos",
+        "cuánto espacio",
+        "espacio en disco",
+        "qué procesos",
+        "procesos activos",
+        "copia el archivo",
+        "cuenta líneas",
+        "puertos abiertos",
+        "execute command",
+        "run command",
+        "list files",
+        "create folder",
+        "show file",
+        "find file",
+        "disk usage",
+        "list processes",
+    ],
 }
 
 
@@ -469,8 +496,13 @@ def _detect_intent(query: str) -> str:
         if kw in q:
             return "web_search"
 
+    # Shell: check before vault to prevent "busca archivos" hitting vault's "busca"
+    for kw in _INTENT_PATTERNS.get("shell", []):
+        if kw in q:
+            return "shell"
+
     for intent, keywords in _INTENT_PATTERNS.items():
-        if intent == "web_search":
+        if intent in ("web_search", "shell"):
             continue  # already checked above
         for kw in keywords:
             if kw in q:
@@ -1208,6 +1240,16 @@ class ZSMEngine:
             return "Sin skills registrados. Ejecuta: zana wisdom inbox"
         elif intent == "web_search":
             _exec_web_search(query)
+            return ""
+        elif intent == "shell":
+            try:
+                import questionary
+
+                from zana.core import shell_guard
+
+                shell_guard.execute(query, console, questionary)
+            except Exception as exc:
+                return f"[ShellGuard error: {exc}]"
             return ""
         else:
             return t("zsm.response.unknown", lang=lang)

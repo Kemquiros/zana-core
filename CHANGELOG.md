@@ -7,6 +7,32 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.9.0] — 2026-05-22
+
+### Added
+- **ShellGuard — sovereign OS shell execution** (#51): `zana chat` can now execute OS
+  commands from natural language using a 7-layer security architecture that eliminates
+  the CVE classes found in OpenClaw (TOCTOU race, credential leak, injection). ZANA
+  never passes an LLM-generated string to a shell — the engine maps intent to a
+  pre-approved argv template. All subprocesses run with `shell=False`, a minimal clean
+  environment (no API keys), and require explicit user confirmation showing the exact
+  argv before execution. Every attempt (blocked, cancelled, or executed) is recorded in
+  the Civic Ledger. 10 built-in templates: list files, show file, find, disk usage,
+  process list, create dir, copy file, word count, env vars (filtered), port check.
+- **Agora test coverage** (#52): 13 focused tests for `zana skill search` (remote
+  registry fetch, offline fallback, match by name/description/tags) and `zana skill adopt`
+  (success, already installed, not found, network error, civic hash integrity check).
+
+### Security
+- `_FORBIDDEN_COMMANDS` frozenset (40+ LOLBINS/GTFOBINS entries): bash, python, curl,
+  sudo, chmod, git, pip, vim, awk, sed, xargs, eval — none can appear as a template command.
+- `_CLEAN_ENV`: subprocess environment contains only PATH, HOME, LANG, TERM — API keys
+  and tokens are never inherited by child processes (eliminates CVE-2026-44115 class).
+- `realpath()` path resolution at validation time prevents TOCTOU/symlink escape attacks
+  (eliminates CVE-2026-44112 and CVE-2026-44113 classes).
+
+---
+
 ## [3.8.0] — 2026-05-22
 
 ### Added
