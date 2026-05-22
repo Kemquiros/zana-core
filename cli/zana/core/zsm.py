@@ -426,6 +426,32 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
         "automatiza",
         "automate",
     ],
+    "web_search": [
+        # Spanish
+        "busca en internet",
+        "busca en la web",
+        "buscar en google",
+        "buscar en internet",
+        "busca online",
+        "encuentra en internet",
+        "qué dice internet sobre",
+        "busca información sobre",
+        "investiga en internet",
+        "consulta en internet",
+        # English
+        "search the web",
+        "web search",
+        "search online",
+        "find on the internet",
+        "look up online",
+        "find information about",
+        # French
+        "recherche sur internet",
+        "cherche sur le web",
+        # Italian
+        "cerca in internet",
+        "cerca online",
+    ],
 }
 
 
@@ -438,7 +464,14 @@ def _detect_intent(query: str) -> str:
     if re.search(r"\d+%\s*(de|of|von|di|de)\s*\d+", q):
         return "math"
 
+    # Web search: check multi-word triggers before single-word intents like vault/skill
+    for kw in _INTENT_PATTERNS.get("web_search", []):
+        if kw in q:
+            return "web_search"
+
     for intent, keywords in _INTENT_PATTERNS.items():
+        if intent == "web_search":
+            continue  # already checked above
         for kw in keywords:
             if kw in q:
                 return intent
@@ -942,6 +975,94 @@ def _exec_tier(lang: str) -> str:
     )
 
 
+_WEB_SEARCH_TRIGGERS: list[str] = [
+    "busca en internet",
+    "busca en la web",
+    "buscar en google",
+    "buscar en internet",
+    "busca online",
+    "encuentra en internet",
+    "qué dice internet sobre",
+    "busca información sobre",
+    "investiga en internet",
+    "consulta en internet",
+    "search the web",
+    "web search",
+    "search online",
+    "find on the internet",
+    "look up online",
+    "find information about",
+    "recherche sur internet",
+    "cherche sur le web",
+    "cerca in internet",
+    "cerca online",
+]
+
+
+def _exec_web_search(query: str) -> None:
+    """Execute DuckDuckGo web search — no API key required."""
+    search_query = query.strip()
+    for prefix in sorted(_WEB_SEARCH_TRIGGERS, key=len, reverse=True):
+        if search_query.lower().startswith(prefix):
+            search_query = search_query[len(prefix) :].strip()
+            break
+
+    if not search_query:
+        console.print(
+            "[warning]Especifica que quieres buscar. "
+            "Ej: 'busca en internet Python tutorials'[/warning]"
+        )
+        return
+
+    try:
+        from duckduckgo_search import DDGS
+    except ImportError:
+        console.print(
+            "[error]duckduckgo-search no instalado. "
+            "Ejecuta: pip install 'vecanova-zana' --upgrade[/error]"
+        )
+        return
+
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.text(search_query, max_results=5))
+    except Exception as exc:
+        console.print(f"[error]Error en busqueda web: {exc}[/error]")
+        return
+
+    if not results:
+        console.print(f"[muted]Sin resultados para: {search_query}[/muted]")
+        return
+
+    console.print(
+        f"\n[secondary]Resultados web para:[/secondary] [accent]{search_query}[/accent]\n"
+    )
+    for i, r in enumerate(results, 1):
+        title = r.get("title", "Sin titulo")
+        body = r.get("body", "")[:150].replace("\n", " ")
+        href = r.get("href", "")
+        console.print(f"  [accent]{i}.[/accent] [bold]{title}[/bold]")
+        if body:
+            console.print(f"     [dim]{body}[/dim]")
+        if href:
+            console.print(f"     [link]{href}[/link]")
+        console.print()
+
+    # Audit trail in memory_lite
+    try:
+        from zana.core.memory_lite import get_db
+
+        db = get_db()
+        db.add(
+            f"Web search: '{search_query}' -> {len(results)} results",
+            source="web_search",
+            collection="zana_vault",
+        )
+        db.close()
+    except Exception:
+        pass
+
+
 # ── Personality Engine ────────────────────────────────────────────────────────
 
 
@@ -1085,6 +1206,9 @@ class ZSMEngine:
                 except Exception:
                     pass
             return "Sin skills registrados. Ejecuta: zana wisdom inbox"
+        elif intent == "web_search":
+            _exec_web_search(query)
+            return ""
         else:
             return t("zsm.response.unknown", lang=lang)
 
