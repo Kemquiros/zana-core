@@ -7,6 +7,25 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.8.0] — 2026-05-22
+
+### Added
+- **SPROUT mode in aria-ui** (#44): When the Docker gateway is offline but an API key is
+  configured, `aria-ui` now routes messages directly to the LLM via a new Next.js Route
+  Handler (`/api/chat`). A green emerald banner "◈ MODO SPROUT activo" confirms the mode.
+  The chat input remains enabled. API keys are read server-side from `~/.zana/.env` and
+  never exposed to the browser. Supports Anthropic, Gemini, OpenAI, and Groq.
+- **Telegram/Discord setup in `zana init`** (#45): Optional Step 7 in the init wizard
+  guides users through connecting their Aeon to Telegram or Discord. Validates the bot
+  token via the Telegram API before saving. Bilingual (ES/EN). Skips silently if satellite
+  is already configured.
+- **Web search tool via DuckDuckGo** (#46): New `web_search` ZSM intent with 20
+  multilingual triggers (ES/EN/FR/IT). No API key required. Results include title, excerpt,
+  and URL. Audit trail saved to `memory_lite`. Graceful `ImportError` guidance if package
+  missing. Adds `duckduckgo-search>=6.0.0` to CLI dependencies.
+
+---
+
 ## [3.7.3] — 2026-05-21
 
 ### Fixed
