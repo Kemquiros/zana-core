@@ -1125,6 +1125,138 @@ def _render_awakening(aeon_name: str, lang: str) -> None:
     console.print()
 
 
+def _setup_satellite_optional(lang: str) -> None:
+    """Step 7 (optional): connect Aeon to Telegram or Discord."""
+    # Skip if satellite already configured
+    try:
+        from zana.core.multiuser import load_satellite_config
+
+        cfg = load_satellite_config()
+        if cfg and (cfg.get("telegram_token") or cfg.get("discord_token")):
+            return  # already configured
+    except Exception:
+        pass
+
+    if not _is_interactive():
+        return
+
+    import questionary
+
+    prompt_text = (
+        "¿Conectar tu Aeon a Telegram o Discord? (opcional, 2 min)"
+        if lang == "es"
+        else "Connect your Aeon to Telegram or Discord? (optional, 2 min)"
+    )
+
+    wants = questionary.confirm(prompt_text, default=False, style=_q_style()).ask()
+    if not wants:
+        return
+
+    platform_choices = ["Telegram", "Discord", "Skip / Omitir"]
+    platform = questionary.select(
+        "Plataforma / Platform:" if lang == "es" else "Platform:",
+        choices=platform_choices,
+        style=_q_style(),
+    ).ask()
+
+    if platform == "Skip / Omitir" or platform is None:
+        return
+
+    if platform == "Telegram":
+        console.print("\n[dim]Telegram Bot Setup:[/dim]")
+        console.print("[dim]  1. Abre Telegram -> busca [bold]@BotFather[/bold][/dim]")
+        console.print(
+            "[dim]  2. Envia [bold]/newbot[/bold] y sigue las instrucciones[/dim]"
+        )
+        console.print("[dim]  3. Copia el token que te da BotFather[/dim]\n")
+
+        token = questionary.password(
+            "Bot token (de @BotFather):"
+            if lang == "es"
+            else "Bot token (from @BotFather):",
+            style=_q_style(),
+        ).ask()
+
+        if not token or not token.strip():
+            console.print("[warning]Token vacio -- saltando configuracion.[/warning]")
+            return
+
+        import httpx
+
+        try:
+            r = httpx.get(
+                f"https://api.telegram.org/bot{token.strip()}/getMe", timeout=5
+            )
+            data = r.json()
+            if not data.get("ok"):
+                console.print(
+                    f"[error]Token invalido: {data.get('description', 'Unknown error')}[/error]"
+                )
+                return
+            bot_name = data["result"].get("username", "tu bot")
+        except Exception as exc:
+            console.print(f"[error]No se pudo validar el token: {exc}[/error]")
+            return
+
+        try:
+            from zana.core.multiuser import save_satellite_config
+
+            cfg = {}
+            try:
+                from zana.core.multiuser import load_satellite_config
+
+                cfg = load_satellite_config()
+            except Exception:
+                pass
+            cfg["telegram_token"] = token.strip()
+            save_satellite_config(cfg)
+            console.print(f"\n[success]✓ @{bot_name} configurado![/success]")
+            console.print(
+                "[dim]Ejecuta [accent]zana satellite start[/accent] para activarlo.[/dim]\n"
+            )
+        except Exception as exc:
+            console.print(f"[error]Error guardando configuracion: {exc}[/error]")
+
+    elif platform == "Discord":
+        console.print("\n[dim]Discord Bot Setup:[/dim]")
+        console.print(
+            "[dim]  1. Ve a [bold]discord.com/developers/applications[/bold][/dim]"
+        )
+        console.print(
+            "[dim]  2. New Application -> Bot -> Reset Token -> copia el token[/dim]\n"
+        )
+
+        token = questionary.password(
+            "Bot token (de Discord Developer Portal):"
+            if lang == "es"
+            else "Bot token (from Discord Developer Portal):",
+            style=_q_style(),
+        ).ask()
+
+        if not token or not token.strip():
+            console.print("[warning]Token vacio -- saltando configuracion.[/warning]")
+            return
+
+        try:
+            from zana.core.multiuser import save_satellite_config
+
+            cfg = {}
+            try:
+                from zana.core.multiuser import load_satellite_config
+
+                cfg = load_satellite_config()
+            except Exception:
+                pass
+            cfg["discord_token"] = token.strip()
+            save_satellite_config(cfg)
+            console.print("\n[success]✓ Discord bot configurado![/success]")
+            console.print(
+                "[dim]Ejecuta [accent]zana satellite start[/accent] para activarlo.[/dim]\n"
+            )
+        except Exception as exc:
+            console.print(f"[error]Error guardando configuracion: {exc}[/error]")
+
+
 def run_init_wizard() -> bool:
     """Zero-friction Aeon initialization — ≤5 questions, <3 min to first conversation.
 
@@ -1410,6 +1542,9 @@ def run_init_wizard() -> bool:
 
     # ── MCP auto-register (Claude Desktop / Cline / Claude Code) ─────────────
     _offer_mcp_registration(aeon_name)
+
+    # ── Step 7: Satellite (optional) ──────────────────────────────────────────
+    _setup_satellite_optional(selected_lang)
 
     _render_awakening(aeon_name, selected_lang)
     return True
