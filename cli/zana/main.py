@@ -1021,6 +1021,36 @@ from zana.commands.satellite import app as satellite_typer  # noqa: E402
 satellite_app.add_typer(satellite_typer, name="")
 app.add_typer(satellite_app, name="satellite")
 
+from zana.commands.herald import herald_app  # noqa: E402
+
+app.add_typer(herald_app, name="herald")
+
+
+@app.command("herald-slack")
+def herald_slack(
+    webhook_url: Annotated[str, typer.Argument(help="Slack Incoming Webhook URL.")],
+    message: Annotated[str, typer.Argument(help="Message to send to Slack.")],
+) -> None:
+    """Send a Slack notification via Herald."""
+    from zana.commands.herald import cmd_herald_notify_slack
+
+    cmd_herald_notify_slack(webhook_url, message)
+
+
+@app.command("herald-email")
+def herald_email(
+    to_address: Annotated[str, typer.Argument(help="Recipient email address.")],
+    message: Annotated[str, typer.Argument(help="Email body text.")],
+    subject: Annotated[
+        str, typer.Option("--subject", "-s", help="Email subject line.")
+    ] = "ZANA Herald",
+) -> None:
+    """Send an email notification via Herald."""
+    from zana.commands.herald import cmd_herald_notify_email
+
+    cmd_herald_notify_email(to_address, message, subject)
+
+
 sentinel_app = typer.Typer(
     name="sentinel",
     help="Sentinel Event Bus — lifecycle events and Civic Ledger audit.",
