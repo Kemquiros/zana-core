@@ -766,6 +766,17 @@ def memory_reindex() -> None:
     cmd_memory_reindex()
 
 
+@memory_app.command(
+    "reflect", help="Extract key facts from text and store in episodic memory (EML)."
+)
+def memory_reflect(
+    text: Annotated[str, typer.Argument(help="Text to extract facts from.")],
+) -> None:
+    from zana.commands.memory import cmd_memory_reflect
+
+    cmd_memory_reflect(text)
+
+
 # ── Skill sub-commands ───────────────────────────────────────────────────────
 
 
