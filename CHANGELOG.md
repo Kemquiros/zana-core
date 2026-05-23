@@ -7,6 +7,17 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.10.0] — 2026-05-23
+
+### Added
+- ...
+
+### Fixed
+- ...
+
+---
+
+
 ## [3.9.0] — 2026-05-22
 
 ### Added
