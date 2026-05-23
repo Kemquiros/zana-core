@@ -658,6 +658,24 @@ def aeon_broadcast(
     cmd_aeon_broadcast(message)
 
 
+@aeon_app.command("ping", help="Ping a registered Z-Network peer and measure latency.")
+def aeon_ping(
+    peer_url: Annotated[str, typer.Argument(help="HTTPS URL of the peer to ping.")],
+) -> None:
+    from zana.commands.aeon import cmd_aeon_ping
+
+    cmd_aeon_ping(peer_url)
+
+
+@aeon_app.command("disconnect", help="Remove a peer from the Z-Network peer list.")
+def aeon_disconnect(
+    peer_url: Annotated[str, typer.Argument(help="HTTPS URL of the peer to remove.")],
+) -> None:
+    from zana.commands.aeon import cmd_aeon_disconnect
+
+    cmd_aeon_disconnect(peer_url)
+
+
 # ── Shell sub-commands ────────────────────────────────────────────────────────
 
 
