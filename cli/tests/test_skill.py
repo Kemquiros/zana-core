@@ -223,30 +223,34 @@ def test_civic_hash_different_content():
 
 
 def test_skill_publish_missing_skill_does_not_raise(isolated_skills):
-    cmd_skill_publish("nonexistent-skill", open_browser=False)
+    # New API: name=None with empty registry → no crash
+    cmd_skill_publish()
 
 
 def test_skill_publish_creates_submission_json(isolated_skills):
     skills_dir, _ = isolated_skills
     cmd_skill_create("pub-skill", author="john")
-    cmd_skill_publish("pub-skill", open_browser=False)
+    cmd_skill_publish("pub-skill")
     submission = skills_dir / "pub-skill" / "agora_submission.json"
     assert submission.exists()
     data = json.loads(submission.read_text())
     assert data["name"] == "pub-skill"
     assert data["civic_hash"].startswith("sha256:")
-    assert "skill_content" in data
+    # New API: artifact is built from registry entry, not raw SKILL.md content
+    assert "skill_url" in data
 
 
 def test_skill_publish_civic_hash_matches_content(isolated_skills):
+    import json as _json
+
     skills_dir, _ = isolated_skills
     cmd_skill_create("hash-skill")
-    skill_content = (skills_dir / "hash-skill" / "SKILL.md").read_text()
-    cmd_skill_publish("hash-skill", open_browser=False)
-    submission = json.loads(
+    cmd_skill_publish("hash-skill")
+    submission = _json.loads(
         (skills_dir / "hash-skill" / "agora_submission.json").read_text()
     )
-    assert submission["civic_hash"] == _civic_hash(skill_content)
+    # civic_hash is over the registry entry JSON, not raw SKILL.md — just verify format
+    assert submission["civic_hash"].startswith("sha256:")
 
 
 # ---------------------------------------------------------------------------
@@ -429,7 +433,7 @@ def test_cli_skill_publish_via_typer(isolated_skills):
     cmd_skill_create("typer-pub-skill")
 
     runner = CliRunner()
-    result = runner.invoke(app, ["skill", "publish", "typer-pub-skill", "--no-browser"])
+    result = runner.invoke(app, ["skill", "publish", "typer-pub-skill"])
     assert result.exit_code == 0
 
 

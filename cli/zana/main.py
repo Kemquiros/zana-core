@@ -810,18 +810,16 @@ def skill_info(
 
 
 @skill_app.command(
-    "publish",
-    help="Prepare a local skill for submission to The Agora open skill marketplace.",
+    "publish", help="Generate an Agora submission artifact for a local skill."
 )
 def skill_publish(
-    name: str = typer.Argument(..., help="Skill name (see: zana skill list)."),
-    no_browser: bool = typer.Option(
-        False, "--no-browser", help="Skip opening the submission URL in a browser."
-    ),
+    name: Annotated[
+        str | None, typer.Argument(help="Skill name to publish (default: auto-detect).")
+    ] = None,
 ) -> None:
     from zana.commands.skill import cmd_skill_publish
 
-    cmd_skill_publish(name, open_browser=not no_browser)
+    cmd_skill_publish(name)
 
 
 @skill_app.command(
@@ -854,6 +852,27 @@ def skill_adopt(
     from zana.commands.skill import cmd_skill_adopt
 
     cmd_skill_adopt(name)
+
+
+@skill_app.command("update", help="Check Agora for newer versions of installed skills.")
+def skill_update(
+    name: Annotated[
+        str | None, typer.Argument(help="Skill name to update (default: all).")
+    ] = None,
+) -> None:
+    from zana.commands.skill import cmd_skill_update
+
+    cmd_skill_update(name)
+
+
+@skill_app.command("rate", help="Save a local rating (1-5) for an installed skill.")
+def skill_rate(
+    name: Annotated[str, typer.Argument(help="Skill name to rate.")],
+    rating: Annotated[int, typer.Argument(help="Rating 1-5.")],
+) -> None:
+    from zana.commands.skill import cmd_skill_rate
+
+    cmd_skill_rate(name, rating)
 
 
 # ── Shadow sub-commands ───────────────────────────────────────────────────────
@@ -1044,6 +1063,17 @@ def wisdom_reject(
     from zana.commands.wisdom import cmd_wisdom_reject
 
     cmd_wisdom_reject(wisdom_id)
+
+
+@wisdom_app.command("propose", help="Propose a WisdomRule candidate from free text.")
+def wisdom_propose(
+    text: Annotated[
+        str, typer.Argument(help="Rule text to capture as a WisdomRule candidate.")
+    ],
+) -> None:
+    from zana.commands.wisdom import cmd_wisdom_propose
+
+    cmd_wisdom_propose(text)
 
 
 # ── MCP sub-commands ──────────────────────────────────────────────────────────
