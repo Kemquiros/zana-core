@@ -479,6 +479,21 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
         "disk usage",
         "list processes",
     ],
+    "wisdom_capture": [
+        "recuerda que",
+        "aprende que",
+        "anota que",
+        "guarda esto",
+        "regla:",
+        "siempre que",
+        "cada vez que",
+        "remember that",
+        "learn that",
+        "note that",
+        "rule:",
+        "always when",
+        "whenever",
+    ],
 }
 
 
@@ -501,8 +516,13 @@ def _detect_intent(query: str) -> str:
         if kw in q:
             return "shell"
 
+    # Wisdom capture: check before memory/vault to prevent "recuerda que" hitting memory's "recuerda"
+    for kw in _INTENT_PATTERNS.get("wisdom_capture", []):
+        if kw in q:
+            return "wisdom_capture"
+
     for intent, keywords in _INTENT_PATTERNS.items():
-        if intent in ("web_search", "shell"):
+        if intent in ("web_search", "shell", "wisdom_capture"):
             continue  # already checked above
         for kw in keywords:
             if kw in q:
@@ -1250,6 +1270,23 @@ class ZSMEngine:
                 shell_guard.execute(query, console, questionary)
             except Exception as exc:
                 return f"[ShellGuard error: {exc}]"
+            return ""
+        elif intent == "wisdom_capture":
+            from zana.commands.wisdom import cmd_wisdom_propose
+
+            trigger_phrases = _INTENT_PATTERNS.get("wisdom_capture", [])
+            rule_text = query
+            for phrase in sorted(trigger_phrases, key=len, reverse=True):
+                if phrase in query.lower():
+                    idx = query.lower().find(phrase)
+                    rule_text = query[idx + len(phrase) :].strip(" ,:.")
+                    break
+            if rule_text:
+                cmd_wisdom_propose(rule_text, console)
+            else:
+                console.print(
+                    "[warning]No rule text detected. Try: 'recuerda que <regla>'[/warning]"
+                )
             return ""
         else:
             return t("zsm.response.unknown", lang=lang)

@@ -184,6 +184,49 @@ def cmd_wisdom_approve(wisdom_id: str) -> None:
     console.print(f"  ID en registry: [accent]{data.get('skill_id', '?')}[/accent]\n")
 
 
+def cmd_wisdom_propose(text: str, console=None) -> None:
+    """Create a WisdomRule candidate from free text and add to pending queue."""
+    import re
+    from datetime import UTC, datetime
+
+    from zana.core.wisdom_queue import WisdomQueue
+
+    if console is None:
+        from zana.tui.theme import console as _console
+
+        console = _console
+
+    text = text.strip()
+    if not text:
+        console.print("[warning]Empty rule text — nothing proposed.[/warning]")
+        return
+
+    # Generate ID from first 6 words, slugified
+    words = re.findall(r"[a-záéíóúüñ\w]+", text.lower())[:6]
+    rule_id = "-".join(words)[:40] if words else "proposed-rule"
+    rule_id = re.sub(r"[^a-z0-9\-]", "-", rule_id)
+
+    # First sentence as name (truncated to 60 chars)
+    name = re.split(r"[.!?]", text)[0].strip()[:60]
+
+    proposal = {
+        "id": rule_id,
+        "name": name,
+        "domain": "general",
+        "confidence": 0.75,
+        "trigger": text,
+        "steps": [text],
+        "created_at": datetime.now(UTC).isoformat(),
+    }
+
+    WisdomQueue().add(proposal)
+    console.print(
+        f"[success]✓ WisdomRule proposed:[/success] [accent]{rule_id}[/accent]"
+    )
+    console.print(f"  [muted]{name}[/muted]")
+    console.print("[dim]Review with: zana wisdom inbox[/dim]")
+
+
 def cmd_wisdom_reject(wisdom_id: str) -> None:
     if not _is_gateway_online():
         from zana.core.wisdom_queue import WisdomQueue
