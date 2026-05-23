@@ -883,3 +883,175 @@ def cmd_evolve() -> None:
         )
     else:
         console.print("[success]Maximum rank achieved.[/success]\n")
+
+
+# ---------------------------------------------------------------------------
+# Z-Network v0.1 — connect, peers, broadcast
+# ---------------------------------------------------------------------------
+
+_PEERS_PATH = Path.home() / ".zana" / "aeon_peers.json"
+
+
+def cmd_aeon_connect(peer_url: str, name: str = "") -> None:
+    """Register a remote Aeon node in the local Z-Network peer list."""
+    import os
+
+    if not peer_url.startswith("https://"):
+        console.print("[error]Peer URL must start with https://[/error]")
+        return
+
+    # Load existing peers
+    _PEERS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        peers = (
+            json.loads(_PEERS_PATH.read_text(encoding="utf-8"))
+            if _PEERS_PATH.exists()
+            else {}
+        )
+    except Exception:
+        peers = {}
+
+    from datetime import UTC, datetime
+
+    peers[peer_url] = {
+        "name": name or peer_url.split("/")[-1] or "unknown",
+        "connected_at": datetime.now(UTC).isoformat(),
+        "last_seen": None,
+    }
+
+    # Atomic write
+    tmp = _PEERS_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(peers, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, _PEERS_PATH)
+
+    console.print(f"[success]✓ Peer connected:[/success] [accent]{peer_url}[/accent]")
+    console.print(f"  [muted]Alias: {peers[peer_url]['name']}[/muted]")
+    console.print("[dim]Use: zana aeon peers — to list all nodes[/dim]")
+
+
+def cmd_aeon_peers() -> None:
+    """List all registered Z-Network Aeon peers."""
+    from rich.table import Table
+
+    try:
+        peers = (
+            json.loads(_PEERS_PATH.read_text(encoding="utf-8"))
+            if _PEERS_PATH.exists()
+            else {}
+        )
+    except Exception:
+        peers = {}
+
+    if not peers:
+        console.print(
+            "\n[muted]No peers connected. Use: zana aeon connect <https://...>[/muted]\n"
+        )
+        return
+
+    table = Table(title="Z-Network Peers", show_header=True, header_style="bold")
+    table.add_column("URL", style="accent")
+    table.add_column("Name", style="secondary")
+    table.add_column("Connected", style="muted")
+    table.add_column("Last Seen", style="muted")
+
+    for url, meta in peers.items():
+        table.add_row(
+            url,
+            meta.get("name", "—"),
+            meta.get("connected_at", "—")[:19].replace("T", " "),
+            (meta.get("last_seen") or "never")[:19].replace("T", " "),
+        )
+
+    console.print()
+    console.print(table)
+    console.print()
+
+
+def cmd_aeon_broadcast(message: str) -> None:
+    """Send a Z-L message to all registered Z-Network peers."""
+    import hashlib
+    import os
+    import urllib.error
+    import urllib.request
+    from datetime import UTC, datetime
+
+    # Validate Z-L message
+    try:
+        from zana.core.zl_parser import parse as zl_parse
+
+        msg = zl_parse(message)
+    except Exception as exc:
+        console.print(f"[error]Invalid Z-L message: {exc}[/error]")
+        console.print(
+            "[dim]Example: ARIA_01 ! wisdom:rule:test [conf:0.80] [delta:+1][/dim]"
+        )
+        return
+
+    # Load peers
+    try:
+        peers = (
+            json.loads(_PEERS_PATH.read_text(encoding="utf-8"))
+            if _PEERS_PATH.exists()
+            else {}
+        )
+    except Exception:
+        peers = {}
+
+    if not peers:
+        console.print(
+            "[warning]No peers connected. Use: zana aeon connect <https://...>[/warning]"
+        )
+        return
+
+    console.print(
+        f"\n[bold]Z-Network broadcast:[/bold] [muted]{msg.verb} {msg.target}[/muted]\n"
+    )
+
+    now = datetime.now(UTC).isoformat()
+    envelope = json.dumps(
+        {
+            "zl": message,
+            "from": msg.aeon_id,
+            "timestamp": now,
+        },
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+    delivered = failed = 0
+
+    for url, _meta in peers.items():
+        endpoint = url.rstrip("/") + "/zl"
+        try:
+            req = urllib.request.Request(
+                endpoint,
+                data=envelope,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as _:  # noqa: S310
+                peers[url]["last_seen"] = now
+                delivered += 1
+                console.print(f"  [success]✓[/success] {url}")
+        except Exception as exc:
+            failed += 1
+            console.print(f"  [warning]✗ {url}[/warning]  [dim]{exc}[/dim]")
+
+    # Persist last_seen updates
+    tmp = _PEERS_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(peers, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, _PEERS_PATH)
+
+    # Civic Ledger
+    try:
+        from zana.core.sentinel_lite import SentinelLiteDB
+
+        h = hashlib.sha256(message.encode()).hexdigest()
+        db = SentinelLiteDB()
+        db.record("ZNetworkBroadcast", payload_hash=h, civic_hash=h)
+        db.close()
+    except Exception:
+        pass
+
+    console.print(
+        f"\n  [success]{delivered} delivered[/success]  [muted]{failed} failed[/muted]\n"
+    )
