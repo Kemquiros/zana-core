@@ -469,6 +469,16 @@ def cmd_status() -> None:
     cost_c = COST_COLOR.get(aeon["cost_tier"], "white")
     lat_i = LATENCY_ICON.get(aeon["latency"], "?")
 
+    # Mastery Map rank
+    rank_name, rank_icon = "Seed", "🌱"
+    try:
+        from zana.core.wisdom_queue import WisdomQueue
+
+        approved = WisdomQueue().stats()["approved"]
+        rank_name, rank_icon, _, _ = _get_rank(approved)
+    except Exception:
+        pass
+
     console.print(
         Panel(
             f"[accent]{aeon['icon']}  {aeon['name']}[/accent]    [muted](id: {aeon['id']})[/muted]\n\n"
@@ -476,6 +486,7 @@ def cmd_status() -> None:
             f"[muted]Model:[/muted]    {aeon['model']}\n"
             f"[muted]Cost:[/muted]     [{cost_c}]{aeon['cost_tier']}[/{cost_c}]\n"
             f"[muted]Speed:[/muted]    {lat_i} {aeon['latency']}\n"
+            f"[muted]Rank:[/muted]     {rank_icon} {rank_name}\n"
             f"[muted]Tools:[/muted]    {', '.join(aeon['tools'])}",
             title="[header] ACTIVE AEON [/header]",
             border_style="magenta",
@@ -756,3 +767,119 @@ def cmd_tune(gene: str | None = None) -> None:
         f"\n[success]✓[/success] DNA guardado — "
         f"[muted]Generación {dna.generation} · H={dna.entropy}[/muted]\n"
     )
+
+
+# ---------------------------------------------------------------------------
+# Mastery Map — rank thresholds and progression
+# ---------------------------------------------------------------------------
+
+_MASTERY_RANKS = [
+    (0, "Seed", "🌱"),
+    (1, "Larva", "🐛"),
+    (5, "Warrior", "⚔️"),
+    (15, "Champion", "🏆"),
+    (30, "Legend", "🌟"),
+    (50, "Singularity", "♾️"),
+]
+
+_RANK_STATE_PATH = Path.home() / ".zana" / "aeon_rank_state.json"
+
+
+def _get_rank(count: int) -> tuple[str, str, int | None, int]:
+    """Return (rank_name, icon, next_threshold_or_None, pct_to_next)."""
+    current_name, current_icon, current_min = "Seed", "🌱", 0
+    next_threshold: int | None = None
+    for i, (threshold, name, icon) in enumerate(_MASTERY_RANKS):
+        if count >= threshold:
+            current_name, current_icon, current_min = name, icon, threshold
+            next_threshold = (
+                _MASTERY_RANKS[i + 1][0] if i + 1 < len(_MASTERY_RANKS) else None
+            )
+    if next_threshold is None:
+        return current_name, current_icon, None, 100
+    span = next_threshold - current_min
+    pct = int((count - current_min) / span * 100) if span > 0 else 100
+    return current_name, current_icon, next_threshold, pct
+
+
+def cmd_rank() -> None:
+    """Show the active Aeon's current Mastery Map rank."""
+    from zana.core.wisdom_queue import WisdomQueue
+
+    approved = WisdomQueue().stats()["approved"]
+    rank_name, icon, next_thresh, pct = _get_rank(approved)
+
+    if next_thresh is not None:
+        next_line = (
+            f"[muted]Next rank at [accent]{next_thresh}[/accent] absorbed rules "
+            f"({next_thresh - approved} to go)[/muted]"
+        )
+    else:
+        next_line = "[success]Maximum rank achieved.[/success]"
+
+    progress_color = "green" if pct >= 50 else "yellow"
+    console.print(
+        Panel(
+            f"{icon}  [bold]{rank_name}[/bold]\n\n"
+            f"[muted]Absorbed WisdomRules:[/muted] [accent]{approved}[/accent]\n"
+            f"{next_line}\n\n"
+            f"[muted]Progress to next:[/muted] [{progress_color}]{pct}%[/{progress_color}]",
+            title="[header] MASTERY MAP [/header]",
+            border_style="magenta",
+            padding=(1, 2),
+        )
+    )
+
+
+def cmd_evolve() -> None:
+    """Absorb approved WisdomRules and check for rank advancement."""
+    import contextlib
+    import hashlib
+
+    from zana.core.wisdom_queue import WisdomQueue
+
+    approved = WisdomQueue().stats()["approved"]
+    rank_name, icon, next_thresh, _ = _get_rank(approved)
+
+    # Load previous persisted rank
+    prev_rank = "Seed"
+    if _RANK_STATE_PATH.exists():
+        with contextlib.suppress(Exception):
+            prev_rank = json.loads(_RANK_STATE_PATH.read_text(encoding="utf-8")).get(
+                "rank", "Seed"
+            )
+
+    ranked_up = rank_name != prev_rank
+
+    # Persist current rank
+    _RANK_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _RANK_STATE_PATH.write_text(
+        json.dumps({"rank": rank_name, "approved": approved}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    if ranked_up:
+        console.print(
+            f"\n[success]⚡ RANK UP! {prev_rank} → {icon} {rank_name}[/success]\n"
+        )
+        try:
+            from zana.core.sentinel_lite import SentinelLiteDB
+
+            payload = f"rank_up:{rank_name}:approved={approved}"
+            h = hashlib.sha256(payload.encode()).hexdigest()
+            db = SentinelLiteDB()
+            db.record("AeonRankUp", payload_hash=h, civic_hash=h)
+            db.close()
+        except Exception:
+            pass
+    else:
+        console.print(
+            f"\n[accent]{icon}  {rank_name}[/accent] — {approved} rules absorbed, no rank change.\n"
+        )
+
+    if next_thresh is not None:
+        console.print(
+            f"[muted]{next_thresh - approved} more rules to [accent]next rank[/accent][/muted]\n"
+        )
+    else:
+        console.print("[success]Maximum rank achieved.[/success]\n")
