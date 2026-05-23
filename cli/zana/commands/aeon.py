@@ -1055,3 +1055,131 @@ def cmd_aeon_broadcast(message: str) -> None:
     console.print(
         f"\n  [success]{delivered} delivered[/success]  [muted]{failed} failed[/muted]\n"
     )
+
+
+# ---------------------------------------------------------------------------
+# Z-Network v0.2 — ping + disconnect
+# ---------------------------------------------------------------------------
+
+
+def cmd_aeon_ping(peer_url: str) -> None:
+    """Ping a registered Z-Network peer and update last_seen on success."""
+    import hashlib
+    import http.client
+    import os
+    import time
+    import urllib.error
+    import urllib.request
+    from datetime import UTC, datetime
+
+    if not peer_url.startswith("https://"):
+        console.print("[error]Peer URL must start with https://[/error]")
+        return
+
+    # Load peers
+    try:
+        peers = (
+            json.loads(_PEERS_PATH.read_text(encoding="utf-8"))
+            if _PEERS_PATH.exists()
+            else {}
+        )
+    except Exception:
+        peers = {}
+
+    if peer_url not in peers:
+        console.print(
+            "[warning]Peer no registrado. Usa 'zana aeon connect' primero.[/warning]"
+        )
+        return
+
+    endpoint = peer_url.rstrip("/") + "/zl/health"
+    t_start = time.monotonic()
+    try:
+        with urllib.request.urlopen(endpoint, timeout=5) as resp:  # noqa: S310
+            elapsed_ms = int((time.monotonic() - t_start) * 1000)
+            _ = resp  # consumed
+
+        # Update last_seen
+        now = datetime.now(UTC).isoformat()
+        peers[peer_url]["last_seen"] = now
+        tmp = _PEERS_PATH.with_suffix(".tmp")
+        tmp.write_text(
+            json.dumps(peers, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        os.replace(tmp, _PEERS_PATH)
+
+        console.print(
+            f"[success]✓ Peer {peer_url} responde. Latencia: ~{elapsed_ms}ms[/success]"
+        )
+
+        # Civic Ledger
+        try:
+            from zana.core.sentinel_lite import SentinelLiteDB
+
+            h = hashlib.sha256(peer_url.encode()).hexdigest()
+            db = SentinelLiteDB()
+            db.record("ZNetworkPing", payload_hash=h, civic_hash=h)
+            db.close()
+        except Exception:
+            pass
+
+    except (TimeoutError, urllib.error.URLError, http.client.HTTPException) as exc:
+        console.print(f"[error]✗ Peer {peer_url} no responde: {exc}[/error]")
+
+        # Civic Ledger — failure
+        try:
+            from zana.core.sentinel_lite import SentinelLiteDB
+
+            h = hashlib.sha256(peer_url.encode()).hexdigest()
+            db = SentinelLiteDB()
+            db.record("ZNetworkPingFailed", payload_hash=h, civic_hash=h)
+            db.close()
+        except Exception:
+            pass
+
+    except Exception as exc:
+        console.print(f"[error]Ping error: {exc}[/error]")
+
+
+def cmd_aeon_disconnect(peer_url: str) -> None:
+    """Remove a peer from the Z-Network peer list."""
+    import hashlib
+    import os
+
+    if not peer_url.startswith("https://"):
+        console.print("[error]Peer URL must start with https://[/error]")
+        return
+
+    # Load peers
+    try:
+        peers = (
+            json.loads(_PEERS_PATH.read_text(encoding="utf-8"))
+            if _PEERS_PATH.exists()
+            else {}
+        )
+    except Exception:
+        peers = {}
+
+    if peer_url not in peers:
+        console.print(f"[warning]Peer {peer_url} no está en tu lista.[/warning]")
+        return
+
+    del peers[peer_url]
+
+    # Atomic write
+    tmp = _PEERS_PATH.with_suffix(".tmp")
+    tmp.write_text(json.dumps(peers, indent=2, ensure_ascii=False), encoding="utf-8")
+    os.replace(tmp, _PEERS_PATH)
+
+    console.print(f"[success]✓ Desconectado de {peer_url}.[/success]")
+
+    # Civic Ledger
+    try:
+        from zana.core.sentinel_lite import SentinelLiteDB
+
+        h = hashlib.sha256(peer_url.encode()).hexdigest()
+        db = SentinelLiteDB()
+        db.record("ZNetworkDisconnect", payload_hash=h, civic_hash=h)
+        db.close()
+    except Exception:
+        pass
