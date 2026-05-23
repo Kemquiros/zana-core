@@ -494,6 +494,14 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
         "always when",
         "whenever",
     ],
+    "memory_reflect": [
+        "refleja",
+        "extrae hechos",
+        "reflect",
+        "extract facts",
+        "analiza esto",
+        "analiza este texto",
+    ],
 }
 
 
@@ -521,8 +529,13 @@ def _detect_intent(query: str) -> str:
         if kw in q:
             return "wisdom_capture"
 
+    # Memory reflect: check before memory to prevent "reflect" / "refleja" hitting memory's "recuerda"
+    for kw in _INTENT_PATTERNS.get("memory_reflect", []):
+        if kw in q:
+            return "memory_reflect"
+
     for intent, keywords in _INTENT_PATTERNS.items():
-        if intent in ("web_search", "shell", "wisdom_capture"):
+        if intent in ("web_search", "shell", "wisdom_capture", "memory_reflect"):
             continue  # already checked above
         for kw in keywords:
             if kw in q:
@@ -1286,6 +1299,23 @@ class ZSMEngine:
             else:
                 console.print(
                     "[warning]No rule text detected. Try: 'recuerda que <regla>'[/warning]"
+                )
+            return ""
+        elif intent == "memory_reflect":
+            from zana.commands.memory import cmd_memory_reflect
+
+            trigger_phrases = _INTENT_PATTERNS.get("memory_reflect", [])
+            reflect_text = query
+            for phrase in sorted(trigger_phrases, key=len, reverse=True):
+                if phrase in query.lower():
+                    idx = query.lower().find(phrase)
+                    reflect_text = query[idx + len(phrase) :].strip(" ,:.")
+                    break
+            if reflect_text:
+                cmd_memory_reflect(reflect_text)
+            else:
+                console.print(
+                    "[warning]Provide text to reflect on. Example: 'reflect My name is Ana'[/warning]"
                 )
             return ""
         else:
