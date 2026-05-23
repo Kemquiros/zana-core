@@ -93,3 +93,72 @@ class WisdomQueue:
         data["rejected"].append(match)
         self.save(data)
         return True
+
+    def absorbed_count(self) -> int:
+        """Return count of approved rules (used for Mastery Map rank calculation)."""
+        return len(self.load().get("approved", []))
+
+
+# ---------------------------------------------------------------------------
+# Z-L encoding helpers for WisdomRules
+# ---------------------------------------------------------------------------
+
+
+def to_zl(rule: dict, aeon_id: str = "AEON") -> str:
+    """Encode an approved WisdomRule as a Z-L ASSERT message.
+
+    Format: AEON_ID ! wisdom:rule:<id> [civic:<fingerprint>] [conf:<confidence>] [delta:+1]
+    """
+    import hashlib
+    import re
+
+    rule_id = re.sub(r"[^a-z0-9\-]", "-", rule.get("id", "unknown").lower())[:32]
+    confidence = rule.get("confidence", 0.8)
+
+    # Compute fingerprint without civic_hash field (same algorithm as sync.py)
+    clean = {k: v for k, v in rule.items() if k != "civic_hash"}
+    fingerprint = (
+        "sha256:"
+        + hashlib.sha256(
+            json.dumps(clean, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()[:16]
+    )
+
+    safe_aeon = re.sub(r"[^A-Z0-9_]", "_", aeon_id.upper())[:32]
+    if not safe_aeon or not safe_aeon[0].isalpha():
+        safe_aeon = "AEON"
+
+    return (
+        f"{safe_aeon} ! wisdom:rule:{rule_id}"
+        f" [civic:{fingerprint}]"
+        f" [conf:{confidence:.2f}]"
+        f" [delta:+1]"
+    )
+
+
+def from_zl(zl_str: str) -> dict | None:
+    """Parse a Z-L ASSERT message back to a minimal rule dict.
+
+    Returns None if the string is not a valid ASSERT over a wisdom:rule target.
+    Does NOT verify the civic hash — caller is responsible for verification.
+    """
+    try:
+        from zana.core.zl_parser import parse as zl_parse
+
+        msg = zl_parse(zl_str)
+    except Exception:
+        return None
+
+    if msg.verb != "!":
+        return None
+
+    if not msg.target.startswith("WISDOM:RULE:"):
+        return None
+
+    rule_id = msg.target[len("WISDOM:RULE:") :].lower()
+    return {
+        "id": rule_id,
+        "zl_source": zl_str,
+        "confidence": float(msg.modifiers.get("conf", "0.8")),
+        "civic": msg.modifiers.get("civic", ""),
+    }
