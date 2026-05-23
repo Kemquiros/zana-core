@@ -65,6 +65,14 @@ skill_app = typer.Typer(
 )
 app.add_typer(skill_app, name="skill")
 
+shell_app = typer.Typer(
+    name="shell",
+    help="ShellGuard — sovereign OS automation with Civic Ledger audit trail.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+app.add_typer(shell_app, name="shell")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -602,6 +610,38 @@ def aeon_tune(
     from zana.commands.aeon import cmd_tune
 
     cmd_tune(gene=gene)
+
+
+@aeon_app.command("rank", help="Show the active Aeon's current Mastery Map rank.")
+def aeon_rank() -> None:
+    from zana.commands.aeon import cmd_rank
+
+    cmd_rank()
+
+
+@aeon_app.command(
+    "evolve", help="Absorb approved WisdomRules and check for rank advancement."
+)
+def aeon_evolve() -> None:
+    from zana.commands.aeon import cmd_evolve
+
+    cmd_evolve()
+
+
+# ── Shell sub-commands ────────────────────────────────────────────────────────
+
+
+@shell_app.command(
+    "history", help="Show recent ShellGuard execution history from the Civic Ledger."
+)
+def shell_history(
+    limit: Annotated[
+        int, typer.Option("--limit", "-n", help="Number of entries to show.")
+    ] = 20,
+) -> None:
+    from zana.core import shell_guard
+
+    shell_guard.shell_history(console, limit=limit)
 
 
 # ── Memory sub-commands ───────────────────────────────────────────────────────
