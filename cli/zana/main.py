@@ -692,6 +692,22 @@ def shell_history(
     shell_guard.shell_history(console, limit=limit)
 
 
+@shell_app.command(
+    "audit",
+    help="Show blocked and cancelled shell attempts — threat audit dashboard.",
+)
+def shell_audit_cmd(
+    top_n: Annotated[
+        int, typer.Option("--top", "-n", help="Number of top event types to display.")
+    ] = 10,
+) -> None:
+    from rich.console import Console
+
+    from zana.core.shell_guard import shell_audit
+
+    shell_audit(Console(), top_n)
+
+
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 
@@ -1098,6 +1114,20 @@ def sentinel_events(
 
 
 @sentinel_app.command(
+    "threats",
+    help="Threat analytics dashboard — block rate, top blocked events, Civic Ledger stats.",
+)
+def sentinel_threats(
+    top_n: Annotated[
+        int, typer.Option("--top", "-n", help="Top N blocked events to display.")
+    ] = 10,
+) -> None:
+    from zana.commands.sentinel import cmd_sentinel_threats
+
+    cmd_sentinel_threats(top_n)
+
+
+@sentinel_app.command(
     "ledger",
     help="Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl).",
 )
@@ -1163,6 +1193,13 @@ def wisdom_propose(
     from zana.commands.wisdom import cmd_wisdom_propose
 
     cmd_wisdom_propose(text)
+
+
+@wisdom_app.command("stats", help="Show WisdomQueue absorption analytics.")
+def wisdom_stats() -> None:
+    from zana.commands.wisdom import cmd_wisdom_stats
+
+    cmd_wisdom_stats()
 
 
 # ── MCP sub-commands ──────────────────────────────────────────────────────────
