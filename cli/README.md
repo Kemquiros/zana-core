@@ -10,7 +10,7 @@
 
 ---
 
-[![Version](https://img.shields.io/badge/ZANA-v3.12.0-10b981?style=flat-square)](https://github.com/Kemquiros/zana-core)
+[![Version](https://img.shields.io/badge/ZANA-v3.13.0-10b981?style=flat-square)](https://github.com/Kemquiros/zana-core)
 
 [![License](https://img.shields.io/badge/License-MIT-10b981?style=flat-square)](https://github.com/Kemquiros/zana-core/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-10b981?style=flat-square)](https://pypi.org/project/vecanova-zana/)
