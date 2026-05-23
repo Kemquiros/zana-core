@@ -102,7 +102,8 @@ def test_stats_counts_all_statuses(isolated_queue):
 
 def test_add_appends_to_pending(isolated_queue):
     q = WisdomQueue()
-    q.add({"id": "new-1", "name": "NewSkill", "confidence": 0.9})
+    # confidence < 0.90 so it goes to pending (auto-approve threshold is 0.90)
+    q.add({"id": "new-1", "name": "NewSkill", "confidence": 0.75})
     assert len(q.inbox()) == 1
     assert q.inbox()[0]["name"] == "NewSkill"
 

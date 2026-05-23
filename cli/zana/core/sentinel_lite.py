@@ -169,6 +169,70 @@ class SentinelLiteDB:
 
         return {"total": total, "by_type": by_type}
 
+    def threat_summary(self, top_n: int = 10) -> dict:
+        """Aggregate Civic Ledger events into threat analytics.
+
+        Args:
+            top_n: Maximum number of blocked event types to include in top_blocked.
+
+        Returns:
+            Dict with keys:
+            - ``total``:          Total event count across all types.
+            - ``by_type``:        Mapping of event_type → count, sorted desc by count.
+            - ``blocked_count``:  Events classified as blocked threats.
+            - ``cancelled_count``: Events classified as cancelled.
+            - ``executed_count``: Events classified as successfully executed.
+            - ``block_rate``:     Ratio blocked / (blocked + executed), 0.0 if no data.
+            - ``top_blocked``:    List of (event_type, count) tuples for blocked types.
+            - ``last_event_ts``:  Timestamp string of most recent event, or None.
+        """
+        blocked_types = {
+            "ShellForbiddenCommand",
+            "ShellInvalidParam",
+            "ShellMissingParam",
+            "ShellUnknownIntent",
+            "ZNetworkPingFailed",
+        }
+        cancelled_types = {"ShellCancelled"}
+        executed_types = {"ShellExecuted"}
+
+        type_rows = self._conn.execute(
+            "SELECT event_type, COUNT(*) AS cnt FROM sentinel_events "
+            "GROUP BY event_type ORDER BY cnt DESC"
+        ).fetchall()
+
+        by_type: dict[str, int] = {row["event_type"]: row["cnt"] for row in type_rows}
+        total = sum(by_type.values())
+
+        blocked_count = sum(cnt for et, cnt in by_type.items() if et in blocked_types)
+        cancelled_count = sum(
+            cnt for et, cnt in by_type.items() if et in cancelled_types
+        )
+        executed_count = sum(cnt for et, cnt in by_type.items() if et in executed_types)
+
+        denominator = blocked_count + executed_count
+        block_rate = blocked_count / denominator if denominator > 0 else 0.0
+
+        top_blocked = [(et, cnt) for et, cnt in by_type.items() if et in blocked_types][
+            :top_n
+        ]
+
+        ts_row = self._conn.execute(
+            "SELECT timestamp FROM sentinel_events ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        last_event_ts: str | None = ts_row["timestamp"] if ts_row else None
+
+        return {
+            "total": total,
+            "by_type": by_type,
+            "blocked_count": blocked_count,
+            "cancelled_count": cancelled_count,
+            "executed_count": executed_count,
+            "block_rate": block_rate,
+            "top_blocked": top_blocked,
+            "last_event_ts": last_event_ts,
+        }
+
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------

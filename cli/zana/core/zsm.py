@@ -506,15 +506,35 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
 
 
 def _detect_intent(query: str) -> str:
+    from zana.core.zsm_engine import detect, record_intent
+
     q = query.lower()
 
-    # Math: detect operators or % patterns directly
+    # Math: detect operators or % patterns directly — regex is authoritative
     if re.search(r"\d[\s]*[+\-*/×÷^%][\s]*\d", q):
         return "math"
     if re.search(r"\d+%\s*(de|of|von|di|de)\s*\d+", q):
         return "math"
 
-    # Web search: check multi-word triggers before single-word intents like vault/skill
+    # Delegate to the symbolic NLU engine
+    results = detect(query, _INTENT_PATTERNS)
+    if not results:
+        return "general"
+
+    top_intent, top_score = results[0]
+
+    # High-confidence direct dispatch
+    if top_score >= 0.75:
+        record_intent(top_intent)
+        return top_intent
+
+    # Moderate confidence — still dispatch but log low confidence
+    if top_score >= 0.50:
+        record_intent(top_intent)
+        return top_intent
+
+    # Low confidence — fall back to legacy substring matching for safety
+    # Web search: check multi-word triggers before single-word intents
     for kw in _INTENT_PATTERNS.get("web_search", []):
         if kw in q:
             return "web_search"
@@ -524,19 +544,19 @@ def _detect_intent(query: str) -> str:
         if kw in q:
             return "shell"
 
-    # Wisdom capture: check before memory/vault to prevent "recuerda que" hitting memory's "recuerda"
+    # Wisdom capture: before memory/vault
     for kw in _INTENT_PATTERNS.get("wisdom_capture", []):
         if kw in q:
             return "wisdom_capture"
 
-    # Memory reflect: check before memory to prevent "reflect" / "refleja" hitting memory's "recuerda"
+    # Memory reflect: before memory
     for kw in _INTENT_PATTERNS.get("memory_reflect", []):
         if kw in q:
             return "memory_reflect"
 
     for intent, keywords in _INTENT_PATTERNS.items():
         if intent in ("web_search", "shell", "wisdom_capture", "memory_reflect"):
-            continue  # already checked above
+            continue
         for kw in keywords:
             if kw in q:
                 return intent
@@ -1319,6 +1339,17 @@ class ZSMEngine:
                 )
             return ""
         else:
+            # Show top-3 intent suggestions when engine has low-confidence matches
+            from zana.core.zsm_engine import detect
+
+            results = detect(query, _INTENT_PATTERNS)
+            if results and results[0][1] > 0.20:
+                console.print("[dim]¿Quisiste decir?[/dim]")
+                for intent, score in results[:3]:
+                    if score > 0.20:
+                        console.print(
+                            f"  [bold]•[/bold] {intent} [dim]({score:.0%})[/dim]"
+                        )
             return t("zsm.response.unknown", lang=lang)
 
 

@@ -7,6 +7,7 @@ when the Gateway is unreachable. Data lives at ~/.zana/wisdom_queue.json.
 
 from __future__ import annotations
 
+import difflib
 import json
 import os
 from datetime import UTC, datetime
@@ -56,19 +57,73 @@ class WisdomQueue:
         return self.load()["pending"]
 
     def stats(self) -> dict:
-        """Return counts per status."""
+        """Return absorption analytics for the WisdomQueue.
+
+        Legacy keys (``pending``, ``approved``, ``rejected``) are included
+        alongside the new verbose keys for backward compatibility.
+        """
         data = self.load()
+        pending = data.get("pending", [])
+        approved = data.get("approved", [])
+        rejected = data.get("rejected", [])
+        total = len(pending) + len(approved) + len(rejected)
+        auto_approved = [r for r in approved if r.get("auto_approved")]
         return {
-            "pending": len(data["pending"]),
-            "approved": len(data["approved"]),
-            "rejected": len(data["rejected"]),
+            # Verbose keys (S21-D)
+            "pending_count": len(pending),
+            "approved_count": len(approved),
+            "rejected_count": len(rejected),
+            "total_proposed": total,
+            "auto_approved_count": len(auto_approved),
+            "absorption_rate": len(approved) / max(1, total),
+            "avg_confidence": sum(r.get("confidence", 0) for r in approved)
+            / max(1, len(approved)),
+            # Legacy aliases (backward compat)
+            "pending": len(pending),
+            "approved": len(approved),
+            "rejected": len(rejected),
         }
 
-    def add(self, proposal: dict) -> None:
-        """Append a proposal to the pending list."""
+    def _dedup_check(self, rule: dict) -> bool:
+        """Return True if *rule* is a near-duplicate of any pending or approved rule.
+
+        Uses difflib.SequenceMatcher; ratio > 0.85 counts as duplicate.
+        """
         data = self.load()
-        data["pending"].append(proposal)
+        candidate_text = rule.get("text", rule.get("trigger", ""))
+        for bucket in ("pending", "approved"):
+            for existing in data.get(bucket, []):
+                existing_text = existing.get("text", existing.get("trigger", ""))
+                ratio = difflib.SequenceMatcher(
+                    None, candidate_text, existing_text
+                ).ratio()
+                if ratio > 0.85:
+                    return True
+        return False
+
+    def add(self, rule: dict) -> str:
+        """Add *rule* to the queue with dedup + auto-approve logic.
+
+        Returns:
+            "duplicate"     — near-duplicate detected, rule not added.
+            "auto_approved" — confidence >= 0.90, moved directly to approved.
+            "pending"       — added to pending list (normal flow).
+        """
+        if self._dedup_check(rule):
+            return "duplicate"
+
+        data = self.load()
+        if rule.get("confidence", 0.0) >= 0.90:
+            rule = dict(rule)
+            rule["auto_approved"] = True
+            rule.setdefault("approved_at", datetime.now(UTC).isoformat())
+            data["approved"].append(rule)
+            self.save(data)
+            return "auto_approved"
+
+        data["pending"].append(rule)
         self.save(data)
+        return "pending"
 
     def approve(self, wisdom_id: str) -> dict | None:
         """Move a pending item to approved. Returns the item or None if not found."""
