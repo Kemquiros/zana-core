@@ -1,6 +1,6 @@
 {
   "name": "@vecanova/zana",
-  "version": "3.12.0",
+  "version": "3.13.0",
 
   "description": "Sovereign personal AI runtime — persistent memory, Rust PII guard, offline-first, MIT. pip install vecanova-zana",
   "keywords": [

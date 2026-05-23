@@ -658,6 +658,24 @@ def aeon_broadcast(
     cmd_aeon_broadcast(message)
 
 
+@aeon_app.command("ping", help="Ping a registered Z-Network peer and measure latency.")
+def aeon_ping(
+    peer_url: Annotated[str, typer.Argument(help="HTTPS URL of the peer to ping.")],
+) -> None:
+    from zana.commands.aeon import cmd_aeon_ping
+
+    cmd_aeon_ping(peer_url)
+
+
+@aeon_app.command("disconnect", help="Remove a peer from the Z-Network peer list.")
+def aeon_disconnect(
+    peer_url: Annotated[str, typer.Argument(help="HTTPS URL of the peer to remove.")],
+) -> None:
+    from zana.commands.aeon import cmd_aeon_disconnect
+
+    cmd_aeon_disconnect(peer_url)
+
+
 # ── Shell sub-commands ────────────────────────────────────────────────────────
 
 
@@ -1020,6 +1038,36 @@ from zana.commands.satellite import app as satellite_typer  # noqa: E402
 
 satellite_app.add_typer(satellite_typer, name="")
 app.add_typer(satellite_app, name="satellite")
+
+from zana.commands.herald import herald_app  # noqa: E402
+
+app.add_typer(herald_app, name="herald")
+
+
+@app.command("herald-slack")
+def herald_slack(
+    webhook_url: Annotated[str, typer.Argument(help="Slack Incoming Webhook URL.")],
+    message: Annotated[str, typer.Argument(help="Message to send to Slack.")],
+) -> None:
+    """Send a Slack notification via Herald."""
+    from zana.commands.herald import cmd_herald_notify_slack
+
+    cmd_herald_notify_slack(webhook_url, message)
+
+
+@app.command("herald-email")
+def herald_email(
+    to_address: Annotated[str, typer.Argument(help="Recipient email address.")],
+    message: Annotated[str, typer.Argument(help="Email body text.")],
+    subject: Annotated[
+        str, typer.Option("--subject", "-s", help="Email subject line.")
+    ] = "ZANA Herald",
+) -> None:
+    """Send an email notification via Herald."""
+    from zana.commands.herald import cmd_herald_notify_email
+
+    cmd_herald_notify_email(to_address, message, subject)
+
 
 sentinel_app = typer.Typer(
     name="sentinel",
