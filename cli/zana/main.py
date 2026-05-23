@@ -604,6 +604,22 @@ def aeon_tune(
     cmd_tune(gene=gene)
 
 
+@aeon_app.command("rank", help="Show the active Aeon's current Mastery Map rank.")
+def aeon_rank() -> None:
+    from zana.commands.aeon import cmd_rank
+
+    cmd_rank()
+
+
+@aeon_app.command(
+    "evolve", help="Absorb approved WisdomRules and check for rank advancement."
+)
+def aeon_evolve() -> None:
+    from zana.commands.aeon import cmd_evolve
+
+    cmd_evolve()
+
+
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 
