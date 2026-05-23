@@ -513,3 +513,67 @@ def cmd_memory_reindex() -> None:
         console.print(
             f"[success]✓ Indexed {count} memories for semantic search.[/success]"
         )
+
+
+def cmd_memory_reflect(text: str) -> None:
+    """Extract key facts from free text and store each in memory (EML — Episodic Memory Layer)."""
+    import re
+
+    text = text.strip()
+    if not text:
+        console.print("[warning]No text provided to reflect on.[/warning]")
+        return
+
+    # Fact extraction patterns — ordered from most specific to most general
+    # Each tuple: (regex pattern, fact template using group(1) and optionally group(2))
+    _patterns = [
+        # Identity
+        (
+            r"\bmy name is ([A-Za-záéíóúüñÁÉÍÓÚÜÑ][A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]{1,40})",
+            "User identity: {}",
+        ),
+        (
+            r"\bme llamo ([A-Za-záéíóúüñÁÉÍÓÚÜÑ][A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]{1,40})",
+            "User identity: {}",
+        ),
+        # Employer
+        (r"\b(?:i work at|trabajo en)\s+(.{2,40}?)(?:\.|,|$)", "User employer: {}"),
+        # Role
+        (
+            r"\b(?:i am a|i'm a|soy (?:un |una )?)\s*([A-Za-záéíóúüñÁÉÍÓÚÜÑ][A-Za-záéíóúüñÁÉÍÓÚÜÑ\s]{1,40}?)(?=\.|,|\s+at\b|\s+en\b|$)",
+            "User role: {}",
+        ),
+        # Location
+        (r"\b(?:i live in|vivo en)\s+(.{2,40}?)(?:\.|,|$)", "User location: {}"),
+        # Preference
+        (r"\b(?:i prefer|prefiero)\s+(.{2,60}?)(?:\.|,|$)", "User preference: {}"),
+        # Generic X is Y (subject must not be a pronoun)
+        (
+            r"\b(?!(?:it|this|that|he|she|they|we|i|you)\b)([A-Z][A-Za-z\s]{1,30})\s+is\s+([A-Za-z][A-Za-z\s]{1,40})(?:\.|,|$)",
+            "{} is {}",
+        ),
+    ]
+
+    facts_added = 0
+    seen: set[str] = set()
+
+    for pattern, template in _patterns:
+        for match in re.finditer(pattern, text, re.IGNORECASE):
+            groups = [g.strip() for g in match.groups() if g]
+            if not groups:
+                continue
+            fact = template.format(*groups)
+            fact_lower = fact.lower()
+            if fact_lower in seen:
+                continue
+            seen.add(fact_lower)
+            cmd_memory_add(fact, source="reflect", tag="episodic")
+            console.print(f"  [success]→[/success] [accent]{fact}[/accent]")
+            facts_added += 1
+
+    if facts_added == 0:
+        console.print("[muted]No facts detected in text.[/muted]")
+    else:
+        console.print(
+            f"\n[muted]{facts_added} fact(s) stored. Review with: zana memory search episodic[/muted]"
+        )

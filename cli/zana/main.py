@@ -628,6 +628,36 @@ def aeon_evolve() -> None:
     cmd_evolve()
 
 
+@aeon_app.command(
+    "connect", help="Register a remote Aeon node in the Z-Network peer list."
+)
+def aeon_connect(
+    peer_url: Annotated[str, typer.Argument(help="HTTPS URL of the remote Aeon node.")],
+    name: Annotated[
+        str, typer.Option("--name", "-n", help="Alias for this peer.")
+    ] = "",
+) -> None:
+    from zana.commands.aeon import cmd_aeon_connect
+
+    cmd_aeon_connect(peer_url, name=name)
+
+
+@aeon_app.command("peers", help="List all registered Z-Network Aeon peers.")
+def aeon_peers() -> None:
+    from zana.commands.aeon import cmd_aeon_peers
+
+    cmd_aeon_peers()
+
+
+@aeon_app.command("broadcast", help="Send a Z-L message to all Z-Network peers.")
+def aeon_broadcast(
+    message: Annotated[str, typer.Argument(help="Z-L message string to broadcast.")],
+) -> None:
+    from zana.commands.aeon import cmd_aeon_broadcast
+
+    cmd_aeon_broadcast(message)
+
+
 # ── Shell sub-commands ────────────────────────────────────────────────────────
 
 
@@ -764,6 +794,17 @@ def memory_reindex() -> None:
     from zana.commands.memory import cmd_memory_reindex
 
     cmd_memory_reindex()
+
+
+@memory_app.command(
+    "reflect", help="Extract key facts from text and store in episodic memory (EML)."
+)
+def memory_reflect(
+    text: Annotated[str, typer.Argument(help="Text to extract facts from.")],
+) -> None:
+    from zana.commands.memory import cmd_memory_reflect
+
+    cmd_memory_reflect(text)
 
 
 # ── Skill sub-commands ───────────────────────────────────────────────────────
