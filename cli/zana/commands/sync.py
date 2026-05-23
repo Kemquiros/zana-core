@@ -114,6 +114,15 @@ def _import_rules(rules: list[dict]) -> tuple[int, int]:
             skipped += 1
             continue
 
+        zl_msg_str = rule.get("zl_message")
+        if zl_msg_str:
+            try:
+                from zana.core.zl_parser import parse as zl_parse
+
+                zl_parse(zl_msg_str, record=True)
+            except Exception:
+                pass
+
         queue.add({**rule, "source": "zsync"})
         imported += 1
 
@@ -127,15 +136,17 @@ def _import_rules(rules: list[dict]) -> tuple[int, int]:
 
 def _build_feed() -> dict:
     """Build a feed dict from local approved WisdomRules."""
-    from zana.core.wisdom_queue import WisdomQueue
+    from zana.core.wisdom_queue import WisdomQueue, to_zl
 
     rules = WisdomQueue().load().get("approved", [])
     for rule in rules:
         if "civic_hash" not in rule:
             rule["civic_hash"] = _rule_fingerprint(rule)
+        rule["zl_message"] = to_zl(rule)
 
     return {
         "version": "1.0",
+        "zl_version": "0.1",
         "generated_at": datetime.now(UTC).isoformat(),
         "count": len(rules),
         "rules": rules,
@@ -224,7 +235,7 @@ def sync_status() -> None:
     """Show known peers and last-sync timestamps."""
     peers = _load_peers()
 
-    console.print("\n[bold]Z-Sync peers[/bold]\n")
+    console.print("\n[bold]Z-Sync peers[/bold]  [muted](z-l: v0.1)[/muted]\n")
     if not peers:
         console.print(
             "  [muted]No peers yet. Pull a feed first: zana sync pull <url>[/muted]\n"
