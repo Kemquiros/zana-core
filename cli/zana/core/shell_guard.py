@@ -285,6 +285,84 @@ _TEMPLATES: dict[str, dict] = {
         "params": {},
         "argv": lambda p: ["ss", "-tlnp"],
     },
+    "move_file": {
+        "desc": "Move a file or directory to another location",
+        "triggers": [
+            "mueve el archivo",
+            "mueve la carpeta",
+            "move file",
+            "mover archivo",
+            "mv ",
+        ],
+        "params": {
+            "src": (lambda f: _validate_path(f, must_exist=True), True),
+            "dst": (_validate_path, False),
+        },
+        "argv": lambda p: ["mv", p["src"], p["dst"]],
+    },
+    "rename_file": {
+        "desc": "Rename a file or directory",
+        "triggers": [
+            "renombra el archivo",
+            "renombra la carpeta",
+            "rename file",
+            "cambiar nombre",
+        ],
+        "params": {
+            "src": (lambda f: _validate_path(f, must_exist=True), True),
+            "dst": (_validate_path, False),
+        },
+        "argv": lambda p: ["mv", p["src"], p["dst"]],
+    },
+    "compress_dir": {
+        "desc": "Compress a directory into a tar.gz archive",
+        "triggers": [
+            "comprime la carpeta",
+            "compress directory",
+            "comprimir directorio",
+            "tar ",
+            "archivar carpeta",
+        ],
+        "params": {
+            "src": (lambda f: _validate_path(f, must_exist=True), True),
+        },
+        "argv": lambda p: [
+            "tar",
+            "czf",
+            p["src"].rstrip("/") + ".tar.gz",
+            "-C",
+            str(Path(p["src"]).parent),
+            Path(p["src"]).name,
+        ],
+    },
+    "git_status": {
+        "desc": "Show git status of a repository directory",
+        "triggers": [
+            "git status",
+            "estado del repo",
+            "estado git",
+            "cambios git",
+            "muestra cambios git",
+        ],
+        "params": {"path": (_validate_path, True)},
+        # git -C <path> status --short is read-only; no hooks triggered by status.
+        # bypass_denylist=True because git is normally forbidden to prevent
+        # arbitrary subcommand injection, but this argv is fully pre-determined.
+        "argv": lambda p: ["git", "-C", p["path"], "status", "--short"],
+        "bypass_denylist": True,
+    },
+    "tail_log": {
+        "desc": "Show last 50 lines of a file",
+        "triggers": [
+            "muestra el final del archivo",
+            "últimas líneas",
+            "tail ",
+            "log tail",
+            "muestra el log",
+        ],
+        "params": {"file": (lambda f: _validate_path(f, must_exist=True), True)},
+        "argv": lambda p: ["tail", "-n", "50", p["file"]],
+    },
 }
 
 
@@ -370,7 +448,7 @@ def execute(query: str, console, questionary_mod) -> None:
     # ── Step 2: Build argv ────────────────────────────────────────────────────
     argv = tdef["argv"](params)
 
-    if argv[0] in _FORBIDDEN_COMMANDS:
+    if argv[0] in _FORBIDDEN_COMMANDS and not tdef.get("bypass_denylist"):
         console.print(
             f"[error]Comando prohibido: {argv[0]} (LOLBIN/GTFOBIN catalogado)[/error]"
         )
@@ -431,3 +509,54 @@ def execute(query: str, console, questionary_mod) -> None:
 
     # ── Step 6: Civic Ledger ──────────────────────────────────────────────────
     _audit("ShellExecuted", argv, extra=f":rc={result.returncode}")
+
+
+# ── Shell history ─────────────────────────────────────────────────────────────
+
+_SHELL_EVENT_TYPES = (
+    "ShellExecuted",
+    "ShellCancelled",
+    "ShellForbiddenCommand",
+    "ShellTimeout",
+)
+
+
+def shell_history(console, limit: int = 20) -> None:
+    """Display recent shell execution history from the Civic Ledger."""
+    try:
+        from zana.core.sentinel_lite import SentinelLiteDB
+
+        db = SentinelLiteDB()
+        rows: list[dict] = []
+        for etype in _SHELL_EVENT_TYPES:
+            rows.extend(db.events(limit=limit, event_type=etype))
+        db.close()
+    except Exception as exc:
+        console.print(f"[error]Cannot read Civic Ledger: {exc}[/error]")
+        return
+
+    if not rows:
+        console.print("[muted]No shell history yet. Run a shell command first.[/muted]")
+        return
+
+    rows.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
+    rows = rows[:limit]
+
+    console.print(
+        f"\n[bold]Shell History[/bold]  [muted](last {len(rows)} entries)[/muted]\n"
+    )
+    for row in rows:
+        ts = row.get("timestamp", "—")[:19].replace("T", " ")
+        etype = row.get("event_type", "—")
+        h = row.get("civic_hash", "")[:12]
+        color = (
+            "success"
+            if etype == "ShellExecuted"
+            else "warning"
+            if etype == "ShellCancelled"
+            else "error"
+        )
+        console.print(
+            f"  [{color}]{etype}[/{color}]  [muted]{ts}[/muted]  [dim]{h}[/dim]"
+        )
+    console.print()
