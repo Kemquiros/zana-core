@@ -55,12 +55,13 @@ def cmd_provider_list() -> None:
     table.add_column("Status", style="accent")
     table.add_column("Active Model", style="muted")
 
-    providers = ["anthropic", "openai", "gemini", "groq", "ollama", "zsm"]
+    providers = ["anthropic", "openai", "gemini", "groq", "openrouter", "ollama", "zsm"]
     keys = {
         "anthropic": "ANTHROPIC_API_KEY",
         "openai": "OPENAI_API_KEY",
         "gemini": "GEMINI_API_KEY",
         "groq": "GROQ_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
         "ollama": "OLLAMA_BASE_URL",
     }
 
@@ -98,6 +99,7 @@ def cmd_provider_use(
         "openai": "OPENAI_API_KEY",
         "gemini": "GEMINI_API_KEY",
         "groq": "GROQ_API_KEY",
+        "openrouter": "OPENROUTER_API_KEY",
         "ollama": "OLLAMA_BASE_URL",
     }
 

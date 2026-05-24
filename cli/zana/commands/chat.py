@@ -100,13 +100,22 @@ def _handle_slash_command(command: str) -> bool:
     return False
 
 
-_PLACEHOLDER_KEYS = {"your_key_here", "sk-...", "AIza...", "gsk_...", "sk-ant-...", ""}
+_PLACEHOLDER_KEYS = {
+    "your_key_here",
+    "sk-...",
+    "AIza...",
+    "gsk_...",
+    "sk-ant-...",
+    "sk-or-...",
+    "",
+}
 
 _PROVIDER_MAP = [
-    ("ANTHROPIC_API_KEY", "claude-3-5-haiku-20241022"),
-    ("GEMINI_API_KEY", "gemini/gemini-2.0-flash"),
+    ("ANTHROPIC_API_KEY", "claude-haiku-4-5-20251001"),
+    ("GEMINI_API_KEY", "gemini/gemini-2.5-flash"),
     ("OPENAI_API_KEY", "gpt-4o-mini"),
     ("GROQ_API_KEY", "groq/llama-3.3-70b-versatile"),
+    ("OPENROUTER_API_KEY", "openrouter/meta-llama/llama-3.3-70b-instruct"),
     ("OLLAMA_BASE_URL", "ollama/llama3"),
 ]
 
@@ -116,7 +125,10 @@ _MODEL_TO_KEY = {
     "gemini": "GEMINI_API_KEY",
     "gpt": "OPENAI_API_KEY",
     "openai": "OPENAI_API_KEY",
+    "o3": "OPENAI_API_KEY",
+    "o4": "OPENAI_API_KEY",
     "groq": "GROQ_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
     "ollama": "OLLAMA_BASE_URL",
 }
 
