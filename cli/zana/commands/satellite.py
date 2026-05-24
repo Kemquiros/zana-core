@@ -16,10 +16,23 @@ from zana.tui.theme import console
 
 app = typer.Typer(
     name="satellite",
-    help="Satellite connectivity layer — Telegram, Discord, WhatsApp.",
+    help="Satellite connectivity layer — Telegram, Discord, WhatsApp (Interactive Bots).",
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
+
+# ... (keep PID_FILE and other helper functions)
+
+
+@app.callback()
+def callback() -> None:
+    """
+    Satellite Layer: Connect your Aeon to Telegram, Discord or WhatsApp.
+    This is for interactive, two-way communication.
+    For one-way notifications (Slack/Email), use: zana herald
+    """
+    pass
+
 
 PID_FILE = Path.home() / ".zana" / "satellite.pid"
 

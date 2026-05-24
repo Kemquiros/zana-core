@@ -87,13 +87,20 @@ _SENSITIVE_DIRS = (".zana", ".ssh", ".gnupg", ".aws", ".config/secrets")
 _ALLOWED_ROOTS = (str(Path.home()), "/tmp", "/var/folders")
 
 
+_SHELL_METACHARACTERS = frozenset(";|&$`><!'\"\\(){}")
+
+
 def _validate_path(raw: str, must_exist: bool = False) -> str | None:
     """Validate and resolve a filesystem path.
 
     Applies realpath() at validation time (TOCTOU prevention). Returns the
     resolved absolute path if it passes all checks, or None if blocked.
     """
-    expanded = os.path.expanduser(raw.strip())
+    name = raw.strip()
+    # Reject shell metacharacters in the raw input before any resolution
+    if any(c in name for c in _SHELL_METACHARACTERS):
+        return None
+    expanded = os.path.expanduser(name)
     resolved = os.path.realpath(expanded)
 
     # Layer: boundary check — must be under home, /tmp, or /var/folders

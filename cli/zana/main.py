@@ -73,6 +73,17 @@ shell_app = typer.Typer(
 )
 app.add_typer(shell_app, name="shell")
 
+provider_app = typer.Typer(
+    name="provider",
+    help="Manage LLM engines and active models.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+from zana.commands.provider import app as provider_typer  # noqa: E402
+
+provider_app.add_typer(provider_typer, name="")
+app.add_typer(provider_app, name="provider")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -287,7 +298,7 @@ def subscribe() -> None:
 
 @app.command(help="Run first-time setup wizard.")
 def setup() -> None:
-    run_onboarding()
+    run_init_wizard()
 
 
 @app.command(help="Uninstall ZANA CLI from this system.")
@@ -769,6 +780,17 @@ def memory_delete(
     from zana.commands.memory import cmd_memory_delete
 
     cmd_memory_delete(doc_id)
+
+
+@memory_app.command("update", help="Update a document by ID in local SQLite memory.")
+def memory_update(
+    doc_id: int = typer.Argument(..., help="Document ID to update."),
+    text: Annotated[str | None, typer.Argument(help="New content.")] = None,
+    source: Annotated[str | None, typer.Option("--source", "-s")] = None,
+) -> None:
+    from zana.commands.memory import cmd_memory_update
+
+    cmd_memory_update(doc_id, text=text, source=source)
 
 
 @memory_app.command(

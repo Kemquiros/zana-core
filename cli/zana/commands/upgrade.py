@@ -253,17 +253,41 @@ def cmd_upgrade(check_only: bool = False, no_interactive: bool = False) -> None:
     if _pull_local_repo():
         console.print("[muted]Repositorio local sincronizado con origin/main.[/muted]")
 
-    # Step 2: reinstall the CLI from git
-    if _do_upgrade():
+    # Step 2: reinstall the CLI safely
+    # Using --force-reinstall and --no-cache-dir to avoid metadata name conflicts
+    cmd = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--force-reinstall",
+        "--no-cache-dir",
+        "git+https://github.com/Kemquiros/zana-core.git#subdirectory=cli",
+    ]
+    try:
+        subprocess.run(cmd, check=True)
         console.print("[success]✅ ZANA Córtex actualizado exitosamente.[/success]")
+
+        # NEW: Post-install verification
+        new_ver = _current_version()
+        console.print(f"[muted]Nueva versión detectada: {new_ver}[/muted]")
+
+        import contextlib
+
+        from zana.commands.doctor import cmd_doctor
+
+        console.print("\n[primary]Ejecutando auditoría rápida...[/primary]")
+        with contextlib.suppress(Exception):
+            cmd_doctor()
+
         console.print(
-            "[muted]Reinicia tu terminal para aplicar cambios de PATH.[/muted]"
+            "\n[muted]Reinicia tu terminal para aplicar cambios de PATH.[/muted]"
         )
         console.print("[muted]Juntos hacemos temblar los cielos.[/muted]")
-    else:
+    except Exception as exc:
         console.print("[error]El upgrade automático falló.[/error]")
         console.print("[yellow]Solución manual:[/yellow]")
         console.print(
             "  [accent]bash <(curl -LsSf https://zana.vecanova.com/install.sh)[/accent]"
         )
-        raise typer.Exit(1)
+        raise typer.Exit(1) from exc

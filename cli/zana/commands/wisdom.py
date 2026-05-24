@@ -200,7 +200,7 @@ def _audit_wisdom(event_type: str, rule: dict) -> None:
         pass  # Audit failures must never break the main flow
 
 
-def cmd_wisdom_propose(text: str, console=None) -> None:
+def cmd_wisdom_propose(text: str, console=None, confidence: float = 0.85) -> None:
     """Create a WisdomRule candidate from free text and add to pending queue."""
     import re
     from datetime import UTC, datetime
