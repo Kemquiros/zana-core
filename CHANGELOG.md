@@ -7,6 +7,29 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.14.0] — 2026-05-25
+
+### Added
+- Onboarding: ZSM Sovereign Mode as explicit Q2 option (no API key, no Internet)
+- Onboarding: detect existing API key in `~/.zana/.env` — offer keep/replace (masked)
+- Onboarding: Ollama via dedicated wizard (no key required, local inference)
+- Provider model selection with current 2026 catalog: Gemini 2.5, Claude 4.x, o3, Llama 3.3
+- OpenRouter as new provider — `OPENROUTER_API_KEY`, 200+ models, OpenAI-compatible API
+- `zana provider list/use` — manage active LLM engine and model from the CLI
+- `zana memory update` — patch existing memory entries by doc_id
+- Quality Shield: `test_smoke_commands.py`, `test_zsm_intent_coverage.py`, `test_edge_cases.py`
+- `conftest.py`: autouse fixture for `_SESSION_CONTEXT` isolation between tests
+
+### Fixed
+- `zana start`: docker-compose.yml discovery checks CWD, `ZANA_CORE_DIR`, dev root, `~/.zana/core-repo/`
+- ZSM: pre-NLU keyword priority for 8 high-specificity intents (prevents NLU misrouting)
+- `shell_guard`: reject shell metacharacters before `realpath` (injection prevention)
+- `memory_lite`: restore `DB_PATH` class attr, `add_episodic`, `recall`, `delete`, `stats`, `export/import`
+- `upgrade.py`: fix syntax error (`try/else` → `try/except`) blocking all pre-commit hooks
+- `zsync`: fix dedup test — direct inject into approved bucket when confidence ≥ 0.90
+
+---
+
 ## [3.13.0] — 2026-05-23
 
 ### Added
