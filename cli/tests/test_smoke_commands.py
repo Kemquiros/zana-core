@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import os
 from unittest.mock import MagicMock, patch
 
 
@@ -331,29 +333,27 @@ def test_smoke_herald_slack_invalid_url():
     from zana.commands.herald import cmd_herald_notify_slack
 
     console = _console()
-    with patch("urllib.request.urlopen") as mock_urlopen:
-        with patch("zana.commands.herald.console", console):
-            try:
-                cmd_herald_notify_slack("http://not-https.slack.com/webhook", "test")
-            except (SystemExit, Exception):
-                pass
+    with (
+        patch("urllib.request.urlopen") as mock_urlopen,
+        patch("zana.commands.herald.console", console),
+        contextlib.suppress(SystemExit, Exception),
+    ):
+        cmd_herald_notify_slack("http://not-https.slack.com/webhook", "test")
     mock_urlopen.assert_not_called()
 
 
 def test_smoke_herald_email_no_smtp_host():
-    import os
-
     from zana.commands.herald import cmd_herald_notify_email
 
     console = _console()
     env = {k: v for k, v in os.environ.items() if not k.startswith("ZANA_SMTP")}
-    with patch.dict("os.environ", env, clear=True):
-        with patch("smtplib.SMTP") as mock_smtp:
-            with patch("zana.commands.herald.console", console):
-                try:
-                    cmd_herald_notify_email("user@example.com", "test message")
-                except (SystemExit, Exception):
-                    pass
+    with (
+        patch.dict("os.environ", env, clear=True),
+        patch("smtplib.SMTP") as mock_smtp,
+        patch("zana.commands.herald.console", console),
+        contextlib.suppress(SystemExit, Exception),
+    ):
+        cmd_herald_notify_email("user@example.com", "test message")
     mock_smtp.assert_not_called()
 
 
@@ -376,9 +376,11 @@ def test_smoke_zsm_shell_dispatches():
     mock_result.stdout = ""
     mock_result.stderr = ""
     mock_result.returncode = 0
-    with patch("subprocess.run", return_value=mock_result):
-        with patch("zana.core.sentinel_lite.SentinelLiteDB"):
-            with patch("questionary.confirm") as mock_confirm:
-                mock_confirm.return_value.ask.return_value = False
-                with patch("zana.core.zsm.console"):
-                    respond("lista mis archivos en /tmp")
+    with (
+        patch("subprocess.run", return_value=mock_result),
+        patch("zana.core.sentinel_lite.SentinelLiteDB"),
+        patch("questionary.confirm") as mock_confirm,
+        patch("zana.core.zsm.console"),
+    ):
+        mock_confirm.return_value.ask.return_value = False
+        respond("lista mis archivos en /tmp")

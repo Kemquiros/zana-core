@@ -531,6 +531,7 @@ def _detect_intent(query: str) -> str:
         "memory_reflect",
         "ledger",
         "aeon",
+        "skill",
         "tier",
         "memory",
         "companion",
