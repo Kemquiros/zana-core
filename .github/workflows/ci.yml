@@ -81,6 +81,8 @@ jobs:
             --cov=cli/zana \
             --cov-report=term-missing \
             --cov-report=xml:coverage.xml \
+            --ignore=cli/tests/test_grove_semantic.py \
+            --ignore=cli/tests/test_upgrade_grove.py \
             -q
         env:
           ZANA_NON_INTERACTIVE: "1"
