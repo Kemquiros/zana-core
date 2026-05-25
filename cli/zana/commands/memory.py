@@ -8,8 +8,11 @@ zana memory — query and inspect ZANA's 4-store memory system.
 
 import os
 from datetime import datetime
+from pathlib import Path
+from typing import Annotated
 
 import httpx
+import typer
 from rich import box
 from rich.panel import Panel
 from rich.table import Table
@@ -18,6 +21,7 @@ from zana.tui.theme import console
 
 CHROMA_URL = os.getenv("ZANA_CHROMA_URL", "http://localhost:58001")
 GATEWAY_URL = f"http://localhost:{os.getenv('ZANA_GATEWAY_PORT', '54446')}"
+_DB_PATH = Path.home() / ".zana" / "memory_lite.db"
 
 
 def _is_chroma_online() -> bool:
@@ -285,6 +289,25 @@ def cmd_memory_delete(doc_id: int) -> None:
         console.print(f"[success]✓ Documento {doc_id} eliminado.[/success]")
     else:
         console.print(f"[error]✗ No existe ningún documento con id={doc_id}.[/error]")
+
+
+def cmd_memory_update(
+    doc_id: int,
+    text: Annotated[str | None, typer.Argument(help="New content.")] = None,
+    source: Annotated[str | None, typer.Option("--source", "-s")] = None,
+) -> None:
+    """Update an existing document by ID."""
+    console.print(f"\n[primary]MEMORY UPDATE[/primary] [muted]id={doc_id}[/muted]\n")
+    from zana.core.memory_lite import get_db
+
+    db = get_db()
+    updated = db.update_doc(doc_id, content=text, source=source)
+    db.close()
+
+    if updated:
+        console.print(f"[success]✓ Documento {doc_id} actualizado.[/success]")
+    else:
+        console.print(f"[error]✗ No se pudo actualizar el documento {doc_id}.[/error]")
 
 
 def cmd_memory_clear(collection: str | None = None) -> None:

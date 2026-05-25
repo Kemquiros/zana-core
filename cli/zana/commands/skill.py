@@ -39,6 +39,8 @@ from zana.tui.theme import console
 
 SKILLS_DIR = Path.home() / ".zana" / "skills"
 REGISTRY_PATH = SKILLS_DIR / "registry.json"
+_SKILLS_DIR = SKILLS_DIR
+_REGISTRY_PATH = REGISTRY_PATH
 
 AGORA_REGISTRY_URL = (
     "https://raw.githubusercontent.com/Kemquiros/zana-agora/main/registry.json"
@@ -133,7 +135,12 @@ def _register_skill(name: str, skill_dir: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def cmd_skill_create(name: str, author: str = "") -> None:
+def cmd_skill_create(
+    name: str,
+    author: str = "",
+    description: str = "New Skill",
+    domain: str = "general",
+) -> None:
     """Scaffold a new SKILL.md at ~/.zana/skills/<name>/."""
     if not re.match(r"^[a-z0-9][a-z0-9_-]*$", name):
         console.print(

@@ -73,6 +73,17 @@ shell_app = typer.Typer(
 )
 app.add_typer(shell_app, name="shell")
 
+provider_app = typer.Typer(
+    name="provider",
+    help="Manage LLM engines and active models.",
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+from zana.commands.provider import app as provider_typer  # noqa: E402
+
+provider_app.add_typer(provider_typer, name="")
+app.add_typer(provider_app, name="provider")
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -287,7 +298,7 @@ def subscribe() -> None:
 
 @app.command(help="Run first-time setup wizard.")
 def setup() -> None:
-    run_onboarding()
+    run_init_wizard()
 
 
 @app.command(help="Uninstall ZANA CLI from this system.")
@@ -692,6 +703,22 @@ def shell_history(
     shell_guard.shell_history(console, limit=limit)
 
 
+@shell_app.command(
+    "audit",
+    help="Show blocked and cancelled shell attempts — threat audit dashboard.",
+)
+def shell_audit_cmd(
+    top_n: Annotated[
+        int, typer.Option("--top", "-n", help="Number of top event types to display.")
+    ] = 10,
+) -> None:
+    from rich.console import Console
+
+    from zana.core.shell_guard import shell_audit
+
+    shell_audit(Console(), top_n)
+
+
 # ── Memory sub-commands ───────────────────────────────────────────────────────
 
 
@@ -753,6 +780,17 @@ def memory_delete(
     from zana.commands.memory import cmd_memory_delete
 
     cmd_memory_delete(doc_id)
+
+
+@memory_app.command("update", help="Update a document by ID in local SQLite memory.")
+def memory_update(
+    doc_id: int = typer.Argument(..., help="Document ID to update."),
+    text: Annotated[str | None, typer.Argument(help="New content.")] = None,
+    source: Annotated[str | None, typer.Option("--source", "-s")] = None,
+) -> None:
+    from zana.commands.memory import cmd_memory_update
+
+    cmd_memory_update(doc_id, text=text, source=source)
 
 
 @memory_app.command(
@@ -1098,6 +1136,20 @@ def sentinel_events(
 
 
 @sentinel_app.command(
+    "threats",
+    help="Threat analytics dashboard — block rate, top blocked events, Civic Ledger stats.",
+)
+def sentinel_threats(
+    top_n: Annotated[
+        int, typer.Option("--top", "-n", help="Top N blocked events to display.")
+    ] = 10,
+) -> None:
+    from zana.commands.sentinel import cmd_sentinel_threats
+
+    cmd_sentinel_threats(top_n)
+
+
+@sentinel_app.command(
     "ledger",
     help="Read recent entries from the Civic Ledger (~/.zana/civic_ledger.jsonl).",
 )
@@ -1163,6 +1215,13 @@ def wisdom_propose(
     from zana.commands.wisdom import cmd_wisdom_propose
 
     cmd_wisdom_propose(text)
+
+
+@wisdom_app.command("stats", help="Show WisdomQueue absorption analytics.")
+def wisdom_stats() -> None:
+    from zana.commands.wisdom import cmd_wisdom_stats
+
+    cmd_wisdom_stats()
 
 
 # ── MCP sub-commands ──────────────────────────────────────────────────────────

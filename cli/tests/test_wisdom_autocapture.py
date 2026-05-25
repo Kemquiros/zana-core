@@ -295,4 +295,9 @@ def test_propose_prints_confirmation(tmp_path, monkeypatch):
 
     assert console.print.call_count >= 1
     all_printed = " ".join(str(c) for c in console.print.call_args_list)
-    assert "proposed" in all_printed.lower() or "wisdomrule" in all_printed.lower()
+    # Message is now in Spanish: "Regla propuesta" — check for "propuesta" or "proposed" or "wisdomrule"
+    assert (
+        "propuesta" in all_printed.lower()
+        or "proposed" in all_printed.lower()
+        or "wisdomrule" in all_printed.lower()
+    )

@@ -196,9 +196,9 @@ def test_sync_pull_rejects_tampered_rule(sample_rule, wisdom_queue_mock):
 
 
 def test_sync_pull_deduplicates_existing_rule(signed_rule, wisdom_queue_mock):
-    wisdom_queue_mock.add({**signed_rule, "approved_at": "2026-05-01"})
+    # Insert directly into approved (bypassing add() which routes by confidence)
     data = wisdom_queue_mock.load()
-    data["approved"] = data.pop("pending", [])
+    data["approved"].append({**signed_rule, "approved_at": "2026-05-01"})
     wisdom_queue_mock.save(data)
 
     feed_json = _make_feed([signed_rule])

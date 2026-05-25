@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import httpx
 
+from zana.core.sentinel_lite import get_sentinel_db
 from zana.tui.theme import console
 
 GATEWAY_URL = "http://localhost:54446"
@@ -82,8 +83,6 @@ def cmd_sentinel_status() -> None:
         console.print()
     else:
         # --- Offline path (SPROUT tier) ---
-        from zana.core.sentinel_lite import get_sentinel_db
-
         db = get_sentinel_db()
         stats = db.stats()
         db.close()
@@ -157,8 +156,6 @@ def cmd_sentinel_events(limit: int = 20, event_type: str | None = None) -> None:
         console.print()
     else:
         # --- Offline path (SPROUT tier) ---
-        from zana.core.sentinel_lite import get_sentinel_db
-
         db = get_sentinel_db()
         events = db.events(limit=limit, event_type=event_type)
         db.close()
@@ -179,6 +176,91 @@ def cmd_sentinel_events(limit: int = 20, event_type: str | None = None) -> None:
         if not events:
             console.print("  [muted]No local events recorded yet.[/muted]")
         console.print()
+
+
+def cmd_sentinel_threats(top_n: int = 10) -> None:
+    """Display threat analytics dashboard from Civic Ledger."""
+    from rich.table import Table
+
+    blocked_types = {
+        "ShellForbiddenCommand",
+        "ShellInvalidParam",
+        "ShellMissingParam",
+        "ShellUnknownIntent",
+        "ZNetworkPingFailed",
+    }
+    executed_types = {"ShellExecuted"}
+
+    db = get_sentinel_db()
+    summary = db.threat_summary(top_n=top_n)
+    db.close()
+
+    total = summary["total"]
+    blocked = summary["blocked_count"]
+    cancelled = summary["cancelled_count"]
+    executed = summary["executed_count"]
+    block_rate = summary["block_rate"]
+    by_type: dict = summary["by_type"]
+    last_ts: str | None = summary["last_event_ts"]
+
+    # ── Header ────────────────────────────────────────────────────────────────
+    console.print(
+        "\n[bold]Sentinel Threat Dashboard[/bold]  [muted](Civic Ledger analysis)[/muted]"
+    )
+
+    if total == 0:
+        console.print("[muted]No hay eventos en el Civic Ledger todavía.[/muted]\n")
+        return
+
+    # ── Summary row ───────────────────────────────────────────────────────────
+    block_pct = f"{block_rate * 100:.1f}%" if block_rate > 0 else "0.0%"
+    console.print(
+        f"  Total events: [bold]{total}[/bold]"
+        f"  ·  Blocked: [bold red]{blocked}[/bold red] ({block_pct})"
+        f"  ·  Cancelled: [bold yellow]{cancelled}[/bold yellow]"
+        f"  ·  Executed: [bold green]{executed}[/bold green]"
+    )
+    console.print()
+
+    # ── Event Distribution table ──────────────────────────────────────────────
+    max_count = max(by_type.values()) if by_type else 1
+
+    table = Table(title="Event Distribution", show_header=True, header_style="bold")
+    table.add_column("Event Type", style="accent", min_width=28)
+    table.add_column("Count", justify="right", min_width=6)
+    table.add_column("Bar", min_width=22)
+
+    for et, cnt in by_type.items():
+        bar_len = max(1, round(cnt / max_count * 20)) if cnt > 0 else 0
+        bar = "█" * bar_len
+
+        if et in blocked_types:
+            row_style = "red"
+        elif et in executed_types:
+            row_style = "green"
+        else:
+            row_style = "yellow"
+
+        table.add_row(
+            f"[{row_style}]{et}[/{row_style}]",
+            f"[{row_style}]{cnt}[/{row_style}]",
+            f"[{row_style}]{bar}[/{row_style}]",
+        )
+
+    console.print(table)
+
+    # ── High block rate warning ───────────────────────────────────────────────
+    if block_rate > 0.30:
+        console.print(
+            "[error]⚠ Block rate > 30% — revisar configuración ShellGuard[/error]"
+        )
+
+    # ── Last event timestamp ──────────────────────────────────────────────────
+    if last_ts:
+        console.print(
+            f"\n  [muted]Last event: {last_ts[:19].replace('T', ' ')}[/muted]"
+        )
+    console.print()
 
 
 def cmd_sentinel_ledger(limit: int = 20) -> None:
@@ -215,8 +297,6 @@ def cmd_sentinel_ledger(limit: int = 20) -> None:
         console.print()
     else:
         # --- Offline path (SPROUT tier) ---
-        from zana.core.sentinel_lite import get_sentinel_db
-
         db = get_sentinel_db()
         entries = db.ledger(limit=limit)
         db.close()

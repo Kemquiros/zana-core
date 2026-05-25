@@ -12,22 +12,31 @@ from zana.tui.theme import console
 
 # Smart STACK_ROOT resolution
 def _resolve_stack_root() -> Path:
-    # 1. Check environment variable
+    # 1. Check environment variable (highest priority — explicit user override)
     env_root = os.getenv("ZANA_CORE_DIR")
-    if env_root and Path(env_root).exists():
+    if env_root and (Path(env_root) / "docker-compose.yml").exists():
         return Path(env_root)
 
-    # 2. Check for repo clone (dev mode)
+    # 2. Check current working directory (user ran `zana start` from repo root)
+    cwd = Path.cwd()
+    if (cwd / "docker-compose.yml").exists():
+        return cwd
+
+    # 3. Check for repo clone (dev/editable install — 4 levels up from this file)
     dev_root = Path(__file__).parent.parent.parent.parent
     if (dev_root / "docker-compose.yml").exists():
         return dev_root
 
-    # 3. Check for standard install location
-    install_root = Path.home() / ".zana" / "core-repo"
-    if (install_root / "docker-compose.yml").exists():
-        return install_root
+    # 4. Check standard cloned-repo location in home directory
+    for candidate in (
+        Path.home() / ".zana" / "core-repo",
+        Path.home() / "zana-core",
+        Path.home() / "zana",
+    ):
+        if (candidate / "docker-compose.yml").exists():
+            return candidate
 
-    return dev_root  # Fallback to dev_root for error reporting
+    return dev_root  # Fallback — cmd_start will print a helpful error
 
 
 STACK_ROOT = _resolve_stack_root()
@@ -166,7 +175,16 @@ def _clear_conflicting_containers(compose_file: Path) -> None:
 def cmd_start(detach: bool = True) -> None:
     compose = STACK_ROOT / "docker-compose.yml"
     if not compose.exists():
-        console.print(f"[error]docker-compose.yml not found at {STACK_ROOT}[/error]")
+        console.print("[error]docker-compose.yml not found.[/error]")
+        console.print(
+            "\n[yellow]ZANA necesita el repositorio completo para levantar el stack Docker.[/yellow]\n"
+            "\n[bold]Opciones para resolverlo:[/bold]\n"
+            "  1. Clona el repo y corre desde ahí:\n"
+            "     [dim]git clone https://github.com/Kemquiros/zana-core && cd zana-core && zana start[/dim]\n"
+            "  2. Apunta al directorio con ZANA_CORE_DIR:\n"
+            "     [dim]ZANA_CORE_DIR=~/zana-core zana start[/dim]\n"
+            "  3. Coloca el repo en: [dim]~/.zana/core-repo/[/dim]\n"
+        )
         raise typer.Exit(1)
 
     # 1. Ensure .env is securely configured with passwords before starting

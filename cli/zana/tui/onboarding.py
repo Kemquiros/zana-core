@@ -892,12 +892,39 @@ def is_first_run() -> bool:
 # ── zana init — Zero-Friction Wizard (v3.0) ───────────────────────────────────
 
 _PROVIDERS = {
-    "anthropic": ("ANTHROPIC_API_KEY", "Anthropic Claude (recommended for Analyst)"),
-    "openai": ("OPENAI_API_KEY", "OpenAI GPT-4o"),
+    "anthropic": ("ANTHROPIC_API_KEY", "Anthropic Claude"),
+    "openai": ("OPENAI_API_KEY", "OpenAI GPT"),
     "gemini": ("GEMINI_API_KEY", "Google Gemini"),
     "groq": ("GROQ_API_KEY", "Groq (ultra-fast inference)"),
+    "openrouter": (
+        "OPENROUTER_API_KEY",
+        "OpenRouter (200+ modelos, OpenAI-compatible)",
+    ),
     "ollama": (None, "Ollama — local, free, 100% sovereign"),
 }
+
+_PLACEHOLDER_KEYS = {
+    "your_key_here",
+    "sk-...",
+    "AIza...",
+    "gsk_...",
+    "sk-ant-...",
+    "sk-or-...",
+    "",
+}
+
+
+def _read_existing_key(env_var: str) -> str | None:
+    """Return the existing key value from ~/.zana/.env, or None if absent/placeholder."""
+    if not ENV_FILE.exists():
+        return None
+    for line in ENV_FILE.read_text().splitlines():
+        if line.startswith(f"{env_var}="):
+            val = line.split("=", 1)[1].strip()
+            if val and val not in _PLACEHOLDER_KEYS:
+                return val
+    return None
+
 
 _AEON_NAMES = [
     "Forge",
@@ -1355,7 +1382,9 @@ def run_init_wizard() -> bool:
         "openai": _t("onboarding.q2_provider_openai", lang=selected_lang),
         "gemini": _t("onboarding.q2_provider_gemini", lang=selected_lang),
         "groq": _t("onboarding.q2_provider_groq", lang=selected_lang),
+        "openrouter": "OpenRouter (200+ modelos, compatible OpenAI API)",
         "ollama": _t("onboarding.q2_provider_ollama", lang=selected_lang),
+        "zsm": "ZSM — Modo Soberano (sin Internet, sin API key)",
     }
     provider_key = questionary.select(
         f"  {_t('onboarding.q2_select', lang=selected_lang)}",
@@ -1363,49 +1392,132 @@ def run_init_wizard() -> bool:
         style=_q_style(),
     ).ask()
 
-    # reverse-map label → key
     selected_provider = next(
         (k for k, v in provider_labels.items() if v == provider_key),
-        "ollama",
+        "zsm",
     )
 
-    env_keys: dict = {"ZANA_AEON_NAME": aeon_name}
-
     # ── Q3 / Q4: credentials or Ollama setup ──────────────────────────────────
-    if selected_provider == "ollama":
+    if selected_provider == "zsm":
+        console.print(
+            "\n  [bold magenta]Modo Soberano ZSM (ZANA Sovereign Machine)[/bold magenta]"
+        )
+        console.print(
+            "  ZANA funcionará [bold]100% local[/bold], sin enviar datos a la nube.\n"
+            "  [dim]• Capacidades: Matemáticas, Recordatorios, Economía, Memoria Local.[/dim]\n"
+            "  [dim]• Limitación: No incluye razonamiento de lenguaje natural avanzado (LLM).[/dim]\n"
+        )
+        env_keys.update(
+            {"ZANA_PRIMARY_PROVIDER": "zsm", "ZANA_PRIMARY_MODEL": "sovereign"}
+        )
+    elif selected_provider == "ollama":
         # Ollama path — reuse existing 3-step wizard (connection + model + inference test)
         console.print(
             f"\n[bold cyan]3 / 4[/bold cyan]  {_t('onboarding.q3_ollama_setup', lang=selected_lang)}"
         )
-        ollama_env = _setup_ollama(
-            {}, skip_confirm=True
-        )  # user already chose Ollama in Q2
+        ollama_env = _setup_ollama({}, skip_confirm=True)
         env_keys.update(ollama_env)
+        env_keys["ZANA_PRIMARY_PROVIDER"] = "ollama"
     else:
         env_var_name, provider_label = _PROVIDERS[selected_provider]
         console.print(
-            f"\n[bold cyan]3 / 4[/bold cyan]  {_t('onboarding.q3_key', lang=selected_lang, provider=provider_label.split(' (')[0])}"
+            f"\n[bold cyan]3 / 4[/bold cyan]  {_t('onboarding.q3_key', lang=selected_lang, provider=provider_label.split(' [')[0])}"
         )
-        api_key = questionary.password(
-            f"  {_t('onboarding.q3_key_prompt', lang=selected_lang, var=provider_var_name(selected_provider))}",
-            style=_q_style(),
-        ).ask()
-        if api_key and api_key.strip():
-            env_keys[env_var_name] = api_key.strip()
-            # Auto-set primary model based on provider
-            model_defaults = {
-                "anthropic": "claude-haiku-4-5-20251001",
-                "openai": "gpt-4o-mini",
-                "gemini": "gemini-2.0-flash",
-                "groq": "llama-3.1-8b-instant",
+
+        # ── Detect existing key — offer keep vs. replace ──────────────────────
+        existing_key = _read_existing_key(env_var_name)
+        if existing_key:
+            masked = f"***{existing_key[-4:]}"
+            keep = questionary.confirm(
+                f"  Ya tienes una key configurada ({masked}). ¿Mantenerla?",
+                default=True,
+                style=_q_style(),
+            ).ask()
+            api_key = existing_key if keep else None
+            if keep:
+                console.print(f"  [muted]Manteniendo key existente ({masked}).[/muted]")
+        else:
+            api_key = None
+
+        if api_key is None:
+            new_key = questionary.password(
+                f"  {_t('onboarding.q3_key_prompt', lang=selected_lang, var=env_var_name)}",
+                style=_q_style(),
+            ).ask()
+            api_key = new_key.strip() if new_key and new_key.strip() else None
+
+        if api_key:
+            env_keys[env_var_name] = api_key
+            env_keys["ZANA_PRIMARY_PROVIDER"] = selected_provider
+
+            # ── Model selection — current models per provider ─────────────────
+            model_options: dict[str, list[tuple[str, str]]] = {
+                "anthropic": [
+                    ("claude-sonnet-4-6", "Claude Sonnet 4.6 (Recomendado)"),
+                    (
+                        "claude-haiku-4-5-20251001",
+                        "Claude Haiku 4.5 (Rápido/Económico)",
+                    ),
+                ],
+                "openai": [
+                    ("gpt-4o", "GPT-4o (Mejor balance)"),
+                    ("gpt-4o-mini", "GPT-4o mini (Económico)"),
+                    ("o3", "OpenAI o3 (Razonamiento extremo)"),
+                ],
+                "gemini": [
+                    ("gemini/gemini-2.5-pro", "Gemini 2.5 Pro (Más capaz)"),
+                    ("gemini/gemini-2.5-flash", "Gemini 2.5 Flash (Rápido/Económico)"),
+                    ("gemini/gemini-2.0-flash", "Gemini 2.0 Flash (Estable)"),
+                ],
+                "groq": [
+                    (
+                        "groq/llama-3.3-70b-versatile",
+                        "Llama 3.3 70B (Velocidad extrema)",
+                    ),
+                    ("groq/llama-3.1-8b-instant", "Llama 3.1 8B (Instantáneo)"),
+                    ("groq/gemma2-9b-it", "Gemma 2 9B (Google, eficiente)"),
+                ],
+                "openrouter": [
+                    (
+                        "openrouter/meta-llama/llama-3.3-70b-instruct",
+                        "Llama 3.3 70B (OpenRouter)",
+                    ),
+                    (
+                        "openrouter/google/gemini-2.5-flash",
+                        "Gemini 2.5 Flash (OpenRouter)",
+                    ),
+                    (
+                        "openrouter/mistralai/mistral-large",
+                        "Mistral Large (OpenRouter)",
+                    ),
+                    (
+                        "openrouter/anthropic/claude-sonnet-4",
+                        "Claude Sonnet 4 (OpenRouter)",
+                    ),
+                ],
             }
-            env_keys["ZANA_PRIMARY_MODEL"] = model_defaults[selected_provider]
-            console.print(
-                f"\n  [success]✓[/success]  {_t('onboarding.q3_key_saved', lang=selected_lang, model=env_keys['ZANA_PRIMARY_MODEL'])}\n"
-            )
+
+            choices = model_options.get(selected_provider, [])
+            if choices:
+                model_choice = questionary.select(
+                    "  Selecciona el modelo a usar:",
+                    choices=[label for _, label in choices],
+                    style=_q_style(),
+                ).ask()
+                selected_model = next(
+                    (m for m, lbl in choices if lbl == model_choice), choices[0][0]
+                )
+                env_keys["ZANA_PRIMARY_MODEL"] = selected_model
+                console.print(
+                    f"\n  [success]✓[/success]  Provider [bold]{selected_provider}[/bold]"
+                    f" · modelo [bold]{selected_model}[/bold] guardados.\n"
+                )
         else:
             console.print(
                 f"\n  [warning]{_t('onboarding.q3_no_key', lang=selected_lang)}[/warning] [accent]zana setup[/accent].\n"
+            )
+            env_keys.update(
+                {"ZANA_PRIMARY_PROVIDER": "zsm", "ZANA_PRIMARY_MODEL": "sovereign"}
             )
 
     # ── Q4: vault path (silent default) ───────────────────────────────────────

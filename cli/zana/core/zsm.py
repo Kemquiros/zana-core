@@ -24,7 +24,6 @@ import operator as _op
 import os
 import re
 import sqlite3
-from collections import deque
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -68,22 +67,31 @@ _ARCHETYPE_SUFFIXES_EN = {
 
 
 class SessionMemory:
-    """RAM-only circular buffer of the last 10 conversation pairs."""
+    """Persistent session memory using MemoryLiteDB."""
 
-    def __init__(self, maxlen: int = 10) -> None:
-        self._buf: deque[tuple[str, str]] = deque(maxlen=maxlen)
+    def __init__(self, session_id: str = "default", maxlen: int = 10) -> None:
+        self.session_id = session_id
+        self.maxlen = maxlen
+        from zana.core.memory_lite import get_db
+
+        self._db = get_db()
 
     def push(self, user: str, aeon: str) -> None:
-        self._buf.append((user, aeon))
+        self._db.add_session_record(self.session_id, user, aeon)
+
+    def _get_history(self, limit: int = 1) -> list[dict]:
+        return self._db.get_session_history(self.session_id, limit=limit)
 
     def last_user(self) -> str | None:
-        return self._buf[-1][0] if self._buf else None
+        hist = self._get_history(1)
+        return hist[0]["user_query"] if hist else None
 
     def last_aeon(self) -> str | None:
-        return self._buf[-1][1] if self._buf else None
+        hist = self._get_history(1)
+        return hist[0]["aeon_response"] if hist else None
 
     def resolve_reference(self, query: str) -> str | None:
-        """If query is a reference pronoun ('eso', 'that', 'esto'), return last topic."""
+        """If query is a reference pronoun, return last user topic."""
         q = query.lower().strip()
         ref_words = {
             "eso",
@@ -97,15 +105,15 @@ class SessionMemory:
             "quello",
             "das",
         }
-        if q in ref_words and self._buf:
-            return self._buf[-1][0]
+        if q in ref_words:
+            return self.last_user()
         return None
 
     def context_line(self, lang: str = "es") -> str | None:
-        if not self._buf:
+        last_u = self.last_user()
+        if not last_u:
             return None
-        last_user, _ = self._buf[-1]
-        return t("zsm.response.session_context", lang=lang, ctx=last_user[:60])
+        return t("zsm.response.session_context", lang=lang, ctx=last_u[:60])
 
 
 # ── Intent Router ─────────────────────────────────────────────────────────────
@@ -506,37 +514,72 @@ _INTENT_PATTERNS: dict[str, list[str]] = {
 
 
 def _detect_intent(query: str) -> str:
+    from zana.core.zsm_engine import detect, record_intent
+
     q = query.lower()
 
-    # Math: detect operators or % patterns directly
+    # Math: detect operators or % patterns directly — regex is authoritative
     if re.search(r"\d[\s]*[+\-*/×÷^%][\s]*\d", q):
         return "math"
     if re.search(r"\d+%\s*(de|of|von|di|de)\s*\d+", q):
         return "math"
 
-    # Web search: check multi-word triggers before single-word intents like vault/skill
-    for kw in _INTENT_PATTERNS.get("web_search", []):
-        if kw in q:
-            return "web_search"
+    # Pre-NLU keyword check — high-specificity intents the NLU can misclassify.
+    # wisdom_capture must come before memory (both share "remember*" variants).
+    for intent in [
+        "wisdom_capture",
+        "memory_reflect",
+        "ledger",
+        "aeon",
+        "tier",
+        "memory",
+        "companion",
+        "help",
+    ]:
+        for kw in _INTENT_PATTERNS.get(intent, []):
+            if kw in q:
+                record_intent(intent)
+                return intent
 
-    # Shell: check before vault to prevent "busca archivos" hitting vault's "busca"
-    for kw in _INTENT_PATTERNS.get("shell", []):
-        if kw in q:
-            return "shell"
+    # Delegate to the symbolic NLU engine
+    results = detect(query, _INTENT_PATTERNS)
+    if not results:
+        return "general"
 
-    # Wisdom capture: check before memory/vault to prevent "recuerda que" hitting memory's "recuerda"
-    for kw in _INTENT_PATTERNS.get("wisdom_capture", []):
-        if kw in q:
-            return "wisdom_capture"
+    top_intent, top_score = results[0]
 
-    # Memory reflect: check before memory to prevent "reflect" / "refleja" hitting memory's "recuerda"
-    for kw in _INTENT_PATTERNS.get("memory_reflect", []):
-        if kw in q:
-            return "memory_reflect"
+    # High-confidence direct dispatch
+    if top_score >= 0.75:
+        record_intent(top_intent)
+        return top_intent
 
+    # Moderate confidence — still dispatch but log low confidence
+    if top_score >= 0.50:
+        record_intent(top_intent)
+        return top_intent
+
+    # Low-confidence keyword fallback
+    for intent in ["web_search", "wisdom_capture", "memory_reflect"]:
+        for kw in _INTENT_PATTERNS.get(intent, []):
+            if kw in q:
+                return intent
+
+    # Moderate-priority intents (before generic ones)
+    for intent in ["shell", "vault"]:
+        for kw in _INTENT_PATTERNS.get(intent, []):
+            if kw in q:
+                return intent
+
+    # Fallback to remaining patterns
     for intent, keywords in _INTENT_PATTERNS.items():
-        if intent in ("web_search", "shell", "wisdom_capture", "memory_reflect"):
-            continue  # already checked above
+        if intent in (
+            "web_search",
+            "shell",
+            "wisdom_capture",
+            "memory_reflect",
+            "vault",
+        ):
+            continue
         for kw in keywords:
             if kw in q:
                 return intent
@@ -1319,6 +1362,17 @@ class ZSMEngine:
                 )
             return ""
         else:
+            # Show top-3 intent suggestions when engine has low-confidence matches
+            from zana.core.zsm_engine import detect
+
+            results = detect(query, _INTENT_PATTERNS)
+            if results and results[0][1] > 0.20:
+                console.print("[dim]¿Quisiste decir?[/dim]")
+                for intent, score in results[:3]:
+                    if score > 0.20:
+                        console.print(
+                            f"  [bold]•[/bold] {intent} [dim]({score:.0%})[/dim]"
+                        )
             return t("zsm.response.unknown", lang=lang)
 
 

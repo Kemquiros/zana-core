@@ -16,10 +16,19 @@ from zana.tui.theme import console
 
 herald_app = typer.Typer(
     name="herald",
-    help="Herald v2 — Slack and Email notification channels.",
+    help="Herald v2 — Slack and Email notification channels (One-way).",
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
+
+
+@herald_app.callback()
+def callback() -> None:
+    """
+    Herald Layer: One-way notifications for Slack and Email.
+    For interactive, two-way bots (Telegram/Discord/WhatsApp), use: zana satellite
+    """
+    pass
 
 
 def _audit(event_type: str, payload_hash: str) -> None:

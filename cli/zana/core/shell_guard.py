@@ -87,13 +87,20 @@ _SENSITIVE_DIRS = (".zana", ".ssh", ".gnupg", ".aws", ".config/secrets")
 _ALLOWED_ROOTS = (str(Path.home()), "/tmp", "/var/folders")
 
 
+_SHELL_METACHARACTERS = frozenset(";|&$`><!'\"\\(){}")
+
+
 def _validate_path(raw: str, must_exist: bool = False) -> str | None:
     """Validate and resolve a filesystem path.
 
     Applies realpath() at validation time (TOCTOU prevention). Returns the
     resolved absolute path if it passes all checks, or None if blocked.
     """
-    expanded = os.path.expanduser(raw.strip())
+    name = raw.strip()
+    # Reject shell metacharacters in the raw input before any resolution
+    if any(c in name for c in _SHELL_METACHARACTERS):
+        return None
+    expanded = os.path.expanduser(name)
     resolved = os.path.realpath(expanded)
 
     # Layer: boundary check — must be under home, /tmp, or /var/folders
@@ -123,6 +130,49 @@ def _validate_filename(raw: str) -> str | None:
     if not re.match(r"^[\w\s.\-_()\@+,=\[\]{}]+$", name):
         return None
     return name
+
+
+def _validate_hostname(raw: str) -> str | None:
+    """Validate a hostname or IP address for ping.
+
+    Allows only [a-zA-Z0-9\\-.] chars, max 253 chars.
+    Blocks spaces, slashes, semicolons, and shell metacharacters.
+    """
+    host = raw.strip()
+    if not host:
+        return None
+    if len(host) > 253:
+        return None
+    if not re.match(r"^[a-zA-Z0-9\-\.]+$", host):
+        return None
+    return host
+
+
+_SAFE_CHMOD_MODES = frozenset({"644", "755", "600", "700", "664", "775"})
+
+
+def _validate_chmod_mode(raw: str) -> str | None:
+    """Validate a chmod mode string — only safe modes allowed."""
+    mode = raw.strip()
+    if mode in _SAFE_CHMOD_MODES:
+        return mode
+    return None
+
+
+def _validate_cmd_name(raw: str) -> str | None:
+    """Validate a command name for 'which'.
+
+    Allows only [a-zA-Z0-9\\-_.], max 64 chars.
+    Blocks slashes, spaces, and shell metacharacters.
+    """
+    cmd = raw.strip()
+    if not cmd:
+        return None
+    if len(cmd) > 64:
+        return None
+    if not re.match(r"^[a-zA-Z0-9\-_\.]+$", cmd):
+        return None
+    return cmd
 
 
 def _strip_ansi(text: str) -> str:
@@ -363,6 +413,66 @@ _TEMPLATES: dict[str, dict] = {
         "params": {"file": (lambda f: _validate_path(f, must_exist=True), True)},
         "argv": lambda p: ["tail", "-n", "50", p["file"]],
     },
+    "open_file": {
+        "desc": "Open file with default application",
+        "triggers": [
+            "abre el archivo",
+            "open file",
+            "abrir",
+            "visualiza",
+            "abre con",
+        ],
+        "params": {"file": (lambda f: _validate_path(f, must_exist=True), True)},
+        "argv": lambda p: ["xdg-open", p["file"]],
+    },
+    "ping_host": {
+        "desc": "Ping a host (3 packets)",
+        "triggers": [
+            "ping",
+            "hace ping",
+            "comprueba conectividad",
+            "está activo el host",
+        ],
+        "params": {"host": (_validate_hostname, False)},
+        "argv": lambda p: ["ping", "-c", "3", p["host"]],
+    },
+    "chmod_safe": {
+        "desc": "Change file permissions (safe modes only: 644, 755, 600, 700)",
+        "triggers": [
+            "cambia permisos",
+            "chmod",
+            "change permissions",
+            "permisos del archivo",
+        ],
+        "params": {
+            "mode": (_validate_chmod_mode, False),
+            "file": (lambda f: _validate_path(f, must_exist=True), True),
+        },
+        "argv": lambda p: ["chmod", p["mode"], p["file"]],
+        "bypass_denylist": True,  # chmod is in _FORBIDDEN_COMMANDS; mode is strictly whitelisted
+    },
+    "which_cmd": {
+        "desc": "Find location of a command",
+        "triggers": [
+            "dónde está el comando",
+            "which",
+            "encuentra el comando",
+            "ubicación del comando",
+        ],
+        "params": {"cmd": (_validate_cmd_name, False)},
+        "argv": lambda p: ["which", p["cmd"]],
+    },
+    "df_disk": {
+        "desc": "Show disk space usage",
+        "triggers": [
+            "uso del sistema de archivos",
+            "df",
+            "espacio en disco disponible",
+            "filesystem space",
+        ],
+        "params": {},  # no path needed — show all
+        "argv": lambda p: ["df", "-h"],
+    },
 }
 
 
@@ -560,3 +670,74 @@ def shell_history(console, limit: int = 20) -> None:
             f"  [{color}]{etype}[/{color}]  [muted]{ts}[/muted]  [dim]{h}[/dim]"
         )
     console.print()
+
+
+# ── Shell audit ───────────────────────────────────────────────────────────────
+
+_AUDIT_EVENT_TYPES = (
+    "ShellForbiddenCommand",
+    "ShellInvalidParam",
+    "ShellMissingParam",
+    "ShellUnknownIntent",
+    "ShellCancelled",
+    "ShellTimeout",
+    "ShellError",
+)
+
+_SEVERITY_MAP = {
+    "ShellForbiddenCommand": ("HIGH", "red"),
+    "ShellInvalidParam": ("HIGH", "red"),
+    "ShellMissingParam": ("HIGH", "red"),
+    "ShellCancelled": ("MEDIUM", "yellow"),
+    "ShellTimeout": ("MEDIUM", "yellow"),
+    "ShellUnknownIntent": ("INFO", "blue"),
+    "ShellError": ("MEDIUM", "yellow"),
+}
+
+
+def shell_audit(console, top_n: int = 10) -> None:
+    """Show blocked and cancelled shell attempts from the Civic Ledger."""
+    from rich.table import Table
+
+    try:
+        from zana.core.sentinel_lite import SentinelLiteDB
+
+        db = SentinelLiteDB()
+        counts: dict[str, int] = {}
+        for etype in _AUDIT_EVENT_TYPES:
+            rows = db.events(limit=10_000, event_type=etype)
+            if rows:
+                counts[etype] = len(rows)
+        db.close()
+    except Exception as exc:
+        console.print(f"[warning]Cannot read Civic Ledger: {exc}[/warning]")
+        return
+
+    if not counts:
+        console.print("[muted]Sin intentos bloqueados registrados.[/muted]")
+        return
+
+    # Sort by count descending, apply top_n cap
+    sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:top_n]
+
+    table = Table(
+        title="Shell Audit Report",
+        show_header=True,
+        header_style="bold",
+    )
+    table.add_column("Event Type", style="bold", no_wrap=True)
+    table.add_column("Count", justify="right")
+    table.add_column("Severity", justify="center")
+
+    total = 0
+    for etype, count in sorted_counts:
+        severity_label, color = _SEVERITY_MAP.get(etype, ("INFO", "blue"))
+        table.add_row(
+            etype,
+            str(count),
+            f"[{color}]{severity_label}[/{color}]",
+        )
+        total += count
+
+    console.print(table)
+    console.print(f"\n[bold]Total blocked attempts:[/bold] [error]{total}[/error]\n")

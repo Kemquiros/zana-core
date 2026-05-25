@@ -184,7 +184,23 @@ def cmd_wisdom_approve(wisdom_id: str) -> None:
     console.print(f"  ID en registry: [accent]{data.get('skill_id', '?')}[/accent]\n")
 
 
-def cmd_wisdom_propose(text: str, console=None) -> None:
+def _audit_wisdom(event_type: str, rule: dict) -> None:
+    """Write a Civic Ledger entry for a wisdom event."""
+    import hashlib
+    import json
+
+    try:
+        from zana.core.sentinel_lite import SentinelLiteDB
+
+        payload = json.dumps(rule, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        h = "sha256:" + hashlib.sha256(payload).hexdigest()[:16]
+        db = SentinelLiteDB()
+        db.record(event_type, payload_hash=h, civic_hash=h)
+    except Exception:
+        pass  # Audit failures must never break the main flow
+
+
+def cmd_wisdom_propose(text: str, console=None, confidence: float = 0.85) -> None:
     """Create a WisdomRule candidate from free text and add to pending queue."""
     import re
     from datetime import UTC, datetime
@@ -219,12 +235,71 @@ def cmd_wisdom_propose(text: str, console=None) -> None:
         "created_at": datetime.now(UTC).isoformat(),
     }
 
-    WisdomQueue().add(proposal)
-    console.print(
-        f"[success]✓ WisdomRule proposed:[/success] [accent]{rule_id}[/accent]"
+    result = WisdomQueue().add(proposal)
+    if result == "duplicate":
+        console.print(
+            "[warning]⚠ Regla similar ya existe (ratio > 85%). No añadida.[/warning]"
+        )
+    elif result == "auto_approved":
+        console.print(
+            f"[success]✓ Regla auto-aprobada (confianza ≥ 90%): '{proposal['name']}'[/success]"
+        )
+        console.print("[dim]Alta confianza → absorción directa al Civic Ledger.[/dim]")
+        _audit_wisdom("WisdomAutoApproved", proposal)
+    else:
+        console.print(
+            f"[success]✓ Regla propuesta: '{proposal['name']}' (confianza: {proposal['confidence']:.0%})[/success]"
+        )
+        console.print("[dim]Usa 'zana wisdom inbox' para revisar y aprobar.[/dim]")
+
+
+def cmd_wisdom_stats(console=None) -> None:
+    """Show WisdomQueue absorption analytics."""
+    from zana.core.wisdom_queue import WisdomQueue
+
+    if console is None:
+        from zana.tui.theme import console as _console
+
+        console = _console
+
+    from rich.table import Table
+
+    s = WisdomQueue().stats()
+
+    if s["total_proposed"] == 0:
+        console.print(
+            "[muted]No hay WisdomRules todavía. Usa 'zana wisdom propose \"...\"'[/muted]"
+        )
+        return
+
+    console.print("\n[bold]WisdomRule Analytics[/bold]\n")
+
+    table = Table(show_header=True, header_style="bold magenta", box=None)
+    table.add_column("Pending", justify="right")
+    table.add_column("Approved", justify="right")
+    table.add_column("Rejected", justify="right")
+    table.add_column("Auto-approved", justify="right")
+    table.add_column("Absorption Rate", justify="right")
+    table.add_column("Avg Confidence", justify="right")
+
+    table.add_row(
+        str(s["pending_count"]),
+        str(s["approved_count"]),
+        str(s["rejected_count"]),
+        str(s["auto_approved_count"]),
+        f"{s['absorption_rate']:.0%}",
+        f"{s['avg_confidence']:.0%}",
     )
-    console.print(f"  [muted]{name}[/muted]")
-    console.print("[dim]Review with: zana wisdom inbox[/dim]")
+    console.print(table)
+
+    if s["absorption_rate"] > 0.70:
+        console.print(
+            f"[success]✓ Alta absorción de sabiduría ({s['absorption_rate']:.0%})[/success]"
+        )
+    if s["auto_approved_count"] > 0:
+        console.print(
+            f"[dim]{s['auto_approved_count']} reglas auto-aprobadas por alta confianza.[/dim]"
+        )
 
 
 def cmd_wisdom_reject(wisdom_id: str) -> None:

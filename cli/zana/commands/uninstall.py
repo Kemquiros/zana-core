@@ -65,6 +65,55 @@ def _remove_data_dirs() -> list[Path]:
         if d.exists():
             shutil.rmtree(d, ignore_errors=True)
             removed.append(d)
+
+    # Prune binary symlinks
+    bin_path = Path.home() / ".local" / "bin" / "zana"
+    if bin_path.exists():
+        try:
+            console.print("[muted]Eliminando binario ZANA...[/muted]")
+            bin_path.unlink()
+        except Exception as e:
+            console.print(f"[warning]No se pudo eliminar {bin_path}: {e}[/warning]")
+
+    # Prune site-packages
+    site_packages = Path.home() / ".local" / "lib" / "python3.12" / "site-packages"
+    for item in site_packages.glob("zana*"):
+        try:
+            if item.is_dir():
+                shutil.rmtree(item)
+            else:
+                item.unlink()
+        except Exception:
+            pass
+
+    # Prune Docker resources if Docker is available
+    if shutil.which("docker"):
+        console.print("[muted]Limpiando recursos de Docker (ZANA stack)...[/muted]")
+        try:
+            # Prune volumes with label com.vecanova.zana
+            subprocess.run(
+                [
+                    "docker",
+                    "volume",
+                    "prune",
+                    "-f",
+                    "--filter",
+                    "label=com.vecanova.zana",
+                ],
+                capture_output=True,
+            )
+            # Try to remove images if they exist
+            images = [
+                "vecanova/zana-gateway",
+                "vecanova/zana-sentinel",
+                "chromadb/chroma",
+                "neo4j",
+                "postgres:16-alpine",
+            ]
+            for img in images:
+                subprocess.run(["docker", "rmi", img], capture_output=True)
+        except Exception:
+            pass
     return removed
 
 
