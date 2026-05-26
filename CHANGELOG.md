@@ -7,6 +7,20 @@ Versioning: [Semantic Versioning](https://semver.org/)
 
 ---
 
+## [3.15.0] — 2026-05-25
+
+### Added
+- **The Agora v1.0** — sovereign skill marketplace: `zana skill publish --agora`, `zana skill search --agora`, `zana skill adopt`. GitHub-hosted JSON registry, stdlib-only HTTP client (`urllib`), graceful offline fallback.
+- **ZANA ID v1.0** — portable Aeon identity: `zana id export` / `zana id import` / `zana id fingerprint`. AES-256-GCM encryption, PBKDF2-SHA256 KDF (390K iterations), random salt+nonce per export. Bundle: DNA, WisdomRules, episodic memory, skills metadata.
+- New core modules: `zana.core.agora` (Agora registry client), `zana.core.aeon_serializer` (encrypt/decrypt `.zaeon.enc`)
+- `zana id fingerprint` — 8-char hex Aeon fingerprint for identity verification
+
+### Fixed
+- `skill.py`: `cmd_skill_adopt` falls back to legacy registry when Agora is unreachable
+- `identity.py`: conflict resolution in `restore_bundle` — keeps existing files by default (`overwrite=False`)
+
+---
+
 ## [3.14.0] — 2026-05-25
 
 ### Added
