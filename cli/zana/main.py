@@ -498,6 +498,15 @@ def id_zaeon() -> None:
     cmd_id_zaeon()
 
 
+@id_app.command(
+    "fingerprint", help="Show 8-char Aeon fingerprint for identity verification."
+)
+def id_fingerprint() -> None:
+    from zana.commands.identity import cmd_id_fingerprint
+
+    cmd_id_fingerprint()
+
+
 # ── Aeon sub-commands ─────────────────────────────────────────────────────────
 
 
