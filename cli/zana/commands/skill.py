@@ -12,14 +12,16 @@ The Agora — open skill marketplace (v1):
   Adopt:    downloads SKILL.md from agora + installs locally
 
 Commands:
-  zana skill create <name>         — scaffold a new SKILL.md
-  zana skill list                  — show installed skills
-  zana skill run <name> <prompt>   — execute skill via ZSM dispatcher
-  zana skill info <name>           — show full SKILL.md content
-  zana skill publish <name>        — prepare skill for Agora submission
+  zana skill create <name>                    — scaffold a new SKILL.md
+  zana skill list                             — show installed skills
+  zana skill run <name> <prompt>              — execute skill via ZSM dispatcher
+  zana skill info <name>                      — show full SKILL.md content
+  zana skill publish <name>                   — prepare skill for Agora submission
+  zana skill publish --agora <name>  — submit skill via GitHub issue
   zana skill search <query>        — search The Agora skill marketplace (default)
-  zana skill search <query> --local — search installed local registry only (no network)
-  zana skill adopt <name>          — install a skill from The Agora
+  zana skill search <query> --local — search installed local registry only
+  zana skill search <query> --agora — explicitly search The Agora (remote)
+  zana skill adopt <name>                     — install a skill from The Agora
 """
 
 from __future__ import annotations
@@ -33,8 +35,10 @@ from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
 
+from rich.panel import Panel
 from rich.table import Table
 
+from zana.core import agora as agora_module
 from zana.tui.theme import console
 
 SKILLS_DIR = Path.home() / ".zana" / "skills"
@@ -354,6 +358,56 @@ def cmd_skill_publish(name: str | None = None) -> None:
     )
 
 
+def cmd_skill_publish_agora(skill_name: str, github_token: str = "") -> None:
+    """Pack a local skill and submit it to The Agora via GitHub issue.
+
+    Requires a GitHub personal access token with ``repo`` scope.
+    Pass it via *github_token* or set the ``GITHUB_TOKEN`` environment variable.
+    """
+    token = github_token or os.environ.get("GITHUB_TOKEN", "")
+
+    skill_dir = SKILLS_DIR / skill_name
+    if not (skill_dir / "SKILL.md").exists():
+        console.print(f"[error]✗ Skill '{skill_name}' not found at {skill_dir}[/error]")
+        console.print("  List installed skills: [accent]zana skill list[/accent]")
+        return
+
+    if not token:
+        console.print(
+            "[error]✗ GitHub token required. Pass --github-token "
+            "or set GITHUB_TOKEN.[/error]"
+        )
+        return
+
+    console.print(f"\n[muted]Packing skill '{skill_name}'…[/muted]")
+    try:
+        agora_module.pack_skill(skill_dir)
+    except FileNotFoundError as exc:
+        console.print(f"[error]✗ {exc}[/error]")
+        return
+
+    console.print(f"[muted]Submitting '{skill_name}' to The Agora…[/muted]")
+    try:
+        issue_url = agora_module.publish_skill_to_agora(skill_name, skill_dir, token)
+    except ValueError as exc:
+        console.print(f"[error]✗ {exc}[/error]")
+        return
+    except Exception as exc:  # noqa: BLE001
+        console.print(f"[error]✗ Agora submission failed: {exc}[/error]")
+        return
+
+    console.print(
+        Panel(
+            f"[success]✓ Skill '{skill_name}' submitted to The Agora![/success]\n\n"
+            f"  Issue URL: [accent]{issue_url}[/accent]\n\n"
+            "  The Agora maintainers will review your submission and add it to\n"
+            "  the registry. Track progress at the issue URL above.",
+            title="[bold]Agora Submission[/bold]",
+            border_style="green",
+        )
+    )
+
+
 def _cmd_skill_search_local(query: str) -> None:
     """Filter the local skill registry by keyword (no network required)."""
     registry = _load_registry()
@@ -405,31 +459,24 @@ def _cmd_skill_search_local(query: str) -> None:
     )
 
 
-def cmd_skill_search(query: str, local: bool = False) -> None:
-    """Search installed skills (--local) or The Agora marketplace (default)."""
-    if local:
-        _cmd_skill_search_local(query)
-        return
-
+def _cmd_skill_search_agora(query: str) -> None:
+    """Search The Agora remote registry using the agora module."""
     console.print(f"\n[muted]Searching The Agora for '{query}'…[/muted]")
-    data = _fetch_agora_registry()
+    registry = agora_module.fetch_registry()
 
-    if data is None:
-        console.print(
-            "[warning]⚠ Could not reach The Agora registry (offline or unavailable).[/warning]"
-        )
-        console.print("  Check your connection or try again later.\n")
-        return
+    if not registry:
+        # Also try the legacy helper for graceful fallback
+        data = _fetch_agora_registry()
+        if data is None:
+            console.print(
+                "[warning]⚠ Could not reach The Agora registry "
+                "(offline or unavailable).[/warning]"
+            )
+            console.print("  Check your connection or try again later.\n")
+            return
+        registry = data.get("skills", []) if isinstance(data, dict) else []
 
-    skills: list[dict] = data.get("skills", [])
-    q = query.lower()
-    matches = [
-        s
-        for s in skills
-        if q in s.get("name", "").lower()
-        or q in s.get("description", "").lower()
-        or q in " ".join(s.get("tags", [])).lower()
-    ]
+    matches = agora_module.search_registry(query, registry)
 
     console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
     console.print(
@@ -444,11 +491,11 @@ def cmd_skill_search(query: str, local: bool = False) -> None:
     table = Table(
         show_header=True, header_style="bold magenta", box=None, padding=(0, 2)
     )
+    table.add_column("ID", style="muted", min_width=18)
     table.add_column("Name", style="accent", min_width=20)
-    table.add_column("Ver", style="muted", min_width=6)
+    table.add_column("Tags", style="muted", min_width=14)
     table.add_column("Description", min_width=36)
     table.add_column("Author", style="muted", min_width=12)
-    table.add_column("Tags", style="muted")
 
     for s in matches:
         tags = (
@@ -456,16 +503,27 @@ def cmd_skill_search(query: str, local: bool = False) -> None:
             if isinstance(s.get("tags"), list)
             else s.get("tags", "")
         )
+        skill_id = s.get("id") or s.get("name", "")
         table.add_row(
+            skill_id,
             s.get("name", ""),
-            s.get("version", ""),
+            tags,
             s.get("description", ""),
             s.get("author", ""),
-            tags,
         )
 
     console.print(table)
     console.print("\n  Adopt a skill: [accent]zana skill adopt <name>[/accent]\n")
+
+
+def cmd_skill_search(query: str, local: bool = False, agora: bool = False) -> None:
+    """Search installed skills (--local) or The Agora marketplace (default/--agora)."""
+    if local:
+        _cmd_skill_search_local(query)
+        return
+
+    # --agora is an explicit alias for the remote Agora search (also the default)
+    _cmd_skill_search_agora(query)
 
 
 def cmd_skill_adopt(name: str) -> None:
@@ -482,17 +540,26 @@ def cmd_skill_adopt(name: str) -> None:
         return
 
     console.print(f"\n[muted]Fetching '{name}' from The Agora…[/muted]")
-    data = _fetch_agora_registry()
 
-    if data is None:
-        console.print(
-            "[warning]⚠ Could not reach The Agora registry (offline or unavailable).[/warning]"
+    # Try agora module first (new registry format), fall back to legacy helper
+    registry = agora_module.fetch_registry()
+    if registry:
+        entry = next(
+            (s for s in registry if s.get("id") == name or s.get("name") == name), None
         )
-        console.print("  Check your connection or try again later.\n")
-        return
-
-    skills: list[dict] = data.get("skills", [])
-    entry = next((s for s in skills if s.get("name") == name), None)
+    else:
+        data = _fetch_agora_registry()
+        if data is None:
+            console.print(
+                "[warning]⚠ Could not reach The Agora registry "
+                "(offline or unavailable).[/warning]"
+            )
+            console.print("  Check your connection or try again later.\n")
+            return
+        skills_list: list[dict] = (
+            data.get("skills", []) if isinstance(data, dict) else []
+        )
+        entry = next((s for s in skills_list if s.get("name") == name), None)
 
     if entry is None:
         console.print(f"[error]✗ Skill '{name}' not found in The Agora.[/error]")
