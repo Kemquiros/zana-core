@@ -381,6 +381,44 @@ def cmd_id_import(file: Path, passphrase: str = "", force: bool = False) -> None
     console.print("\n  Run [accent]zana id show[/accent] to verify your identity.\n")
 
 
+def cmd_id_fingerprint() -> None:
+    """Display the short 8-char Aeon fingerprint for identity verification.
+
+    Loads aeon_dna.json (preferred) or aeon_profile.json and delegates to
+    :func:`zana.core.aeon_serializer.fingerprint` for a deterministic hash.
+    """
+    from zana.core.aeon_serializer import fingerprint as _fp
+
+    dna_path = AEON_HOME / "aeon_dna.json"
+    profile_path = AEON_HOME / "aeon_profile.json"
+
+    source_path = dna_path if dna_path.exists() else profile_path
+    if not source_path.exists():
+        console.print(
+            "[warning]No Aeon found. Run [accent]zana init[/accent] first.[/warning]\n"
+        )
+        return
+
+    try:
+        data = json.loads(source_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        console.print(f"[error]✗ Could not read Aeon data: {exc}[/error]\n")
+        return
+
+    # Wrap into bundle-compatible shape for the serializer helper
+    bundle = {"files": {source_path.name: data}}
+    fp = _fp(bundle)
+
+    console.print("\n[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]")
+    console.print("[bold white]  Aeon Fingerprint[/bold white]")
+    console.print("[bold]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/bold]\n")
+    console.print(f"  Fingerprint: [accent]{fp}[/accent]")
+    console.print(
+        "\n  [muted]Share this 8-char ID to verify your Aeon identity without "
+        "revealing private data.[/muted]\n"
+    )
+
+
 def cmd_id_zaeon() -> None:
     """Display your zaeon:// URI — your portable Aeon identity."""
     profile_path = AEON_HOME / "aeon_profile.json"
