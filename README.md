@@ -234,16 +234,39 @@ ZANA scores itself across 7 cognitive pillars on every boot:
 
 ---
 
-## What's New — v3.5.0 "Offline Sovereignty"
+## What's New — v3.15.0 "Community Genesis"
 
-- **Z-Skill v1.0** — `zana skill create/list/run/info`. Drop a `SKILL.md` in `~/.zana/skills/` to activate any skill. agentskills.io compatible.
-- **Full offline command coverage** — `zana wisdom`, `zana sentinel`, `zana memory`, `zana satellite` all work without Docker or Gateway. SPROUT tier is genuinely self-contained.
-- **WisdomQueue** — inbox, approve, reject wisdom proposals locally at `~/.zana/wisdom_queue.json`. Atomic writes (no data loss on crash).
-- **SentinelLiteDB** — local SQLite ring buffer for all Sentinel events (max 1,000). Prunes oldest automatically.
-- **`zana doctor --fix`** — 3 new auto-fix cases: missing wisdom queue, missing skills registry, corrupted memory DB.
-- **176 tests** — up from 130 in v3.4.0. Every offline path tested in CI.
+- **The Agora v1.0** — sovereign skill marketplace. `zana skill publish --agora`, `zana skill search --agora`, `zana skill adopt`. GitHub-hosted JSON registry, no custom server, graceful offline fallback.
+- **ZANA ID v1.0** — portable Aeon identity. `zana id export` → `.zaeon.enc` (AES-256-GCM + PBKDF2-SHA256, 390K iterations). `zana id import` on any machine. `zana id fingerprint` shows your 8-char Aeon ID.
+- **NLU v2** — ZSM engine with 15 intents, pre-NLU keyword priority routing, zero API calls for intent classification.
+- **Provider CLI** — `zana provider list/use`. Gemini 2.5, Claude 4.x, o3, Llama 3.3, OpenRouter (200+ models).
+- **Quality Shield** — 1067 tests (0 failures). Ruff clean. Rust Sentinel layer.
 
 See the full [CHANGELOG](CHANGELOG.md) for all previous releases.
+
+---
+
+## The Agora — Skill Marketplace
+
+Skills are reusable AI workflows stored in `~/.zana/skills/<name>/`. The Agora is the P2P registry:
+
+```bash
+# Publish your skill to the community
+zana skill publish --agora my-research-skill
+
+# Discover skills from other Aeons
+zana skill search --agora "code review"
+
+# Adopt a skill locally
+zana skill adopt code-reviewer-v2
+
+# Your identity, portable and encrypted
+zana id export              # → ~/.zana/aeon_backup.zaeon.enc
+zana id import backup.zaeon.enc   # restore on any machine
+zana id fingerprint         # → a3f7b21c
+```
+
+Skills are sovereign assets. They live on your machine. The registry is open. No intermediary owns your knowledge.
 
 ---
 
@@ -251,16 +274,16 @@ See the full [CHANGELOG](CHANGELOG.md) for all previous releases.
 
 See [docs/ROADMAP.md](docs/ROADMAP.md) for the full roadmap.
 
-**v3.5.0 "Offline Sovereignty" — Live ✅**
+**v3.15.0 "Community Genesis" — Live ✅**
 
-Every command works without Docker. SEED + SPROUT tier users get a complete, self-contained Aeon.
+The Agora skill marketplace + ZANA ID portable identity. ZANA scales from personal tool to community ecosystem.
 
-**Next — v3.6 "Community"**
+**Next — community-driven**
 
-- Z-Sync — privacy-preserving WisdomRule federation between Aeons
-- The Agora — open skill marketplace
+- Z-Sync — privacy-preserving WisdomRule federation
 - `zaeon://` — universal Aeon identity URI
 - WhatsApp + Discord Herald channels
+- Issues and PRs welcome: https://github.com/Kemquiros/zana-core
 
 ---
 
