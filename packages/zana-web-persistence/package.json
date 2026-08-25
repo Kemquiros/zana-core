@@ -1,0 +1,39 @@
+{
+  "name": "@vecanova/zana-web-persistence",
+  "version": "0.1.0",
+  "description": "Browser-side persistence for ZANA Aeons — IndexedDB adapters behind hexagonal ports. Wire-compatible with the CLI kernel's zana.aeon_entity/1 schema.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "zana",
+    "aeon",
+    "indexeddb",
+    "local-first",
+    "sovereign",
+    "persistence"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "idb": "^8.0.3"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "private": true
+}
