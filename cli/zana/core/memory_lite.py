@@ -375,7 +375,9 @@ class MemoryLiteDB:
         ).fetchall()
         return [{"content": r[0], "role": r[1], "timestamp": r[2]} for r in rows]
 
-    def get_session_history(self, session_id: str, limit: int = 10) -> list[dict[str, Any]]:
+    def get_session_history(
+        self, session_id: str, limit: int = 10
+    ) -> list[dict[str, Any]]:
         rows = self._conn.execute(
             "SELECT user_query, aeon_response, timestamp FROM session_history"
             " WHERE session_id = ? ORDER BY timestamp DESC, id DESC LIMIT ?",

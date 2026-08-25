@@ -199,8 +199,12 @@ class TestMemory:
 
     def test_trajectory_ordered_by_time(self):
         aeon = new_entity(kind="human", name="J")
-        aeon.remember(layer="episodic", content="later event", at="2027-01-01T00:00:00+00:00")
-        aeon.remember(layer="episodic", content="earlier event", at="2026-01-01T00:00:00+00:00")
+        aeon.remember(
+            layer="episodic", content="later event", at="2027-01-01T00:00:00+00:00"
+        )
+        aeon.remember(
+            layer="episodic", content="earlier event", at="2026-01-01T00:00:00+00:00"
+        )
         traj = aeon.trajectory(topic="event")
         assert traj[0].content == "earlier event"
         assert traj[-1].content == "later event"

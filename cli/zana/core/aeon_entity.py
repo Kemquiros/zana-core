@@ -76,14 +76,14 @@ _KIND_ALIASES: dict[str, str] = {"person": "human"}
 
 #: Memory layers — AEON doc section 11.
 MEMORY_LAYERS: tuple[str, ...] = (
-    "working",        # what is happening now
-    "episodic",       # what happened
-    "semantic",       # what it knows
-    "relational",     # who it relates to
-    "procedural",     # how it does things
-    "identity",       # who it is
-    "life_history",   # its trajectory
-    "world",          # what it learned about the world
+    "working",  # what is happening now
+    "episodic",  # what happened
+    "semantic",  # what it knows
+    "relational",  # who it relates to
+    "procedural",  # how it does things
+    "identity",  # who it is
+    "life_history",  # its trajectory
+    "world",  # what it learned about the world
 )
 
 #: Presence contexts — AEON doc section 62.
@@ -143,9 +143,7 @@ class PersonalityVector:
             merged[key] = _clamp01(float(value))
         object.__setattr__(self, "dimensions", merged)
 
-    def evolve(
-        self, deltas: dict[str, float], rate: float = 0.1
-    ) -> PersonalityVector:
+    def evolve(self, deltas: dict[str, float], rate: float = 0.1) -> PersonalityVector:
         """Return a new vector moved toward target values by ``rate``."""
         if not 0.0 <= rate <= 1.0:
             raise ValueError("rate must be in [0, 1]")
@@ -157,9 +155,7 @@ class PersonalityVector:
             new_dims[dim] = _clamp01(current + rate * (_clamp01(target) - current))
         return PersonalityVector(new_dims)
 
-    def emotional_state(
-        self, raw: dict[str, float]
-    ) -> dict[str, float]:
+    def emotional_state(self, raw: dict[str, float]) -> dict[str, float]:
         """Graded computational emotional state (no boolean feelings).
 
         Values are clamped to [0, 1]. Per AEON doc section 38 these are
@@ -464,12 +460,8 @@ class AeonEntity:
         entity.constraints = {
             k: dict(v) for k, v in (data.get("constraints") or {}).items()
         }
-        entity.memory = [
-            MemoryRecord.from_dict(m) for m in (data.get("memory") or ())
-        ]
-        entity.presence_ = {
-            k: dict(v) for k, v in (data.get("presence") or {}).items()
-        }
+        entity.memory = [MemoryRecord.from_dict(m) for m in (data.get("memory") or ())]
+        entity.presence_ = {k: dict(v) for k, v in (data.get("presence") or {}).items()}
         return entity
 
 
