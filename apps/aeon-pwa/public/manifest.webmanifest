@@ -1,0 +1,27 @@
+{
+  "name": "Tu Aeon — ZANA",
+  "short_name": "Aeon",
+  "description": "Crea tu Aeon: una versión digital de ti que te conoce, crece contigo y vive en tu dispositivo. Sin cuenta, offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f1a",
+  "theme_color": "#0b0f1a",
+  "lang": "es",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

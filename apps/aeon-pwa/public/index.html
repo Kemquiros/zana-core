@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Tu Aeon — ZANA</title>
+  <meta name="description" content="Crea tu Aeon: una versión digital de ti que te conoce, crece contigo y puede representarte en el mundo digital. Sin cuenta, sin claves, offline." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <style>
+    :root {
+      --bg: #0b0f1a;
+      --surface: #121829;
+      --text: #e8ecf8;
+      --muted: #93a0c2;
+      --accent: #7c6cff;
+      --accent-soft: #9d90ff33;
+      --ok: #4ade80;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      background: radial-gradient(1200px 800px at 70% -10%, #1b2340 0%, var(--bg) 55%);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100dvh; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+    }
+    main { width: 100%; max-width: 520px; display: flex; flex-direction: column; flex: 1; }
+    header { display: flex; justify-content: space-between; align-items: center; padding: 18px 4px; }
+    .brand { font-weight: 700; letter-spacing: .14em; font-size: 13px; color: var(--muted); text-transform: uppercase; }
+    .brand span { color: var(--accent); }
+    button.icon {
+      background: none; border: 1px solid #ffffff22; color: var(--muted);
+      border-radius: 10px; padding: 6px 10px; cursor: pointer; font-size: 14px;
+    }
+    h1 { font-size: clamp(28px, 7vw, 40px); line-height: 1.1; margin: 12px 4px; font-weight: 800; }
+    h1 em { color: var(--accent); font-style: normal; }
+    .sub { color: var(--muted); margin: 0 4px 18px; line-height: 1.5; }
+    #sigil {
+      width: 84px; height: 84px; border-radius: 24px; margin: 4px 4px 10px;
+      background: conic-gradient(from var(--a, 0deg), #7c6cff, #4ade80, #38bdf8, #7c6cff);
+      filter: saturate(1.15); box-shadow: 0 8px 40px #7c6cff44;
+      animation: spin 24s linear infinite;
+    }
+    @keyframes spin { to { --a: 360deg; } }
+    @property --a { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+    #chat {
+      flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
+      padding: 12px 4px; min-height: 200px;
+    }
+    .msg { max-width: 85%; padding: 10px 14px; border-radius: var(--radius); line-height: 1.45; white-space: pre-wrap; }
+    .msg.aeon { background: var(--surface); align-self: flex-start; border: 1px solid #ffffff12; }
+    .msg.you { background: var(--accent-soft); align-self: flex-end; border: 1px solid #7c6cff55; }
+    form { display: flex; gap: 8px; padding: 10px 0 18px; position: sticky; bottom: 0; }
+    input[type="text"] {
+      flex: 1; background: var(--surface); border: 1px solid #ffffff1c; color: var(--text);
+      border-radius: 14px; padding: 14px 16px; font-size: 16px; outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    form button {
+      background: var(--accent); border: 0; color: white; font-weight: 700;
+      border-radius: 14px; padding: 0 20px; cursor: pointer; font-size: 15px;
+    }
+    dialog {
+      background: var(--surface); color: var(--text); border: 1px solid #ffffff18;
+      border-radius: var(--radius); padding: 20px; max-width: 480px; width: calc(100% - 32px);
+    }
+    dialog::backdrop { background: #000a; backdrop-filter: blur(4px); }
+    dialog h2 { font-size: 18px; margin-bottom: 10px; }
+    dialog ul { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    dialog li { background: #ffffff08; border-radius: 10px; padding: 8px 12px; font-size: 14px; word-break: break-word; }
+    dialog .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+    dialog button {
+      border-radius: 10px; padding: 8px 14px; cursor: pointer; font-size: 14px;
+      background: var(--accent); color: white; border: 0;
+    }
+    dialog button.ghost { background: transparent; border: 1px solid #ffffff22; color: var(--muted); }
+    .install-banner {
+      display: none; justify-content: space-between; align-items: center; gap: 10px;
+      background: var(--surface); border: 1px solid #7c6cff44; border-radius: var(--radius);
+      padding: 12px 14px; margin: 0 4px 10px; font-size: 14px;
+    }
+    .install-banner.visible { display: flex; }
+    .install-banner b { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="brand">ZANA <span>AEON</span></div>
+      <div style="display:flex;gap:8px">
+        <button class="icon" id="btn-knows" title="Lo que mi Aeon sabe">✦ sabe</button>
+        <button class="icon" id="btn-export" title="Exportar mi Aeon">⤓</button>
+      </div>
+    </header>
+
+    <div id="sigil" aria-hidden="true"></div>
+    <h1 id="headline">Tu Aeon te está<br /><em>esperando</em>.</h1>
+    <p class="sub" id="subline">Una versión digital de ti que te conoce, crece contigo y vive en TU dispositivo. Sin cuenta. Sin claves. Offline.</p>
+
+    <div class="install-banner" id="install-banner">
+      <span>Instálalo y tu Aeon vivirá incluso <b>sin internet</b>.</span>
+      <button class="icon" id="btn-install">Instalar</button>
+    </div>
+
+    <div id="chat" aria-live="polite"></div>
+
+    <form id="composer">
+      <input type="text" id="input" autocomplete="off"
+        placeholder="Cuéntale quién eres o qué quieres lograr…"
+        aria-label="Escribe a tu Aeon" required minlength="2" maxlength="500" />
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
+
+  <dialog id="knows-dialog">
+    <h2>Lo que tu Aeon sabe</h2>
+    <p style="color:var(--muted);font-size:13px">Todo vive solo en este dispositivo. Puedes borrar cualquier cosa.</p>
+    <ul id="knows-list"></ul>
+    <div class="row">
+      <button class="ghost" id="btn-forget-all">Olvidar todo</button>
+      <button id="btn-close-knows">Cerrar</button>
+    </div>
+  </dialog>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
